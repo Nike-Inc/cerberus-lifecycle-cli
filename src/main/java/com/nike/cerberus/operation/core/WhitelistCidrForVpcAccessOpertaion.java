@@ -45,20 +45,8 @@ public class WhitelistCidrForVpcAccessOpertaion implements Operation<WhitelistCi
     @Override
     public void run(final WhitelistCidrForVpcAccessCommand command) {
         final BaseOutputs baseStackOutputs = configStore.getBaseStackOutputs();
-        final List<IpPermission> ipPermissionList = Lists.newArrayListWithCapacity(command.getPorts().size());
 
-        logger.info("Building IP permission list...");
-        command.getPorts().forEach(port -> {
-            IpPermission ipPermission = new IpPermission()
-                    .withIpRanges(command.getCidrs())
-                    .withIpProtocol("tcp")
-                    .withFromPort(port)
-                    .withToPort(port);
-
-            ipPermissionList.add(ipPermission);
-        });
-
-        logger.info("Sending revoke previous ingress rules request...");
+        logger.info("Revoking the previous ingress rules...");
         final DescribeSecurityGroupsResult securityGroupsResult = ec2Client.describeSecurityGroups(
                 new DescribeSecurityGroupsRequest().withGroupIds(baseStackOutputs.getToolsIngressSgId()));
         securityGroupsResult.getSecurityGroups().forEach(securityGroup -> {
@@ -71,7 +59,18 @@ public class WhitelistCidrForVpcAccessOpertaion implements Operation<WhitelistCi
         });
         logger.info("Done.");
 
-        logger.info("Sending authorize ingress rules request...");
+        logger.info("Authorizing the new ingress rules...");
+        final List<IpPermission> ipPermissionList = Lists.newArrayListWithCapacity(command.getPorts().size());
+        command.getPorts().forEach(port -> {
+            IpPermission ipPermission = new IpPermission()
+                    .withIpRanges(command.getCidrs())
+                    .withIpProtocol("tcp")
+                    .withFromPort(port)
+                    .withToPort(port);
+
+            ipPermissionList.add(ipPermission);
+        });
+
         AuthorizeSecurityGroupIngressRequest ingressRequest = new AuthorizeSecurityGroupIngressRequest()
                 .withGroupId(baseStackOutputs.getToolsIngressSgId())
                 .withIpPermissions(ipPermissionList);
