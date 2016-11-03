@@ -1,0 +1,74 @@
+buildscript {
+    apply from: file('gradle/buildscript.gradle'), to: buildscript
+}
+
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'maven'
+    apply plugin: 'nebula.dependency-lock'
+    apply plugin: 'application'
+}
+
+apply from: file('gradle/dependencies.gradle')
+apply from: file('gradle/check.gradle')
+apply from: file('gradle/integration.gradle')
+
+mainClassName = 'com.nike.cerberus.cli.CerberusRunner'
+
+task wrapper (type: Wrapper) {
+    gradleVersion = '2.14'
+}
+
+/**
+ * Executes the python code that uses Troposphere to generate the cloud formation needed to
+ */
+task createCloudFormation() {
+    try {
+        def requirementsPath = "${getProject().getRootDir()}${File.separator}smaas-cf${File.separator}requirements.txt"
+        executeOnShell "pip3 install -r ${requirementsPath}"
+
+        [
+          'consul-cluster.py',
+          'vault-cluster.py',
+          'vpc-and-base.py',
+          'gateway-cluster.py',
+          'cms-cluster.py',
+          'rds-backup-cluster.py',
+          'cloudfront-elb-security-group-updater-lambda.py'
+        ].each { String script ->
+            executeOnShell " PYTHONPATH=${getProject().getRootDir()}${File.separator}smaas-cf python3 ${script}", new File("${getProject().getRootDir()}${File.separator}smaas-cf${File.separator}smaas${File.separator}"), true
+        }
+    } catch (Throwable t) {
+        logger.lifecycle t.getMessage()
+    }
+}
+tasks.installDist.dependsOn createCloudFormation
+
+/**
+ * Runs a command on the command line, streaming the output to STDOUT
+ */
+def executeOnShell(String command, File workingDir = new File("./"), boolean print = false) {
+    logger.debug "Executing command: ${command}"
+    def commandArray = new String[3]
+    commandArray[0] = "sh"
+    commandArray[1] = "-c"
+    commandArray[2] = command
+    def process = new ProcessBuilder(commandArray)
+            .directory(workingDir)
+            .redirectErrorStream(true)
+            .start()
+    def stdout = []
+    process.inputStream.eachLine { line ->
+        stdout.add line
+        if (print) {
+            logger.lifecycle line
+        }
+    }
+    process.waitFor();
+    if (process.exitValue()) {
+        def msg = "Failed to execute command exiting"
+        logger.lifecycle msg
+        throw new GradleException(msg)
+    }
+    return stdout
+}

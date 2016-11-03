@@ -1,0 +1,20 @@
+subprojects {
+    sourceSets {
+        integration {
+            java.srcDir file('src/integration/java')
+            resources.srcDir file('src/integration/resources')
+        }
+    }
+
+    task integration(type: Test, description: 'Runs integration tests') {
+        testClassesDir = sourceSets.integration.output.classesDir
+        classpath = sourceSets.integration.runtimeClasspath
+    }
+
+    dependencies {
+        integrationCompile sourceSets.main.output
+        integrationCompile configurations.testCompile
+        integrationCompile sourceSets.test.output
+        integrationRuntime configurations.testRuntime
+    }
+}

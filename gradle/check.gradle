@@ -1,0 +1,40 @@
+allprojects {
+    apply plugin: 'findbugs'
+    apply plugin: 'cobertura'
+
+    findbugs {
+        ignoreFailures = true
+        sourceSets = [ project.sourceSets.main ]
+    }
+
+    tasks.withType(FindBugs) {
+        reports {
+            xml.withMessages = true
+        }
+    }
+
+    cobertura {
+        // https://github.com/stevesaliman/gradle-cobertura-plugin/blob/master/usage.md
+        coverageReportDir = new File("$buildDir/reports/cobertura")
+        coverageFormats = ['html', 'xml']
+        coverageIgnoreTrivial = false
+        coverageExcludes = [
+
+        ]
+    }
+
+    // lets differentiate between the builds of master and the PR builds.
+    def branch = System.getProperty("FROM_BRANCH", "master")
+
+    // the below block is for setting or overriding config specific to pull request analysis
+    if (! branch.equalsIgnoreCase('master')) {
+        // For PRA we don't want the build to fail on failures.
+        // We want to be able to collect them and inject them back into the Pull Request.
+        codenarc {
+            ignoreFailures = true
+        }
+        test {
+            ignoreFailures = true
+        }
+    }
+}

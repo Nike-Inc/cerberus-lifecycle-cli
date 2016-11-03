@@ -1,0 +1,69 @@
+user www-data;
+worker_processes auto;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+
+    ##
+    # Basic Settings
+    ##
+
+    sendfile    on;
+    tcp_nopush  on;
+    tcp_nodelay on;
+
+    client_body_buffer_size     10K;
+    client_header_buffer_size   1k;
+    client_max_body_size        8m;
+    large_client_header_buffers 2 1k;
+    client_body_timeout         12;
+    client_header_timeout       12;
+    keepalive_timeout           15;
+    send_timeout                10;
+    types_hash_max_size         2048;
+
+    server_tokens off;
+
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    ##
+    # SSL Settings
+    ##
+
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+
+    ##
+    # Logging Settings
+    ##
+
+    log_format access_format '[$time_iso8601] source_ip="$remote_addr" request="$request" request_size="$request_length" request_time="$request_time" response_code="$status" response_size="$bytes_sent" http_referer="$http_referer" http_user_agent="$http_user_agent"';
+
+    access_log /var/log/nginx/access.log access_format;
+    error_log /var/log/nginx/error.log info;
+
+    ##
+    # Gzip Settings
+    ##
+
+    gzip                on;
+    gzip_comp_level     2;
+    gzip_min_length     1000;
+    gzip_proxied        expired no-cache no-store private auth;
+    gzip_buffers        16 8k;
+    gzip_http_version   1.1;
+    gzip_types          text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_disable "msie6";
+
+    ##
+    # Virtual Host Configs
+    ##
+
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}

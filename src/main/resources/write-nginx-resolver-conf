@@ -1,0 +1,6 @@
+
+RESOLVER_CONF="/etc/nginx/conf.d/resolver.conf"
+if [ ! -f ${RESOLVER_CONF} ]; then
+    NAMESERVER=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}')
+    echo "resolver ${NAMESERVER};" > /etc/nginx/conf.d/resolver.conf
+fi
