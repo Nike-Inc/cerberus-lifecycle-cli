@@ -65,21 +65,3 @@ alias cerberus_debug="/path/to/java-app-cerberus-cli/debug.sh"
 ### Updating or adding new dependencies
 
 To update the dependency lock file `./gradlew generateLock saveLock`
-
-### Dealing with certs from Venify
-
-Download the pem from Venify and run the following commands
-
-    openssl rsa -in privkey.pem -pubout > pubkey.pem  
-    openssl rsa -in privkey.pem -out key.pem
-    
-open privkey.pem copy the cert section at the top to cert.pem and copy the ca section to ca.pem
-
-at the end you will have the original file from venify and the following files needed for the cli
-
-file       | purpose
----------- | ---------------------------------
-pubkey.pem | the public key
-key.pem    | the private key
-ca.pem     | the certificate authority key
-cert.pem   | the cert

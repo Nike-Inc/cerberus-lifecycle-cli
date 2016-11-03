@@ -30,7 +30,15 @@
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
         "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
@@ -43,15 +51,15 @@
             "requested": "1.55"
         },
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-core": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.github.spullara.mustache.java:compiler": {
@@ -70,9 +78,229 @@
             "locked": "4.0",
             "requested": "4.0"
         },
-        "com.nike.cpe:vault-client": {
-            "locked": "0.6.5",
-            "requested": "0.6.5"
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
+        },
+        "com.squareup.okhttp3:okhttp": {
+            "locked": "3.3.1",
+            "requested": "3.3.1"
+        },
+        "commons-cli:commons-cli": {
+            "locked": "1.3.1",
+            "requested": "1.3.1"
+        },
+        "commons-io:commons-io": {
+            "locked": "2.4",
+            "requested": "2.4"
+        },
+        "commons-net:commons-net": {
+            "locked": "3.4",
+            "requested": "3.4"
+        },
+        "org.apache.commons:commons-compress": {
+            "locked": "1.10",
+            "requested": "1.10"
+        },
+        "org.apache.commons:commons-lang3": {
+            "locked": "3.4",
+            "requested": "3.4"
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.21",
+            "requested": "1.7.+"
+        },
+        "org.yaml:snakeyaml": {
+            "locked": "1.17",
+            "requested": "1.+"
+        }
+    },
+    "compileClasspath": {
+        "ch.qos.logback:logback-classic": {
+            "locked": "1.1.7",
+            "requested": "1.1.+"
+        },
+        "com.amazonaws:aws-java-sdk-autoscaling": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-cloudformation": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-ec2": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-iam": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-kms": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sts": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.beust:jcommander": {
+            "locked": "1.55",
+            "requested": "1.55"
+        },
+        "com.fasterxml.jackson.core:jackson-annotations": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.fasterxml.jackson.core:jackson-core": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.fasterxml.jackson.core:jackson-databind": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.github.spullara.mustache.java:compiler": {
+            "locked": "0.9.2",
+            "requested": "0.9.2"
+        },
+        "com.github.tomas-langer:chalk": {
+            "locked": "1.0.2",
+            "requested": "1.0.2"
+        },
+        "com.google.code.findbugs:jsr305": {
+            "locked": "3.0.1",
+            "requested": "3.0.+"
+        },
+        "com.google.inject:guice": {
+            "locked": "4.0",
+            "requested": "4.0"
+        },
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
+        },
+        "com.squareup.okhttp3:okhttp": {
+            "locked": "3.3.1",
+            "requested": "3.3.1"
+        },
+        "commons-cli:commons-cli": {
+            "locked": "1.3.1",
+            "requested": "1.3.1"
+        },
+        "commons-io:commons-io": {
+            "locked": "2.4",
+            "requested": "2.4"
+        },
+        "commons-net:commons-net": {
+            "locked": "3.4",
+            "requested": "3.4"
+        },
+        "org.apache.commons:commons-compress": {
+            "locked": "1.10",
+            "requested": "1.10"
+        },
+        "org.apache.commons:commons-lang3": {
+            "locked": "3.4",
+            "requested": "3.4"
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.21",
+            "requested": "1.7.+"
+        },
+        "org.yaml:snakeyaml": {
+            "locked": "1.17",
+            "requested": "1.+"
+        }
+    },
+    "compileOnly": {
+        "ch.qos.logback:logback-classic": {
+            "locked": "1.1.7",
+            "requested": "1.1.+"
+        },
+        "com.amazonaws:aws-java-sdk-autoscaling": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-cloudformation": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-ec2": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-iam": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-kms": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sts": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.beust:jcommander": {
+            "locked": "1.55",
+            "requested": "1.55"
+        },
+        "com.fasterxml.jackson.core:jackson-annotations": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.fasterxml.jackson.core:jackson-core": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.fasterxml.jackson.core:jackson-databind": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.github.spullara.mustache.java:compiler": {
+            "locked": "0.9.2",
+            "requested": "0.9.2"
+        },
+        "com.github.tomas-langer:chalk": {
+            "locked": "1.0.2",
+            "requested": "1.0.2"
+        },
+        "com.google.code.findbugs:jsr305": {
+            "locked": "3.0.1",
+            "requested": "3.0.+"
+        },
+        "com.google.inject:guice": {
+            "locked": "4.0",
+            "requested": "4.0"
+        },
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.3.1",
@@ -132,7 +360,15 @@
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
         "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
@@ -145,15 +381,15 @@
             "requested": "1.55"
         },
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-core": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.github.spullara.mustache.java:compiler": {
@@ -172,9 +408,9 @@
             "locked": "4.0",
             "requested": "4.0"
         },
-        "com.nike.cpe:vault-client": {
-            "locked": "0.6.5",
-            "requested": "0.6.5"
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.3.1",
@@ -239,7 +475,15 @@
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
         "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
@@ -252,15 +496,15 @@
             "requested": "1.55"
         },
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-core": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.github.spullara.mustache.java:compiler": {
@@ -279,9 +523,9 @@
             "locked": "4.0",
             "requested": "4.0"
         },
-        "com.nike.cpe:vault-client": {
-            "locked": "0.6.5",
-            "requested": "0.6.5"
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.3.1",
@@ -341,7 +585,15 @@
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
         "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
@@ -354,15 +606,15 @@
             "requested": "1.55"
         },
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-core": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.github.spullara.mustache.java:compiler": {
@@ -381,9 +633,9 @@
             "locked": "4.0",
             "requested": "4.0"
         },
-        "com.nike.cpe:vault-client": {
-            "locked": "0.6.5",
-            "requested": "0.6.5"
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.3.1",
@@ -401,6 +653,10 @@
             "locked": "3.4",
             "requested": "3.4"
         },
+        "junit:junit": {
+            "locked": "4.12",
+            "requested": "4.12"
+        },
         "org.apache.commons:commons-compress": {
             "locked": "1.10",
             "requested": "1.10"
@@ -408,6 +664,246 @@
         "org.apache.commons:commons-lang3": {
             "locked": "3.4",
             "requested": "3.4"
+        },
+        "org.mockito:mockito-core": {
+            "locked": "1.10.19",
+            "requested": "1.10.19"
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.21",
+            "requested": "1.7.+"
+        },
+        "org.yaml:snakeyaml": {
+            "locked": "1.17",
+            "requested": "1.+"
+        }
+    },
+    "testCompileClasspath": {
+        "ch.qos.logback:logback-classic": {
+            "locked": "1.1.7",
+            "requested": "1.1.+"
+        },
+        "com.amazonaws:aws-java-sdk-autoscaling": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-cloudformation": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-ec2": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-iam": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-kms": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sts": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.beust:jcommander": {
+            "locked": "1.55",
+            "requested": "1.55"
+        },
+        "com.fasterxml.jackson.core:jackson-annotations": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.fasterxml.jackson.core:jackson-core": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.fasterxml.jackson.core:jackson-databind": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.github.spullara.mustache.java:compiler": {
+            "locked": "0.9.2",
+            "requested": "0.9.2"
+        },
+        "com.github.tomas-langer:chalk": {
+            "locked": "1.0.2",
+            "requested": "1.0.2"
+        },
+        "com.google.code.findbugs:jsr305": {
+            "locked": "3.0.1",
+            "requested": "3.0.+"
+        },
+        "com.google.inject:guice": {
+            "locked": "4.0",
+            "requested": "4.0"
+        },
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
+        },
+        "com.squareup.okhttp3:okhttp": {
+            "locked": "3.3.1",
+            "requested": "3.3.1"
+        },
+        "commons-cli:commons-cli": {
+            "locked": "1.3.1",
+            "requested": "1.3.1"
+        },
+        "commons-io:commons-io": {
+            "locked": "2.4",
+            "requested": "2.4"
+        },
+        "commons-net:commons-net": {
+            "locked": "3.4",
+            "requested": "3.4"
+        },
+        "junit:junit": {
+            "locked": "4.12",
+            "requested": "4.12"
+        },
+        "org.apache.commons:commons-compress": {
+            "locked": "1.10",
+            "requested": "1.10"
+        },
+        "org.apache.commons:commons-lang3": {
+            "locked": "3.4",
+            "requested": "3.4"
+        },
+        "org.mockito:mockito-core": {
+            "locked": "1.10.19",
+            "requested": "1.10.19"
+        },
+        "org.slf4j:slf4j-api": {
+            "locked": "1.7.21",
+            "requested": "1.7.+"
+        },
+        "org.yaml:snakeyaml": {
+            "locked": "1.17",
+            "requested": "1.+"
+        }
+    },
+    "testCompileOnly": {
+        "ch.qos.logback:logback-classic": {
+            "locked": "1.1.7",
+            "requested": "1.1.+"
+        },
+        "com.amazonaws:aws-java-sdk-autoscaling": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-cloudformation": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-ec2": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-iam": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-kms": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sts": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.beust:jcommander": {
+            "locked": "1.55",
+            "requested": "1.55"
+        },
+        "com.fasterxml.jackson.core:jackson-annotations": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.fasterxml.jackson.core:jackson-core": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.fasterxml.jackson.core:jackson-databind": {
+            "locked": "2.7.8",
+            "requested": "2.7.+"
+        },
+        "com.github.spullara.mustache.java:compiler": {
+            "locked": "0.9.2",
+            "requested": "0.9.2"
+        },
+        "com.github.tomas-langer:chalk": {
+            "locked": "1.0.2",
+            "requested": "1.0.2"
+        },
+        "com.google.code.findbugs:jsr305": {
+            "locked": "3.0.1",
+            "requested": "3.0.+"
+        },
+        "com.google.inject:guice": {
+            "locked": "4.0",
+            "requested": "4.0"
+        },
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
+        },
+        "com.squareup.okhttp3:okhttp": {
+            "locked": "3.3.1",
+            "requested": "3.3.1"
+        },
+        "commons-cli:commons-cli": {
+            "locked": "1.3.1",
+            "requested": "1.3.1"
+        },
+        "commons-io:commons-io": {
+            "locked": "2.4",
+            "requested": "2.4"
+        },
+        "commons-net:commons-net": {
+            "locked": "3.4",
+            "requested": "3.4"
+        },
+        "junit:junit": {
+            "locked": "4.12",
+            "requested": "4.12"
+        },
+        "org.apache.commons:commons-compress": {
+            "locked": "1.10",
+            "requested": "1.10"
+        },
+        "org.apache.commons:commons-lang3": {
+            "locked": "3.4",
+            "requested": "3.4"
+        },
+        "org.mockito:mockito-core": {
+            "locked": "1.10.19",
+            "requested": "1.10.19"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.21",
@@ -443,7 +939,15 @@
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
+        "com.amazonaws:aws-java-sdk-lambda": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
         "com.amazonaws:aws-java-sdk-s3": {
+            "locked": "1.11.9",
+            "requested": "1.11.9"
+        },
+        "com.amazonaws:aws-java-sdk-sns": {
             "locked": "1.11.9",
             "requested": "1.11.9"
         },
@@ -456,15 +960,15 @@
             "requested": "1.55"
         },
         "com.fasterxml.jackson.core:jackson-annotations": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-core": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.fasterxml.jackson.core:jackson-databind": {
-            "locked": "2.7.6",
+            "locked": "2.7.8",
             "requested": "2.7.+"
         },
         "com.github.spullara.mustache.java:compiler": {
@@ -483,9 +987,9 @@
             "locked": "4.0",
             "requested": "4.0"
         },
-        "com.nike.cpe:vault-client": {
-            "locked": "0.6.5",
-            "requested": "0.6.5"
+        "com.nike:vault-client": {
+            "locked": "1.0.0-SNAPSHOT",
+            "requested": "1.0.0-SNAPSHOT"
         },
         "com.squareup.okhttp3:okhttp": {
             "locked": "3.3.1",
@@ -503,6 +1007,10 @@
             "locked": "3.4",
             "requested": "3.4"
         },
+        "junit:junit": {
+            "locked": "4.12",
+            "requested": "4.12"
+        },
         "org.apache.commons:commons-compress": {
             "locked": "1.10",
             "requested": "1.10"
@@ -510,6 +1018,10 @@
         "org.apache.commons:commons-lang3": {
             "locked": "3.4",
             "requested": "3.4"
+        },
+        "org.mockito:mockito-core": {
+            "locked": "1.10.19",
+            "requested": "1.10.19"
         },
         "org.slf4j:slf4j-api": {
             "locked": "1.7.21",
