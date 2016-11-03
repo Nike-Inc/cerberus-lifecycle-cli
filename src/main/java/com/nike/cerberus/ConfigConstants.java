@@ -58,7 +58,5 @@ public class ConfigConstants {
 
     public static final String CMS_ENV_CONFIG_PATH = "data/cms/environment.properties";
 
-    public static final String RDSBACKUP_STACK_TEMPLATE_PATH = "/cloudformation/rds-backup-cluster.json";
-
     public static final String CF_ELB_IP_SYNC_STACK_TEMPLATE_PATH = "/cloudformation/cloudfront-elb-security-group-updater-lambda.json";
 }

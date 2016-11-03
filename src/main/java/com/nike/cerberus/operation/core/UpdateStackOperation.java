@@ -12,7 +12,6 @@ import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.ConsulParameters;
 import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.LaunchConfigParameters;
-import com.nike.cerberus.domain.cloudformation.RdsBackupParameters;
 import com.nike.cerberus.domain.cloudformation.SslConfigParametersDelegate;
 import com.nike.cerberus.domain.cloudformation.TagParameters;
 import com.nike.cerberus.domain.cloudformation.VaultParameters;
@@ -68,7 +67,6 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         stackParameterMap.put(StackName.VAULT, VaultParameters.class);
         stackParameterMap.put(StackName.CMS, CmsParameters.class);
         stackParameterMap.put(StackName.GATEWAY, GatewayParameters.class);
-        stackParameterMap.put(StackName.RDSBACKUP, RdsBackupParameters.class);
 
         stackTemplatePathMap = new HashMap<>();
         stackTemplatePathMap.put(StackName.BASE, ConfigConstants.BASE_STACK_TEMPLATE_PATH);
@@ -76,7 +74,6 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         stackTemplatePathMap.put(StackName.VAULT, ConfigConstants.VAULT_STACK_TEMPLATE_PATH);
         stackTemplatePathMap.put(StackName.CMS, ConfigConstants.CMS_STACK_TEMPLATE_PATH);
         stackTemplatePathMap.put(StackName.GATEWAY, ConfigConstants.GATEWAY_STACK_TEMPLATE_PATH);
-        stackTemplatePathMap.put(StackName.RDSBACKUP, ConfigConstants.RDSBACKUP_STACK_TEMPLATE_PATH);
     }
 
     @Override

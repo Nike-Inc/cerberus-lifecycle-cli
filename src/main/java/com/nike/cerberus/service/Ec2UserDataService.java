@@ -3,8 +3,6 @@ package com.nike.cerberus.service;
 import com.google.common.collect.Maps;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.cloudformation.BaseOutputs;
-import com.nike.cerberus.domain.cloudformation.BaseParameters;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.io.IOUtils;
@@ -36,8 +34,6 @@ public class Ec2UserDataService {
         switch (stackName) {
             case CMS:
                 return getCmsUserData(ownerGroup);
-            case RDSBACKUP:
-                return getRdsBackupUserData(ownerGroup);
             case GATEWAY:
                 return getGatewayUserData(ownerGroup);
             case VAULT:
@@ -62,21 +58,6 @@ public class Ec2UserDataService {
     private String getCmsUserData(final String ownerGroup) {
         final Map<String, String> userDataMap = Maps.newHashMap();
         addStandardEnvironmentVariables(userDataMap, StackName.CMS.getName(), ownerGroup);
-
-        return encodeUserData(writeExportEnvVars(userDataMap));
-    }
-
-    private String getRdsBackupUserData(final String ownerGroup) {
-        final Map<String, String> userDataMap = Maps.newHashMap();
-        addStandardEnvironmentVariables(userDataMap, StackName.RDSBACKUP.getName(), ownerGroup);
-
-        final BaseParameters baseParameters = configStore.getBaseStackParameters();
-        final BaseOutputs baseOutputs = configStore.getBaseStackOutputs();
-
-        userDataMap.put("CMS_DB_HOST", baseOutputs.getCmsDbAddress());
-        userDataMap.put("CMS_DB_PORT", baseOutputs.getCmsDbPort());
-        userDataMap.put("CMS_DB_NAME", baseParameters.getCmsDbName());
-        userDataMap.put("CMS_DB_USER", baseParameters.getCmsDbMasterUsername());
 
         return encodeUserData(writeExportEnvVars(userDataMap));
     }

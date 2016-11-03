@@ -33,7 +33,6 @@ task createCloudFormation() {
           'vpc-and-base.py',
           'gateway-cluster.py',
           'cms-cluster.py',
-          'rds-backup-cluster.py',
           'cloudfront-elb-security-group-updater-lambda.py'
         ].each { String script ->
             executeOnShell " PYTHONPATH=${getProject().getRootDir()}${File.separator}smaas-cf python3 ${script}", new File("${getProject().getRootDir()}${File.separator}smaas-cf${File.separator}smaas${File.separator}"), true
