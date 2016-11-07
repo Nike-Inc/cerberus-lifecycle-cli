@@ -4,7 +4,7 @@
 cd "$(dirname "$0")"
 
 # Build distribution
-./gradlew clean installDist
+./gradlew clean sJ
 
 # Run
-exec ./build/install/cerberus-lifecycle-cli/bin/cerberus-lifecycle-cli "$@"
+java -jar ./build/libs/cerberus.jar "$@"

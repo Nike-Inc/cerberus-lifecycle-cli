@@ -4,3 +4,11 @@ jdk:
   - oraclejdk8
 after_success:
   - bash <(curl -s https://codecov.io/bash) -f build/reports/jacoco/jacocoRootReport/jacocoRootReport.xml
+deploy:
+  provider: releases
+  api_key:
+    secure: esPrAR5Xzm6LN0ysHVGTWP5UF6MQkePTht/+qMmmkjM5X0duJU3Ejkf+pfdgFnEssps/ZnDygBUb3uA2KVseWZzgIytIoMmqM+6Y/fx46E447S05uEoapOJqwZoZ8leRnTCtEw6zNc5hbgpVeqpvFIgf2jCWohmYKBV6NDWTCltym5OYKetkBbfIckfFcgwU1G7RrQ3HNL/1M0lm/+Vawgc+C06QyKSpZS8m2nN9hYf0/c3c7amWnpnZDOSecNalZx/pY8E2ON0ZNmXoIah3drGDxBNOrSqAuQQDnwpFGFgPgVz/wq3kRQ6YxGBTKzNuByvSOFnYV6eFkwB1CDIDPwlXvVN7p9UCYcgxcwMg2xT1NWCHKvtkUG69CM/+6fPUk35NLQyY8KFWIx7N6i9vLKZtKHEPAF5KsH3cAu7zV73fNNy8OVej7VBc/4VwgDGzQHGaPyO9p5JS/Bh/GurTDDF9Q8UZmXmnm0rqDKI5zZN5RS3NcfBATUXMuNsWARbzaYEYy7XcLHs2K2rTAGllWYg2h9llVWr0WwCvJvVn6vBbyaXO8vUep0KW8lm8wFkdAVLA4+vJVRRR/7J6dz5AyMw9OGaQh5eVI1zdh5tRpX4zU2lsPSrL0r5CVhTvCU3XwzZdlRToac3357y+x83dmpkoD9u3tXN4JfnOtnAY2SM=
+  file: "build/libs/cerberus.jar"
+  on:
+    repo: Nike-Inc/cerberus-lifecycle-cli
+    tags: true

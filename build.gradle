@@ -7,6 +7,7 @@ allprojects {
     apply plugin: 'maven'
     apply plugin: 'nebula.dependency-lock'
     apply plugin: 'application'
+    apply plugin: "com.github.johnrengelman.shadow"
 }
 
 apply from: file('gradle/dependencies.gradle')
@@ -41,7 +42,16 @@ task createCloudFormation() {
         logger.lifecycle t.getMessage()
     }
 }
-tasks.installDist.dependsOn createCloudFormation
+
+tasks.shadowJar.dependsOn createCloudFormation
+
+shadowJar {
+    baseName = 'cerberus'
+    classifier = null
+    version = null
+}
+
+tasks.assemble.finalizedBy shadowJar
 
 /**
  * Runs a command on the command line, streaming the output to STDOUT
