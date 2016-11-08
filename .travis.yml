@@ -2,8 +2,6 @@ language: java
 
 jdk:
   - oraclejdk8
-after_success:
-  - bash <(curl -s https://codecov.io/bash) -f build/reports/jacoco/jacocoRootReport/jacocoRootReport.xml
 deploy:
   provider: releases
   api_key:
