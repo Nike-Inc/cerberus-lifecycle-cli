@@ -16,9 +16,6 @@
 
 allprojects {
     repositories {
-        maven {
-            url 'https://dl.bintray.com/nike/maven'
-        }
         jcenter()
     }
 
