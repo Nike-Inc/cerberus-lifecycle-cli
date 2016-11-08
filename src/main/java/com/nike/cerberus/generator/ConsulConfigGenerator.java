@@ -32,9 +32,9 @@ import java.io.StringWriter;
  */
 public class ConsulConfigGenerator {
 
-    private final String serverTemplatePath = "templates/consul-server.json.mustache";
+    private static final String serverTemplatePath = "templates/consul-server.json.mustache";
 
-    private final String clientTemplatePath = "templates/consul-client.json.mustache";
+    private static final String clientTemplatePath = "templates/consul-client.json.mustache";
 
     private final UuidSupplier uuidSupplier;
 

@@ -25,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map;
 
@@ -33,7 +34,7 @@ import java.util.Map;
  */
 public class Ec2UserDataService {
 
-    private final String nginxWriteResolverConfPath = "/write-nginx-resolver-conf";
+    private static final String nginxWriteResolverConfPath = "/write-nginx-resolver-conf";
 
     private final EnvironmentMetadata environmentMetadata;
 
@@ -106,7 +107,7 @@ public class Ec2UserDataService {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (Map.Entry<String, String> entry : userDataMap.entrySet()) {
-            stringBuilder.append(String.format("export %s=\"%s\"\n", entry.getKey(), entry.getValue()));
+            stringBuilder.append(String.format("export %s=\"%s\"%n", entry.getKey(), entry.getValue()));
         }
 
         stringBuilder.append("\n");
@@ -114,7 +115,7 @@ public class Ec2UserDataService {
     }
 
     private String encodeUserData(String userData) {
-        return Base64.getEncoder().encodeToString(userData.getBytes());
+        return Base64.getEncoder().encodeToString(userData.getBytes(Charset.forName("UTF-8")));
     }
 
     /**

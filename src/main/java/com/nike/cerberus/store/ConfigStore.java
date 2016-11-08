@@ -247,8 +247,8 @@ public class ConfigStore {
         synchronized (secretsDataLock) {
             final Secrets secrets = getSecretsData();
 
-            return (StringUtils.isNotBlank(secrets.getConsul().getAclMasterToken())
-                    && StringUtils.isNotBlank(secrets.getConsul().getGossipEncryptionToken()));
+            return StringUtils.isNotBlank(secrets.getConsul().getAclMasterToken())
+                    && StringUtils.isNotBlank(secrets.getConsul().getGossipEncryptionToken());
         }
     }
 

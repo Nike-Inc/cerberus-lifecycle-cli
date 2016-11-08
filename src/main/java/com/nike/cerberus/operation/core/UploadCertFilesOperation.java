@@ -17,6 +17,7 @@
 package com.nike.cerberus.operation.core;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -45,8 +47,7 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
     private static final String CERT_FILE_NAME = "cert.pem";
     private static final String KEY_FILE_NAME = "key.pem";
     private static final String PUB_KEY_FILE_NAME = "pubkey.pem";
-    public static final Set<String> EXPECTED_FILE_NAMES =
-            Sets.newHashSet(CA_FILE_NAME, CERT_FILE_NAME, KEY_FILE_NAME, PUB_KEY_FILE_NAME);
+    public static final Set<String> EXPECTED_FILE_NAMES = ImmutableSet.of(CA_FILE_NAME, CERT_FILE_NAME, KEY_FILE_NAME, PUB_KEY_FILE_NAME);
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -114,7 +115,7 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
         File file = new File(path.toString(), filename);
         if (file.exists() && file.canRead()) {
             try {
-                return new String(Files.readAllBytes(file.toPath()));
+                return new String(Files.readAllBytes(file.toPath()), Charset.forName("UTF-8"));
             } catch (IOException e) {
                 throw new IllegalStateException("Failed to read the following file: " + file.getAbsolutePath());
             }

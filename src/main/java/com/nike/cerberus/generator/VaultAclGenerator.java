@@ -31,7 +31,7 @@ import java.io.StringWriter;
  */
 public class VaultAclGenerator {
 
-    private final String vaultAclTemplatePath = "templates/vault-acl.json.mustache";
+    private static final String vaultAclTemplatePath = "templates/vault-acl.json.mustache";
 
     private final UuidSupplier uuidSupplier;
 

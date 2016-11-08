@@ -158,7 +158,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
                     logger.warn("Operation has already run for the specified environment.");
                     return false;
                 }
-            } catch (IllegalStateException ise) {
+            } catch (IllegalStateException ise) { //NOPMD
                 // Don't care, fall through.
             }
         }

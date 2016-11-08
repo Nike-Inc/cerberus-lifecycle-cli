@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -127,7 +128,7 @@ public class CreateCloudFrontSecurityGroupUpdaterLambdaOperation implements Oper
         // this will fail
         InvokeResult result = awsLambda.invoke(new InvokeRequest().withFunctionName(arn).withPayload(String.format(json, BAD_HASH)).withLogType(LogType.Tail));
         // collect the error so we can parse it for the latest hash
-        String log = new String(Base64.getDecoder().decode(result.getLogResult()));
+        String log = new String(Base64.getDecoder().decode(result.getLogResult()), Charset.forName("UTF-8"));
         Pattern pattern = Pattern.compile("MD5 Mismatch: got\\s(.*?)\\sexp.*?");
         Matcher matcher = pattern.matcher(log);
         boolean matched = matcher.find();
@@ -139,7 +140,7 @@ public class CreateCloudFrontSecurityGroupUpdaterLambdaOperation implements Oper
         result = awsLambda.invoke(new InvokeRequest().withFunctionName(arn).withPayload(String.format(json, realHash)).withLogType(LogType.Tail));
 
         logger.info("Forcing the Lambda to run and update Security Groups");
-        logger.info(new String(result.getPayload().array()));
+        logger.info(new String(result.getPayload().array(), Charset.forName("UTF-8")));
     }
 
     private void createLambda() {
@@ -177,7 +178,7 @@ public class CreateCloudFrontSecurityGroupUpdaterLambdaOperation implements Oper
         boolean theLambdaArtifactExistsInS3 = amazonS3.doesObjectExist(environmentMetadata.getBucketName(),
                 LambdaName.CLOUD_FRONT_SG_GROUP_IP_SYNC.getBucketKey());
 
-        if (theStackAlreadyExists || (theLambdaArtifactExistsInS3)) {
+        if (theStackAlreadyExists || theLambdaArtifactExistsInS3) {
             return true;
         } else {
             logger.error("failed to detect the lambda at {}/{} you must run the lambda publish command first",

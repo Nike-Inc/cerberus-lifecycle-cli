@@ -30,7 +30,7 @@ import java.io.StringWriter;
  */
 public class VaultConfigGenerator {
 
-    private final String vaultTemplatePath = "templates/vault.json.mustache";
+    private static final String vaultTemplatePath = "templates/vault.json.mustache";
 
     private final MustacheFactory mustacheFactory;
 

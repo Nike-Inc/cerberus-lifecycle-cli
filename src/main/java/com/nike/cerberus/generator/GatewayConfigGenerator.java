@@ -30,9 +30,9 @@ import java.io.StringWriter;
  */
 public class GatewayConfigGenerator {
 
-    private final String siteConfigTemplatePath = "templates/site-gateway.conf.mustache";
+    private static final String siteConfigTemplatePath = "templates/site-gateway.conf.mustache";
 
-    private final String globalConfigTemplatePath = "templates/nginx.conf.mustache";
+    private static final String globalConfigTemplatePath = "templates/nginx.conf.mustache";
 
     private final MustacheFactory mustacheFactory;
 

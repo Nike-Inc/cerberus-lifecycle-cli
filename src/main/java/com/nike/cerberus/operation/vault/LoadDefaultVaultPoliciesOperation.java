@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Optional;
 
@@ -73,8 +74,8 @@ public class LoadDefaultVaultPoliciesOperation implements Operation<LoadDefaultV
         final ObjectMapper objectMapper = new ObjectMapper();
         final TypeReference<Map<String, VaultPolicy>> typeReference = new TypeReference<Map<String, VaultPolicy>>() {};
 
-        try {
-            return objectMapper.readValue(getClass().getResourceAsStream(defaultPoliciesPath), typeReference);
+        try (InputStream defaultPolicies = getClass().getResourceAsStream(defaultPoliciesPath)) {
+            return objectMapper.readValue(defaultPolicies, typeReference);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to read the default policies document from the classpath!", e);
         }

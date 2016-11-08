@@ -16,12 +16,15 @@
 
 allprojects {
     repositories {
-        mavenLocal()
+        maven {
+            url 'https://dl.bintray.com/nike/maven'
+        }
         jcenter()
     }
 
     def awsSDKVersion = '1.11.9'
 
+    //noinspection GroovyAssignabilityCheck
     dependencies {
         // AWS Deps
         compile group: 'com.amazonaws', name: 'aws-java-sdk-kms', version: awsSDKVersion
@@ -34,7 +37,7 @@ allprojects {
         compile group: 'com.amazonaws', name: 'aws-java-sdk-sns', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSDKVersion
 
-        compile 'com.nike:vault-client:1.0.0-SNAPSHOT'
+        compile 'com.nike:vault-client:1.0.0'
         compile 'com.squareup.okhttp3:okhttp:3.3.1'
         compile 'com.beust:jcommander:1.55'
         compile 'com.fasterxml.jackson.core:jackson-core:2.7.+'
