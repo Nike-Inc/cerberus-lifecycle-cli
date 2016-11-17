@@ -16,11 +16,15 @@
 
 package com.nike.cerberus.command.cms;
 
+import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.cms.CreateCmsConfigOperation;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
 
@@ -35,9 +39,15 @@ public class CreateCmsConfigCommand implements Command {
     @Parameter(names = "--admin-group", description = "Group that has admin privileges in CMS.", required = true)
     private String adminGroup;
 
+    @DynamicParameter(names = "-P", description = "Dynamic parameters for setting additional properties in the CMS environment configuration.")
+    private Map<String, String> additionalProperties = new HashMap<>();
 
     public String getAdminGroup() {
         return adminGroup;
+    }
+
+    public Map<String, String> getAdditionalProperties() {
+        return additionalProperties;
     }
 
     @Override

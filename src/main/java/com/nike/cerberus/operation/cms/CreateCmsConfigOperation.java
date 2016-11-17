@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Gathers all of the CMS environment configuration and puts it in the configu bucket.
+ * Gathers all of the CMS environment configuration and puts it in the config bucket.
  */
 public class CreateCmsConfigOperation implements Operation<CreateCmsConfigCommand> {
 
@@ -70,12 +70,20 @@ public class CreateCmsConfigOperation implements Operation<CreateCmsConfigComman
         cmsConfigMap.put("vault.addr", String.format("https://%s", cnameToHost(vaultParameters.getCname())));
         cmsConfigMap.put("vault.token", cmsVaultToken.get());
         cmsConfigMap.put("cms.admin.group", command.getAdminGroup());
-        cmsConfigMap.put("cms.jdbc.jdbcUrl", baseOutputs.getCmsDbJdbcConnectionString());
-        cmsConfigMap.put("cms.jdbc.jdbcUser", ConfigConstants.DEFAULT_CMS_DB_NAME);
-        cmsConfigMap.put("cms.jdbc.jdbcPassword", cmsDatabasePassword.get());
         cmsConfigMap.put("root.user.arn", rootUserArn);
         cmsConfigMap.put("admin.role.arn", baseParameters.getAccountAdminArn());
         cmsConfigMap.put("cms.role.arn", baseOutputs.getCmsIamRoleArn());
+        cmsConfigMap.put("JDBC.url", baseOutputs.getCmsDbJdbcConnectionString());
+        cmsConfigMap.put("JDBC.username", ConfigConstants.DEFAULT_CMS_DB_NAME);
+        cmsConfigMap.put("JDBC.password", cmsDatabasePassword.get());
+
+        command.getAdditionalProperties().forEach((k, v) -> {
+            if (!cmsConfigMap.containsKey(k)) {
+                cmsConfigMap.put(k, v);
+            } else {
+                logger.warn("Ignoring additional property that would override system configured property, " + k);
+            }
+        });
 
         configStore.storeCmsEnvConfig(cmsConfigMap);
     }
