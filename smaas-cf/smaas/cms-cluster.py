@@ -148,7 +148,7 @@ load_balancer = template.add_resource(LoadBalancer(
         HealthCheck=HealthCheck(
                 HealthyThreshold=2,
                 Interval=5,
-                Target="HTTP:8077/healthcheck",
+                Target="HTTP:8080/healthcheck",
                 Timeout=2,
                 UnhealthyThreshold=2
         ),
