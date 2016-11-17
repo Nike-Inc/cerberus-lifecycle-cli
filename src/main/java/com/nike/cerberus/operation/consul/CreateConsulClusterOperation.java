@@ -107,6 +107,10 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
         final String stackId = cloudFormationService.createStack(cloudFormationService.getEnvStackName(uniqueStackName),
                 parameters, ConfigConstants.CONSUL_STACK_TEMPLATE_PATH, true);
 
+        logger.info("Uploading data to the configuration bucket.");
+        configStore.storeStackId(StackName.CONSUL, stackId);
+        logger.info("Uploading complete.");
+
         final StackStatus endStatus =
                 cloudFormationService.waitForStatus(stackId,
                         Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
@@ -117,11 +121,6 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
 
             throw new UnexpectedCloudFormationStatusException(errorMessage);
         }
-
-        logger.info("Uploading data to the configuration bucket.");
-        configStore.storeStackId(StackName.CONSUL, stackId);
-
-        logger.info("Uploading complete.");
     }
 
     @Override
