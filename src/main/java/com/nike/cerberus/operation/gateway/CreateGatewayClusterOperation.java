@@ -125,7 +125,9 @@ public class CreateGatewayClusterOperation implements Operation<CreateGatewayClu
         final String stackId = cloudFormationService.createStack(cloudFormationService.getEnvStackName(uniqueStackName),
                 parameters, ConfigConstants.GATEWAY_STACK_TEMPLATE_PATH, true);
 
+        logger.info("Uploading data to the configuration bucket.");
         configStore.storeStackId(StackName.GATEWAY, stackId);
+        logger.info("Uploading complete.");
 
         final StackStatus endStatus =
                 cloudFormationService.waitForStatus(stackId,
