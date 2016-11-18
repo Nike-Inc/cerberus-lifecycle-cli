@@ -2,9 +2,13 @@
 
 Project for building and running the CLI for Cerberus.
 
-## Environment Requirements
+## User Environment Requirements
 
-1. JDK 1.8
+1. JDK 1.8, with Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy 
+
+## Development Environment Requirements
+
+1. JDK 1.8, with Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy
 
 2. Python 3
     1. boto3 and troposphere
