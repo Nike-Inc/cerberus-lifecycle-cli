@@ -57,7 +57,7 @@ server {
     }
 
     # Everything goes to CMS
-    location /v1 {
+    location ~ /v\d {
         set $cms "{{{cmsHost}}}";
         proxy_pass https://$cms;
     }
