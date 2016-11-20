@@ -45,8 +45,6 @@ public class BaseParameters implements TagParameters {
 
     private String vpcHostedZoneName;
 
-    private String ec2ComputeDomainNameSuffix;
-
     @JsonUnwrapped
     private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
@@ -146,15 +144,6 @@ public class BaseParameters implements TagParameters {
 
     public BaseParameters setVpcHostedZoneName(String vpcHostedZoneName) {
         this.vpcHostedZoneName = vpcHostedZoneName;
-        return this;
-    }
-
-    public String getEc2ComputeDomainNameSuffix() {
-        return ec2ComputeDomainNameSuffix;
-    }
-
-    public BaseParameters setEc2ComputeDomainNameSuffix(String ec2ComputeDomainNameSuffix) {
-        this.ec2ComputeDomainNameSuffix = ec2ComputeDomainNameSuffix;
         return this;
     }
 

@@ -42,11 +42,6 @@ public class CreateBaseCommand implements Command {
             required = true)
     private String vpcHostedZoneName;
 
-    @Parameter(names = "--ec2-compute-domain-name-suffix",
-            description = "The suffix for the domain names assigned for internal VPC instances.",
-            required = true)
-    private String ec2ComputeDomainNameSuffix;
-
     @Parameter(names = "--owner-email",
             description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.",
             required = true)
@@ -63,10 +58,6 @@ public class CreateBaseCommand implements Command {
 
     public String getVpcHostedZoneName() {
         return vpcHostedZoneName;
-    }
-
-    public String getEc2ComputeDomainNameSuffix() {
-        return ec2ComputeDomainNameSuffix;
     }
 
     public String getOwnerEmail() {

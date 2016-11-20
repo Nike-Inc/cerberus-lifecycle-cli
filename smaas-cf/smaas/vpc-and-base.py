@@ -15,7 +15,7 @@
 ###
 
 from io import open
-from troposphere import Ref, Template, Parameter, Condition, Output, GetAtt, Join, AWS_ACCOUNT_ID
+from troposphere import Ref, Template, Parameter, Output, GetAtt, Join, AWS_ACCOUNT_ID, Equals, If
 from troposphere.ec2 import VPC
 from troposphere.ec2 import DHCPOptions
 from troposphere.ec2 import VPCDHCPOptionsAssociation
@@ -154,9 +154,15 @@ cerberus_vpc = template.add_resource(VPC(
 ))
 
 # DHCP Options
+# http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_DHCP_Options.html
+# If you're using AmazonProvidedDNS in us-east-1, specify ec2.internal.
+# If you're using AmazonProvidedDNS in another region, specify region.compute.internal
+# (for example, ap-northeast-1.compute.internal). Otherwise, specify a domain name
+# (for example, MyCompany.com). This value is used to complete unqualified DNS hostnames.
+template.add_condition("RegionEqualsEastOne", Equals(aws_region_ref, "us-east-1"))
 cerberus_dhcp_options = template.add_resource(DHCPOptions(
     "CerberusDhcpOptions",
-    DomainName=Join(".", [aws_region_ref, Ref(cerberus_network.ec2_domain_name_suffix_param)]),
+    DomainName=If("RegionEqualsEastOne", "ec2.internal", Join(".", [aws_region_ref, "compute.internal"])),
     DomainNameServers=["AmazonProvidedDNS"],
     Tags=cerberus_tags.get_tags_as_list()
 ))

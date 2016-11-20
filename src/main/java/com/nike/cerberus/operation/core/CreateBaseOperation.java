@@ -96,8 +96,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
                 .setCmsDbMasterUsername(ConfigConstants.DEFAULT_CMS_DB_NAME)
                 .setCmsDbMasterPassword(dbMasterPassword)
                 .setCmsDbName(ConfigConstants.DEFAULT_CMS_DB_NAME)
-                .setVpcHostedZoneName(command.getVpcHostedZoneName())
-                .setEc2ComputeDomainNameSuffix(command.getEc2ComputeDomainNameSuffix());
+                .setVpcHostedZoneName(command.getVpcHostedZoneName());
 
         baseParameters.getTagParameters().setTagEmail(command.getOwnerEmail());
         baseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentMetadata.getName());

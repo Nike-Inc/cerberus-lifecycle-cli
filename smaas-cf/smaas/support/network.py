@@ -8,7 +8,6 @@ VPC_SUBNET_CIDRS = {
 
 
 class CerberusNetwork:
-    ec2_domain_name_suffix_param = None
     gateway_cidr_block_param = None
     vpc_cidr_block_param = None
     subnet_cidr_block_param_by_az_map = {}
@@ -17,12 +16,6 @@ class CerberusNetwork:
     subnet_cidr_block_for_az3_output = None
 
     def __init__(self):
-        self.ec2_domain_name_suffix_param = Parameter(
-            "ec2ComputeDomainNameSuffix",
-            Description="The suffix the region will be appended to for the VPC's internal DNS",
-            Type="String"
-        )
-
         self.gateway_cidr_block_param = Parameter(
             "gatewayCidrBlock",
             Description="The internet gateway CIDR block for where traffic is allowed from",
@@ -92,7 +85,6 @@ class CerberusNetwork:
         )
 
     def add_parameters(self, template: Template):
-        template.add_parameter(self.ec2_domain_name_suffix_param)
         template.add_parameter(self.gateway_cidr_block_param)
         template.add_parameter(self.vpc_cidr_block_param)
 
