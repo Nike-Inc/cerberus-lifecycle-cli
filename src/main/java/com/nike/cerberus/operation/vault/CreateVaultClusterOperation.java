@@ -123,6 +123,10 @@ public class CreateVaultClusterOperation implements Operation<CreateVaultCluster
         final String stackId = cloudFormationService.createStack(cloudFormationService.getEnvStackName(uniqueStackName),
                 parameters, ConfigConstants.VAULT_STACK_TEMPLATE_PATH, true);
 
+        logger.info("Uploading data to the configuration bucket.");
+        configStore.storeStackId(StackName.VAULT, stackId);
+        logger.info("Uploading complete.");
+
         final StackStatus endStatus =
                 cloudFormationService.waitForStatus(stackId,
                         Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
@@ -133,11 +137,6 @@ public class CreateVaultClusterOperation implements Operation<CreateVaultCluster
 
             throw new UnexpectedCloudFormationStatusException(errorMessage);
         }
-
-        logger.info("Uploading data to the configuration bucket.");
-        configStore.storeStackId(StackName.VAULT, stackId);
-
-        logger.info("Uploading complete.");
     }
 
     @Override

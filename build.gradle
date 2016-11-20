@@ -60,6 +60,7 @@ task createCloudFormation() {
 }
 
 tasks.shadowJar.dependsOn createCloudFormation
+tasks.assemble.dependsOn createCloudFormation
 
 shadowJar {
     baseName = 'cerberus'

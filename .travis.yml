@@ -1,6 +1,12 @@
+sudo: required
 language: java
+dist: trusty
 jdk:
 - oraclejdk8
+before_install:
+  - sudo apt-get -y install python3-pip python-dev
+  - python3 -V
+  - pip3 -V
 deploy:
   provider: releases
   api_key:

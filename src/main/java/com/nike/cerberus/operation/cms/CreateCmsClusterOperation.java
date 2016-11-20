@@ -119,6 +119,10 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         final String stackId = cloudFormationService.createStack(cloudFormationService.getEnvStackName(uniqueStackName),
                 parameters, ConfigConstants.CMS_STACK_TEMPLATE_PATH, true);
 
+        logger.info("Uploading data to the configuration bucket.");
+        configStore.storeStackId(StackName.CMS, stackId);
+        logger.info("Uploading complete.");
+
         final StackStatus endStatus =
                 cloudFormationService.waitForStatus(stackId,
                         Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
@@ -129,11 +133,6 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
             throw new UnexpectedCloudFormationStatusException(errorMessage);
         }
-
-        logger.info("Uploading data to the configuration bucket.");
-        configStore.storeStackId(StackName.CMS, stackId);
-
-        logger.info("Uploading complete.");
     }
 
     @Override
