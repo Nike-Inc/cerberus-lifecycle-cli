@@ -51,7 +51,7 @@ server {
     }
 
     # Everything else under /v1/secret goes to Vault
-    location /v1/secret {
+    location ~ /v1/secret {
         set $vault "{{{vaultHost}}}";
         proxy_pass https://$vault;
     }
