@@ -1,6 +1,15 @@
-# Cerberus CLI
+# Cerberus Lifecycle Management CLI
 
-Project for building and running the CLI for Cerberus.
+This project is a CLI for managing the lifecycle of a Cerberus environment using CloudFormation, native Vault APIs, and AWS API calls.
+
+This command line tool includes features for:
+
+- Provisioning
+- Bootstrapping
+- Maintenance
+- Recovery
+
+To learn more about Cerberus, please see the [Cerberus website](http://engineering.nike.com/cerberus/).
 
 ## User Environment Requirements
 
