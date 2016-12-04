@@ -70,6 +70,7 @@ public class CreateCloudFrontLogProcessingLambdaConfigOperation implements Opera
         config.setRateLimitViolationBlacklistPeriodInMinutes(command.getRateLimitViolationBlacklistPeriodInMinutes());
         config.setSlackWebHookUrl(command.getSlackWebHookUrl());
         config.setSlackIcon(command.getSlackIcon());
+        config.setGoogleAnalyticsId(command.getGoogleAnalyticsId());
 
         configStore.saveCFLogProcessorLambdaConfig(config);
 
