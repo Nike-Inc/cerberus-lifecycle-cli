@@ -8,6 +8,7 @@ before_install:
   - python3 -V
   - pip3 -V
 deploy:
+  skip_cleanup: true
   provider: releases
   api_key:
     secure: zTWwtKK04GdO6dyl5R501Wi8I3C5TKlXjxSarRtOT6Mj6fABPoH3ai2T79/PxfNvzrdnLmZ8vjRrapx+lmfUOfa5lw6XT5txpDvlalrWa71tzGbH/4RyIHFQ0ee9VVrEJhpJmJFGskBNqZvRg/OSxT3RvbUXiUxapEUoSMPK2ZUvHlTNBWivMj5gFJghGT8EBX389rkbvX5qaIwRvly74+PMUgaZjD3bpu924l4fLws7hyWDDBk0RYRPdYcgRKpViXoU4EO1kMhPOib3Zig06115PJ5RyYadC32Ovefz8sRsaFBZNtwGgBMMMjlKrq6qdeTmYKPVllMgPqR+W6hO0AA8bL77qoCikBNF3os/+aWYB8Y3ZTEJ/vpRXM6071wAFtSH/3bTBVqdxvbalcNN45F3TqMDCjf+GWaEA3X3RxNfxKaCMMAio01qwSupUhJqDKAAV8mnxTl7wZZPbd6UeCkuWk14pqSCreU+9qY/B9h0LWbZE2zV5sKGPW/30StFmRiT/s8hWcdSE2bA0/NJM2t2NiL35xmcvEQiCxj1XkMxaNckAQL0LMx2DCMM+gwkmLNq+TwY/QFvjOSF9V3pkYhj9jmFKUGEs5tM41bxwEj/CgmgiCPcGotwhrFSF4MZ/H91WKIW6L/HExuOX2VCs/rYHgjxnShs9pgrxHvvY/I=
