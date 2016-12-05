@@ -44,6 +44,9 @@ public class CreateCloudFrontLogProcessingLambdaConfigCommand implements Command
     @Parameter(names = "--slack-icon", description = "If you provide an emoji or an icon url the lambda will use it when sending messages.")
     private String slackIcon;
 
+    @Parameter(names = "--google-analytics-tracking-id", description = "If you provide a Google Analytics tracking id, the KPI processer will send events to that GA Account.")
+    private String googleAnalyticsId;
+
     public Integer getRequestPerMinuteLimit() {
         return requestPerMinuteLimit;
     }
@@ -58,6 +61,10 @@ public class CreateCloudFrontLogProcessingLambdaConfigCommand implements Command
 
     public String getSlackIcon() {
         return slackIcon;
+    }
+
+    public String getGoogleAnalyticsId() {
+        return googleAnalyticsId;
     }
 
     @Override

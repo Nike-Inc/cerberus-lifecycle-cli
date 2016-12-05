@@ -32,6 +32,8 @@ public class CloudFrontLogProcessingLambdaConfig {
 
     private String slackIcon;
 
+    private String googleAnalyticsId;
+
     public String getManualWhiteListIpSetId() {
         return manualWhiteListIpSetId;
     }
@@ -86,5 +88,13 @@ public class CloudFrontLogProcessingLambdaConfig {
 
     public void setSlackIcon(String slackIcon) {
         this.slackIcon = slackIcon;
+    }
+
+    public String getGoogleAnalyticsId() {
+        return googleAnalyticsId;
+    }
+
+    public void setGoogleAnalyticsId(String googleAnalyticsId) {
+        this.googleAnalyticsId = googleAnalyticsId;
     }
 }
