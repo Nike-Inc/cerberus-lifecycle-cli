@@ -39,11 +39,10 @@ public class CerberusCommand {
 
     @Parameter(names = {"--environment", "--env", "-e"},
             description = "Cerberus environment name to execute against.",
-            required = true,
             validateWith = EnvironmentNameValidator.class)
     private String environment;
 
-    @Parameter(names = {"--region", "-r"}, description = "The AWS region to execute against.", required = true)
+    @Parameter(names = {"--region", "-r"}, description = "The AWS region to execute against.")
     private String region;
 
     @Parameter(names = {"--debug"}, description = "Enables debug output.")
@@ -51,6 +50,9 @@ public class CerberusCommand {
 
     @Parameter(names = {"--help", "-h"}, description = "Prints the usage screen for the command.", help = true)
     private boolean help;
+
+    @Parameter(names = {"--version", "-v"}, description = "Prints the version of the CLI.")
+    private boolean version;
 
     @ParametersDelegate
     private ProxyDelegate proxyDelegate = new ProxyDelegate();
@@ -73,6 +75,10 @@ public class CerberusCommand {
 
     public boolean isHelp() {
         return help;
+    }
+
+    public boolean isVersion() {
+        return version;
     }
 
     public ProxyDelegate getProxyDelegate() {

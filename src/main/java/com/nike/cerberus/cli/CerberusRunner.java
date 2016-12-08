@@ -55,12 +55,19 @@ import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.Operation;
 
+import javax.inject.Named;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * CLI entry point.
  */
 public class CerberusRunner {
+
+    private static final String PROPERTY_FILE = "cerberus-lifecycle-cli.properties";
+    public static final String VERSION_PROPERTY = "cli.version";
 
     private final Map<String, Command> commandMap;
     private CerberusCommand cerberusCommand;
@@ -84,12 +91,19 @@ public class CerberusRunner {
         registerAllCommands();
 
         try {
+
             commander.parse(args);
             configureLogging(cerberusCommand.isDebug());
             final String commandName = commander.getParsedCommand();
             final Command command = commandMap.get(commandName);
 
-            if (command == null) {
+            if(cerberusCommand.isVersion()) {
+                Properties props = loadProps();
+                String version = props.getProperty(VERSION_PROPERTY);
+                String versionMessage = String.format("Cerberus Lifecycle CLI %s", version);
+                System.out.println(versionMessage);
+            }
+            else if (command == null) {
                 System.err.println("Unknown command: " + commandName);
                 commander.usage();
             } else {
@@ -176,5 +190,16 @@ public class CerberusRunner {
     public static void main(String[] args) {
         CerberusRunner runner = new CerberusRunner();
         runner.run(args);
+    }
+
+    private Properties loadProps() {
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        Properties props = new Properties();
+        try(InputStream resourceStream = loader.getResourceAsStream(PROPERTY_FILE)) {
+            props.load(resourceStream);
+        } catch(IOException e) {
+            System.err.println(e.getMessage());
+        }
+        return props;
     }
 }
