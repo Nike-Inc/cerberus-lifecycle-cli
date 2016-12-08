@@ -20,6 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.validator.EnvironmentNameValidator;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,11 +39,11 @@ public class CerberusCommand {
     private List<String> parameters = new ArrayList<>();
 
     @Parameter(names = {"--environment", "--env", "-e"},
-            description = "Cerberus environment name to execute against.",
+            description = "Cerberus environment name to execute against. This is required to be set via 'CERBERUS_CLI_ENV' env var or supplied via command arg",
             validateWith = EnvironmentNameValidator.class)
     private String environment;
 
-    @Parameter(names = {"--region", "-r"}, description = "The AWS region to execute against.")
+    @Parameter(names = {"--region", "-r"}, description = "The AWS region to execute against. This is required to be set via 'CERBERUS_CLI_REGION' env var or supplied via command arg")
     private String region;
 
     @Parameter(names = {"--debug"}, description = "Enables debug output.")
@@ -62,11 +63,23 @@ public class CerberusCommand {
     }
 
     public String getEnvironment() {
-        return environment;
+        String calculatedEnv = StringUtils.isNotBlank(environment) ? environment : System.getenv("CERBERUS_CLI_ENV");
+
+        if (StringUtils.isBlank(calculatedEnv)) {
+            throw new IllegalArgumentException("Failed to determine environment, checked 'CERBERUS_CLI_ENV' env var and -e, --env, --environment command options, options must go before the command");
+        }
+
+        return calculatedEnv;
     }
 
     public String getRegion() {
-        return region;
+        String calculatedRegion = StringUtils.isNotBlank(region) ? region : System.getenv("CERBERUS_CLI_REGION");
+
+        if (StringUtils.isBlank(calculatedRegion)) {
+            throw new IllegalArgumentException("Failed to determine environment, checked 'CERBERUS_CLI_REGION' env var and -r, --region command options, options must go before the command");
+        }
+
+        return calculatedRegion;
     }
 
     public boolean isDebug() {

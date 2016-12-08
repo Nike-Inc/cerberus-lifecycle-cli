@@ -84,10 +84,6 @@ public class CerberusRunnerTest {
 
             // limited validation of help output
             assertContains(output, "Cerberus Lifecycle CLI");
-
-            // sanity test that output is about expected length
-            assertTrue(output.length() <= 50);
-
         } finally {
             // restore System.out
             System.setOut(originalOut);
