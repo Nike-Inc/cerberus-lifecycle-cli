@@ -19,7 +19,10 @@ package com.nike.cerberus.cli;
 import ch.qos.logback.classic.Level;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.MissingCommandException;
+import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.WrappedParameter;
+import com.beust.jcommander.internal.Lists;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.common.collect.Maps;
 import com.google.inject.Guice;
@@ -62,6 +65,8 @@ import com.nike.cerberus.module.PropsModule;
 import com.nike.cerberus.operation.Operation;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -102,22 +107,20 @@ public class CerberusRunner {
                 String version = propsInjector.getInstance(Key.get(String.class, Names.named(ConfigConstants.VERSION_PROPERTY)));
                 String versionMessage = Chalk.on(String.format("Cerberus Lifecycle CLI version: %s", version)).green().bold().toString();
                 System.out.println(versionMessage);
-            }
-            else if (command == null) {
-                System.err.println("Unknown command: " + commandName);
-                commander.usage();
-            } else {
-                if (cerberusCommand.isHelp()) {
+            } else if (cerberusCommand.isHelp()) {
+                if (StringUtils.isNotBlank(commandName)) {
                     commander.usage(commandName);
                 } else {
-                    final Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
-                            cerberusCommand.getEnvironment(), cerberusCommand.getRegion()), new PropsModule());
+                    printCustomUsage();
+                }
+            } else {
+                final Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
+                        cerberusCommand.getEnvironment(), cerberusCommand.getRegion()), new PropsModule());
 
-                    final Operation operation = injector.getInstance(command.getOperationClass());
+                final Operation operation = injector.getInstance(command.getOperationClass());
 
-                    if (operation.isRunnable(command)) {
-                        operation.run(command);
-                    }
+                if (operation.isRunnable(command)) {
+                    operation.run(command);
                 }
             }
         } catch (IllegalArgumentException e) {
@@ -125,15 +128,11 @@ public class CerberusRunner {
             cerberusCommand = new CerberusCommand();
             new JCommander(cerberusCommand).usage();
         } catch (ParameterException pe) {
-            System.err.println(Chalk.on("ERROR: " + pe.getMessage()).red().bold().toString());
+            if (! cerberusCommand.isHelp()) {
+                System.err.println(Chalk.on("ERROR: " + pe.getMessage()).red().bold().toString());
+            }
             if (pe instanceof MissingCommandException) {
-                System.err.println("Available commands, use -h, --help [command name] for more info");
-                commander.getCommands().keySet().forEach(command -> {
-                    String msg = String.format("\t%s, %s",
-                            Chalk.on(command).green().bold().toString(),
-                            commander.getCommandDescription(command));
-                    System.err.println(msg);
-                });
+                printCommands();
             } else {
                 String commandName = commander.getParsedCommand();
                 if (StringUtils.isNotBlank(commandName)) {
@@ -143,6 +142,95 @@ public class CerberusRunner {
                     commander.usage();
                 }
             }
+        }
+    }
+
+    private void printCommands() {
+        System.out.println("Commands, use cerberus [-h, --help] [command name] for more info:");
+        commander.getCommands().keySet().forEach(command -> {
+            String msg = String.format("    %s, %s",
+                    Chalk.on(command).green().bold().toString(),
+                    commander.getCommandDescription(command));
+            System.out.println(msg);
+        });
+    }
+
+    private void printCustomUsage() {
+        StringBuilder sb = new StringBuilder("Usage: cerberus [options] [command] [command options]\n");
+
+        String indent = "";
+        //indenting
+        int descriptionIndent = 6;
+        int indentCount = indent.length() + descriptionIndent;
+
+        int longestName = 0;
+        List<ParameterDescription> sorted = Lists.newArrayList();
+        for (ParameterDescription pd : commander.getParameters()) {
+            if (! pd.getParameter().hidden()) {
+                sorted.add(pd);
+                // + to have an extra space between the name and the description
+                int length = pd.getNames().length() + 2;
+                if (length > longestName) {
+                    longestName = length;
+                }
+            }
+        }
+
+        sb.append(indent).append("  Options:\n");
+
+        sorted.stream()
+                .sorted((p0, p1) -> p0.getLongestName().compareTo(p1.getLongestName()))
+                .forEach(pd -> {
+                    WrappedParameter parameter = pd.getParameter();
+                    sb.append(indent).append("  "
+                            + (parameter.required() ? "* " : "  ")
+                            + Chalk.on(pd.getNames()).green().bold().toString()
+                            + "\n");
+                    wrapDescription(sb, indentCount, s(indentCount) + pd.getDescription());
+                    Object def = pd.getDefault();
+                    if (def != null) {
+                        String displayedDef = StringUtils.isBlank(def.toString())
+                                ? "<empty string>"
+                                : def.toString();
+                        sb.append("\n" + s(indentCount)).append("Default: " + Chalk.on(displayedDef).yellow().bold().toString());
+                    }
+                    Class<?> type =  pd.getParameterized().getType();
+                    if(type.isEnum()){
+                        String values = EnumSet.allOf((Class<? extends Enum>) type).toString();
+                        sb.append("\n" + s(indentCount)).append("Possible Values: " + Chalk.on(values).yellow().bold().toString());
+                    }
+                    sb.append("\n");
+                });
+
+        System.out.println(sb.toString());
+        System.out.print("  ");
+        printCommands();
+    }
+
+    private String s(int count) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            result.append(" ");
+        }
+
+        return result.toString();
+    }
+
+    private void wrapDescription(StringBuilder out, int indent, String description) {
+        int max = 79;
+        String[] words = description.split(" ");
+        int current = 0;
+        int i = 0;
+        while (i < words.length) {
+            String word = words[i];
+            if (word.length() > max || current + 1 + word.length() <= max) {
+                out.append(word).append(" ");
+                current += word.length() + 1;
+            } else {
+                out.append("\n").append(s(indent)).append(word).append(" ");
+                current = indent + 1 + word.length();
+            }
+            i++;
         }
     }
 

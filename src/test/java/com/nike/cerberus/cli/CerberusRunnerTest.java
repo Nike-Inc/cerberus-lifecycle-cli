@@ -46,10 +46,6 @@ public class CerberusRunnerTest {
             assertContains(output, "--debug");
             assertContains(output, "--environment");
             assertContains(output, "--help");
-
-            // sanity test that output is about expected length
-            assertTrue(output.length() >= 9000);
-
         } finally {
             // restore System.out
             System.setOut(originalOut);
