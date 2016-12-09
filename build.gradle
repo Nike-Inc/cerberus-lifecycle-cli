@@ -63,6 +63,10 @@ tasks.shadowJar.dependsOn createCloudFormation
 tasks.assemble.dependsOn createCloudFormation
 
 shadowJar {
+    def releaseVersion = version
+    doFirst {
+        ant.replace(file: "$buildDir/resources/main/cerberus-lifecycle-cli.properties", token: "@@RELEASE@@", value: releaseVersion)
+    }
     baseName = 'cerberus'
     classifier = null
     version = null

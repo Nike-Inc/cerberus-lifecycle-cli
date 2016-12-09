@@ -65,4 +65,28 @@ public class CerberusRunnerTest {
     private void assertContains(String stringToCheck, String expectedContents) {
         assertTrue("did not find expected contents: " + expectedContents, stringToCheck.contains(expectedContents));
     }
+
+    @Test
+    public void testDisplayVersion() {
+
+        // This is a little gross but it does help prove basic start-up works.
+        // It will be a problem if we ever run tests in parallel.
+
+        PrintStream originalOut = System.out;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            System.setOut(new PrintStream(out));
+
+            // invoke method under test
+            CerberusRunner.main(new String[]{"--version"});
+
+            String output = out.toString();
+
+            // limited validation of help output
+            assertContains(output, "Cerberus Lifecycle CLI");
+        } finally {
+            // restore System.out
+            System.setOut(originalOut);
+        }
+    }
 }

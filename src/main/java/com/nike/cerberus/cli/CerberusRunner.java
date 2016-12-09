@@ -18,10 +18,15 @@ package com.nike.cerberus.cli;
 
 import ch.qos.logback.classic.Level;
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.MissingCommandException;
 import com.beust.jcommander.ParameterException;
+import com.github.tomaslanger.chalk.Chalk;
 import com.google.common.collect.Maps;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.name.Names;
+import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
@@ -53,7 +58,9 @@ import com.nike.cerberus.command.vault.UnsealVaultClusterCommand;
 import com.nike.cerberus.command.vault.VaultHealthCheckCommand;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
+import com.nike.cerberus.module.PropsModule;
 import com.nike.cerberus.operation.Operation;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
@@ -89,7 +96,14 @@ public class CerberusRunner {
             final String commandName = commander.getParsedCommand();
             final Command command = commandMap.get(commandName);
 
-            if (command == null) {
+            final Injector propsInjector = Guice.createInjector(new PropsModule());
+
+            if(cerberusCommand.isVersion()) {
+                String version = propsInjector.getInstance(Key.get(String.class, Names.named(ConfigConstants.VERSION_PROPERTY)));
+                String versionMessage = Chalk.on(String.format("Cerberus Lifecycle CLI version: %s", version)).green().bold().toString();
+                System.out.println(versionMessage);
+            }
+            else if (command == null) {
                 System.err.println("Unknown command: " + commandName);
                 commander.usage();
             } else {
@@ -97,7 +111,7 @@ public class CerberusRunner {
                     commander.usage(commandName);
                 } else {
                     final Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
-                            cerberusCommand.getEnvironment(), cerberusCommand.getRegion()));
+                            cerberusCommand.getEnvironment(), cerberusCommand.getRegion()), new PropsModule());
 
                     final Operation operation = injector.getInstance(command.getOperationClass());
 
@@ -106,9 +120,29 @@ public class CerberusRunner {
                     }
                 }
             }
+        } catch (IllegalArgumentException e) {
+            System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
+            cerberusCommand = new CerberusCommand();
+            new JCommander(cerberusCommand).usage();
         } catch (ParameterException pe) {
-            System.err.println(pe.getMessage());
-            commander.usage();
+            System.err.println(Chalk.on("ERROR: " + pe.getMessage()).red().bold().toString());
+            if (pe instanceof MissingCommandException) {
+                System.err.println("Available commands, use -h, --help [command name] for more info");
+                commander.getCommands().keySet().forEach(command -> {
+                    String msg = String.format("\t%s, %s",
+                            Chalk.on(command).green().bold().toString(),
+                            commander.getCommandDescription(command));
+                    System.err.println(msg);
+                });
+            } else {
+                String commandName = commander.getParsedCommand();
+                if (StringUtils.isNotBlank(commandName)) {
+                    commander.usage(commandName);
+                } else {
+                    // we shouldn't be able to get here, but we will leave it here just in case
+                    commander.usage();
+                }
+            }
         }
     }
 
