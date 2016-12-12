@@ -45,7 +45,7 @@ server {
     }
 
     # Allow lookup-self call for a token to go straight to Vault
-    location /v1/auth/token/lookup-self {
+    location ~ /v1/auth/token/lookup-self {
         set $vault "{{{vaultHost}}}";
         proxy_pass https://$vault;
     }

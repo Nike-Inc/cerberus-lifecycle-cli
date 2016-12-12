@@ -74,15 +74,9 @@ public class CreateGatewayConfigOperation implements Operation<CreateGatewayConf
     public boolean isRunnable(final CreateGatewayConfigCommand command) {
         boolean isRunnable = true;
         final String cmsStackId = configStore.getStackId(StackName.CMS);
-        final boolean hasGatewayConfig = configStore.hasGatewayConfig();
 
         if (StringUtils.isBlank(cmsStackId)) {
             logger.error("No CMS stack present for the specified environment, please create that first.");
-            isRunnable = false;
-        }
-
-        if (hasGatewayConfig) {
-            logger.error("Gateway configuration already exists, please use the update command.");
             isRunnable = false;
         }
 

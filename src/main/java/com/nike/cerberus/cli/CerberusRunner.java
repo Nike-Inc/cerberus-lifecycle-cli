@@ -99,7 +99,7 @@ public class CerberusRunner {
             commander.parse(args);
             configureLogging(cerberusCommand.isDebug());
             final String commandName = commander.getParsedCommand();
-            final Command command = commandMap.get(commandName);
+            Command command = commandMap.get(commandName);
 
             final Injector propsInjector = Guice.createInjector(new PropsModule());
 
@@ -107,7 +107,7 @@ public class CerberusRunner {
                 String version = propsInjector.getInstance(Key.get(String.class, Names.named(ConfigConstants.VERSION_PROPERTY)));
                 String versionMessage = Chalk.on(String.format("Cerberus Lifecycle CLI version: %s", version)).green().bold().toString();
                 System.out.println(versionMessage);
-            } else if (cerberusCommand.isHelp()) {
+            } else if (cerberusCommand.isHelp() || commandName == null) {
                 if (StringUtils.isNotBlank(commandName)) {
                     commander.usage(commandName);
                 } else {
