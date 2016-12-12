@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [ -z ${CERBERUS_HOME+x} ];
+then
+  echo "CERBERUS_HOME env var must be set to where the cerberus wrapper and cerberus.jar is stored, please ommit the trailing slash"
+  exit 1
+fi
+
+INSTALLED_VERSION=$(java -jar ${CERBERUS_HOME}/cerberus.jar -v | sed 's/Cerberus Lifecycle CLI version: \(.*\)/\1/' | tr -d '[:cntrl:]' | sed 's/\[1m\[32m\(.*\)\[39m\[22m/\1/')
+echo "Installed version: ${INSTALLED_VERSION}"
+LATEST_RELEASE_DATA=$(curl -s --header "Accept: application/json" -L https://github.com/Nike-Inc/cerberus-lifecycle-cli/releases/latest)
+LATEST_VERSION=$(echo $LATEST_RELEASE_DATA | jq --raw-output ".tag_name" | sed 's/v\(.*\)/\1/')
+echo "Latest version: ${LATEST_VERSION}"
+
+if [ "$INSTALLED_VERSION" != "$LATEST_VERSION" ]
+then
+  read -p "The Cerberus CLI is not up to date, would you like to update? (y/N): " -n 1 -r UPDATE; echo
+  if [[ $UPDATE =~ ^[Yy]$ ]]; then
+    echo -n "Updating..."
+    wget "https://github.com/Nike-Inc/cerberus-lifecycle-cli/releases/download/v${LATEST_VERSION}/cerberus.jar" -O "${CERBERUS_HOME}/cerberus.jar"
+    wget "https://github.com/Nike-Inc/cerberus-lifecycle-cli/releases/download/v${LATEST_VERSION}/cerberus" -O "${CERBERUS_HOME}/cerberus"
+    echo "done"
+  fi
+fi
+
+java -jar ${CERBERUS_HOME}/cerberus.jar "$@"
