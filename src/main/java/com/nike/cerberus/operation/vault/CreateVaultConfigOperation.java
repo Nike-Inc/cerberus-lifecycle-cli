@@ -65,15 +65,9 @@ public class CreateVaultConfigOperation implements Operation<CreateVaultConfigCo
     public boolean isRunnable(final CreateVaultConfigCommand command) {
         boolean isRunnable = true;
         final String vaultAclToken = configStore.getVaultAclToken();
-        final boolean hasVaultConfig = configStore.hasVaultConfig();
 
         if (StringUtils.isBlank(vaultAclToken)) {
             logger.error("No Vault ACL token present for Consul, please generate that first.");
-            isRunnable = false;
-        }
-
-        if (hasVaultConfig) {
-            logger.error("Vault configuration present for specified environment, use the update command.");
             isRunnable = false;
         }
 
