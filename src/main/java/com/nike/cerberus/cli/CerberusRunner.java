@@ -123,24 +123,16 @@ public class CerberusRunner {
                     operation.run(command);
                 }
             }
-        } catch (IllegalArgumentException e) {
-            System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
-            cerberusCommand = new CerberusCommand();
-            new JCommander(cerberusCommand).usage();
-        } catch (ParameterException pe) {
+        } catch (Throwable e) {
             if (! cerberusCommand.isHelp()) {
-                System.err.println(Chalk.on("ERROR: " + pe.getMessage()).red().bold().toString());
+                System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
             }
-            if (pe instanceof MissingCommandException) {
-                printCommands();
+
+            String commandName = commander.getParsedCommand();
+            if (StringUtils.isNotBlank(commandName)) {
+                commander.usage(commandName);
             } else {
-                String commandName = commander.getParsedCommand();
-                if (StringUtils.isNotBlank(commandName)) {
-                    commander.usage(commandName);
-                } else {
-                    // we shouldn't be able to get here, but we will leave it here just in case
-                    commander.usage();
-                }
+                printCustomUsage();
             }
         }
     }
