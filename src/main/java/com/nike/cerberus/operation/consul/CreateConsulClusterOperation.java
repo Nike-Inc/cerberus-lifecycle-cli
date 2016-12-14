@@ -136,11 +136,6 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
             isRunnable = false;
         }
 
-        if (StringUtils.isBlank(certificateName)) {
-            logger.error("Certificate has not been uploaded for Consul!");
-            isRunnable = false;
-        }
-
         if (!hasConsulConfig) {
             logger.error("No configuration for Consul exists for this environment!");
             isRunnable = false;
