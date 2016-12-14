@@ -63,7 +63,7 @@ public class PublishDashboardOperation implements Operation<PublishDashboardComm
     @Override
     public void run(final PublishDashboardCommand command) {
         final URL artifactUrl = command.getArtifactUrl();
-        final URL helpArtifactUrl = command.getHelpOverrideArtifactUrl();
+        final URL overrideArtifactUrl = command.getOverrideArtifactUrl();
 
         final BaseOutputs outputParameters = configStore.getBaseStackOutputs();
         final String dashboardBucketName = outputParameters.getDashboardBucketName();
@@ -76,7 +76,7 @@ public class PublishDashboardOperation implements Operation<PublishDashboardComm
 
         initClient(dashboardBucketName);
 
-        final File extractedDirectory = extractArtifact(artifactUrl, helpArtifactUrl);
+        final File extractedDirectory = extractArtifact(artifactUrl, overrideArtifactUrl);
 
         try {
             final MultipleFileUpload multipleFileUpload =

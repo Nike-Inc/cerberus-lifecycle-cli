@@ -37,15 +37,15 @@ public class PublishDashboardCommand implements Command {
     @Parameter(names = "--artifact-url", description = "URL to the dashboard artifact.", required = true)
     private URL artifactUrl;
 
-    @Parameter(names = "--help-override-artifact-url", description = "URL to help page override artifact.")
-    private URL helpOverrideArtifactUrl;
+    @Parameter(names = "--override-artifact-url", description = "URL to an artifact that will be extracted and merged into the main artifact before upload to s3.")
+    private URL overrideArtifactUrl;
 
     public URL getArtifactUrl() {
         return artifactUrl;
     }
 
-    public URL getHelpOverrideArtifactUrl() {
-        return helpOverrideArtifactUrl;
+    public URL getOverrideArtifactUrl() {
+        return overrideArtifactUrl;
     }
 
     @Override
