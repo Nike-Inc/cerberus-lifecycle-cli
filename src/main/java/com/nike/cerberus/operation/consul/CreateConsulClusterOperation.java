@@ -127,7 +127,6 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
     public boolean isRunnable(final CreateConsulClusterCommand command) {
         boolean isRunnable = true;
         final String baseStackId = configStore.getStackId(StackName.BASE);
-        final String certificateName = configStore.getServerCertificateName(StackName.CONSUL);
         final boolean hasConsulConfig = configStore.hasConsulConfig();
         final boolean hasVaultAcl = configStore.hasVaultAclEntry();
 
