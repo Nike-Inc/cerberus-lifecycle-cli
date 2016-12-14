@@ -127,17 +127,11 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
     public boolean isRunnable(final CreateConsulClusterCommand command) {
         boolean isRunnable = true;
         final String baseStackId = configStore.getStackId(StackName.BASE);
-        final String certificateName = configStore.getServerCertificateName(StackName.CONSUL);
         final boolean hasConsulConfig = configStore.hasConsulConfig();
         final boolean hasVaultAcl = configStore.hasVaultAclEntry();
 
         if (StringUtils.isBlank(baseStackId) || !cloudFormationService.isStackPresent(baseStackId)) {
             logger.error("No base stack defined for this environment!");
-            isRunnable = false;
-        }
-
-        if (StringUtils.isBlank(certificateName)) {
-            logger.error("Certificate has not been uploaded for Consul!");
             isRunnable = false;
         }
 
