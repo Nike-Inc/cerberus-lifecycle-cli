@@ -94,6 +94,7 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
         consulParameters.getLaunchConfigParameters().setAmiId(command.getStackDelegate().getAmiId());
         consulParameters.getLaunchConfigParameters().setInstanceSize(command.getStackDelegate().getInstanceSize());
         consulParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
+        consulParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         consulParameters.getLaunchConfigParameters().setUserData(
                 ec2UserDataService.getUserData(StackName.CONSUL, command.getStackDelegate().getOwnerGroup()));
 
