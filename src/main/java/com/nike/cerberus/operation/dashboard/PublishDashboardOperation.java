@@ -63,6 +63,7 @@ public class PublishDashboardOperation implements Operation<PublishDashboardComm
     @Override
     public void run(final PublishDashboardCommand command) {
         final URL artifactUrl = command.getArtifactUrl();
+        final URL helpArtifactUrl = command.getHelpOverrideArtifactUrl();
 
         final BaseOutputs outputParameters = configStore.getBaseStackOutputs();
         final String dashboardBucketName = outputParameters.getDashboardBucketName();
@@ -75,7 +76,7 @@ public class PublishDashboardOperation implements Operation<PublishDashboardComm
 
         initClient(dashboardBucketName);
 
-        final File extractedDirectory = extractArtifact(artifactUrl);
+        final File extractedDirectory = extractArtifact(artifactUrl, helpArtifactUrl);
 
         try {
             final MultipleFileUpload multipleFileUpload =
@@ -101,10 +102,20 @@ public class PublishDashboardOperation implements Operation<PublishDashboardComm
         }
     }
 
-    private File extractArtifact(final URL artifactUrl) {
+    private File extractArtifact(final URL artifactUrl, final URL helpArtifactUrl) {
         final File extractionDirectory = Files.createTempDir();
-        logger.debug("Extracting artifact contents to {}", extractionDirectory.getAbsolutePath());
+        logger.info("Extracting artifact contents to {}", extractionDirectory.getAbsolutePath());
 
+        downloadAndExtract(artifactUrl, extractionDirectory);
+
+        if (helpArtifactUrl != null) {
+            downloadAndExtract(helpArtifactUrl, extractionDirectory);
+        }
+
+        return extractionDirectory;
+    }
+
+    private void downloadAndExtract(URL artifactUrl, File extractionDirectory) {
         ArchiveEntry entry;
         TarArchiveInputStream tarArchiveInputStream = null;
         try {
@@ -136,8 +147,6 @@ public class PublishDashboardOperation implements Operation<PublishDashboardComm
         } finally {
             IOUtils.closeQuietly(tarArchiveInputStream);
         }
-
-        return extractionDirectory;
     }
 
     private void initClient(final String dashboardBucketName) {
