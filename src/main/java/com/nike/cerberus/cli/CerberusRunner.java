@@ -63,6 +63,7 @@ import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
 import com.nike.cerberus.operation.Operation;
+import com.nike.cerberus.util.LocalEnvironmentValidator;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.EnumSet;
@@ -116,6 +117,10 @@ public class CerberusRunner {
             } else {
                 final Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
                         cerberusCommand.getEnvironment(), cerberusCommand.getRegion()), new PropsModule());
+
+                // fail early if there is any problem in local environment
+                LocalEnvironmentValidator validator = injector.getInstance(LocalEnvironmentValidator.class);
+                validator.validate();
 
                 final Operation operation = injector.getInstance(command.getOperationClass());
 
