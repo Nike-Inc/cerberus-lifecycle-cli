@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 public class CerberusRunnerTest {
 
     @Test
-    public void sanityTestHelp() {
+    public void sanity_test_help() {
 
         // This is a little gross but it does help prove basic start-up works.
         // It will be a problem if we ever run tests in parallel.
@@ -63,7 +63,7 @@ public class CerberusRunnerTest {
     }
 
     @Test
-    public void testDisplayVersion() {
+    public void test_display_version() {
 
         // This is a little gross but it does help prove basic start-up works.
         // It will be a problem if we ever run tests in parallel.

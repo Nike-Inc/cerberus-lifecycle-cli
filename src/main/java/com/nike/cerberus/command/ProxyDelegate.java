@@ -25,13 +25,16 @@ import java.net.Proxy;
  */
 public class ProxyDelegate {
 
-    @Parameter(names = {"--proxy-type"}, description = "Type of proxy.")
-    private Proxy.Type proxyType = Proxy.Type.DIRECT;
+    public static final String PROXY_TYPE_LONG_ARG = "--proxy-type";
+    public static final String PROXY_HOST_LONG_ARG = "--proxy-host";
+    public static final String PROXY_PORT_LONG_ARG = "--proxy-port";
+    @Parameter(names = {PROXY_TYPE_LONG_ARG}, description = "Type of proxy.")
+    private Proxy.Type proxyType;
 
-    @Parameter(names = {"--proxy-host"}, description = "Proxy host.")
+    @Parameter(names = {PROXY_HOST_LONG_ARG}, description = "Proxy host.")
     private String proxyHost;
 
-    @Parameter(names = {"--proxy-port"}, description = "Proxy port.")
+    @Parameter(names = {PROXY_PORT_LONG_ARG}, description = "Proxy port.")
     private Integer proxyPort;
 
     public Proxy.Type getProxyType() {
@@ -44,5 +47,17 @@ public class ProxyDelegate {
 
     public Integer getProxyPort() {
         return proxyPort;
+    }
+
+    public void setProxyType(Proxy.Type proxyType) {
+        this.proxyType = proxyType;
+    }
+
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public void setProxyPort(Integer proxyPort) {
+        this.proxyPort = proxyPort;
     }
 }
