@@ -147,6 +147,8 @@ public class EnvironmentConfigToArgsMapper {
             case "WAF":
                 args.add(environmentConfig.getEdgeSecurity().getCloudfrontLambdaArtifactUrl());
                 break;
+            default:
+                args.add("");
         }
 
         return args;
@@ -282,6 +284,8 @@ public class EnvironmentConfigToArgsMapper {
             case "gateway":
                 args.add(environmentConfig.getGateway().getCertPath());
                 break;
+            default:
+                args.add("");
         }
 
         Arrays.stream(passedArgs).forEach(arg -> {
@@ -319,7 +323,7 @@ public class EnvironmentConfigToArgsMapper {
         args.add(STACK_NAME_KEY);
         args.add(stackName);
 
-        CerberusStack cerberusStack = null;
+        CerberusStack cerberusStack;
         switch (stackName) {
             case "consul":
                 cerberusStack = environmentConfig.getConsul();
@@ -333,6 +337,8 @@ public class EnvironmentConfigToArgsMapper {
             case "gateway":
                 cerberusStack = environmentConfig.getGateway();
                 break;
+            default:
+                cerberusStack = null;
         }
 
         if (cerberusStack != null) {
