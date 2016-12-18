@@ -34,11 +34,13 @@ import static com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand.CO
 public class WhitelistCidrForVpcAccessCommand implements Command {
 
     public static final String COMMAND_NAME = "whitelist-cidr-for-vpc-access";
+    public static final String CIDR_LONG_ARG = "-cidr";
+    public static final String PORT_LONG_ARG = "-port";
 
-    @Parameter(names = "-cidr", description = "One or more CIDRs to be granted ingress on the Cerberus VPC.")
+    @Parameter(names = CIDR_LONG_ARG, description = "One or more CIDRs to be granted ingress on the Cerberus VPC.")
     private List<String> cidrs = new ArrayList<>();
 
-    @Parameter(names = "-port", description = "The ports to grant ingress on within the Cerberus VPC.")
+    @Parameter(names = PORT_LONG_ARG, description = "The ports to grant ingress on within the Cerberus VPC.")
     private List<Integer> ports = new ArrayList<>();
 
     public List<String> getCidrs() {

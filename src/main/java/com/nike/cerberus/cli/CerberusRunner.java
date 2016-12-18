@@ -18,12 +18,11 @@ package com.nike.cerberus.cli;
 
 import ch.qos.logback.classic.Level;
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.MissingCommandException;
 import com.beust.jcommander.ParameterDescription;
-import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.WrappedParameter;
 import com.beust.jcommander.internal.Lists;
 import com.github.tomaslanger.chalk.Chalk;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -55,9 +54,9 @@ import com.nike.cerberus.command.vault.DisableAuditBackendCommand;
 import com.nike.cerberus.command.vault.EnableAuditBackendCommand;
 import com.nike.cerberus.command.vault.InitVaultClusterCommand;
 import com.nike.cerberus.command.vault.LoadDefaultVaultPoliciesCommand;
-import com.nike.cerberus.command.vault.StoreOneLoginApiKeyCommand;
 import com.nike.cerberus.command.vault.UnsealVaultClusterCommand;
 import com.nike.cerberus.command.vault.VaultHealthCheckCommand;
+import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
@@ -96,7 +95,10 @@ public class CerberusRunner {
         registerAllCommands();
 
         try {
+            args = getEnvironmentalConfigArgs(args);
+
             commander.parse(args);
+
             configureLogging(cerberusCommand.isDebug());
             final String commandName = commander.getParsedCommand();
             Command command = commandMap.get(commandName);
@@ -139,6 +141,31 @@ public class CerberusRunner {
                 printCustomUsage();
             }
         }
+    }
+
+    /**
+     * If --file, -f was passed in we will map the dsl params to args.
+     *
+     * Due to the way jCommander works and validates args, we will create a new local command and parse the args
+     * without validation and get the env config and return the new args back to the main commander to parse.
+     *
+     * @param args The args passed into CLI from the user
+     * @return merged arg array containing file params merged with user params
+     */
+    @VisibleForTesting
+    private String[] getEnvironmentalConfigArgs(String[] args) {
+        CerberusCommand cerberusCommand = new CerberusCommand();
+        JCommander commander = new JCommander(cerberusCommand);
+        commander.setProgramName("cerberus");
+        commander.setAcceptUnknownOptions(true);
+        commander.parseWithoutValidation(args);
+
+        EnvironmentConfig environmentConfig = cerberusCommand.getEnvironmentConfig();
+
+        if (environmentConfig != null) {
+            return EnvironmentConfigToArgsMapper.getArgs(environmentConfig, args);
+        }
+        return args;
     }
 
     private void printCommands() {
@@ -247,7 +274,6 @@ public class CerberusRunner {
         registerCommand(new EnableAuditBackendCommand());
         registerCommand(new DisableAuditBackendCommand());
         registerCommand(new LoadDefaultVaultPoliciesCommand());
-        registerCommand(new StoreOneLoginApiKeyCommand());
         registerCommand(new CreateCmsVaultTokenCommand());
         registerCommand(new CreateCmsConfigCommand());
         registerCommand(new CreateCmsClusterCommand());

@@ -33,13 +33,15 @@ import static com.nike.cerberus.command.gateway.CreateGatewayClusterCommand.COMM
 public class CreateGatewayClusterCommand implements Command {
 
     public static final String COMMAND_NAME = "create-gateway-cluster";
+    public static final String HOSTED_ZONE_ID_LONG_ARG = "--hosted-zone-id";
+    public static final String HOSTNAME_LONG_ARG = "--hostname";
 
-    @Parameter(names = "--hosted-zone-id",
+    @Parameter(names = HOSTED_ZONE_ID_LONG_ARG,
             description = "The Route 53 hosted zone ID that will be used to create the CNAME record for Cerberus.",
             required = true)
     private String hostedZoneId;
 
-    @Parameter(names = "--hostname",
+    @Parameter(names = HOSTNAME_LONG_ARG,
             description = "The hostname that will be used to expose this Cerberus environment.",
             required = true)
     private String hostname;

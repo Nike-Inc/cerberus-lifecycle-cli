@@ -35,11 +35,13 @@ import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME
 public class CreateCmsConfigCommand implements Command {
 
     public static final String COMMAND_NAME = "create-cms-config";
+    public static final String ADMIN_GROUP_LONG_ARG = "--admin-group";
+    public static final String PROPERTY_SHORT_ARG = "-P";
 
-    @Parameter(names = "--admin-group", description = "Group that has admin privileges in CMS.", required = true)
+    @Parameter(names = ADMIN_GROUP_LONG_ARG, description = "Group that has admin privileges in CMS.", required = true)
     private String adminGroup;
 
-    @DynamicParameter(names = "-P", description = "Dynamic parameters for setting additional properties in the CMS environment configuration.")
+    @DynamicParameter(names = PROPERTY_SHORT_ARG, description = "Dynamic parameters for setting additional properties in the CMS environment configuration.")
     private Map<String, String> additionalProperties = new HashMap<>();
 
     public String getAdminGroup() {

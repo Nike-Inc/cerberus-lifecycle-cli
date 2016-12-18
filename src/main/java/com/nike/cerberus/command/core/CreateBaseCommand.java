@@ -31,23 +31,27 @@ import static com.nike.cerberus.command.core.CreateBaseCommand.COMMAND_NAME;
 public class CreateBaseCommand implements Command {
 
     public static final String COMMAND_NAME = "create-base";
+    public static final String ADMIN_ROLE_ARN_LONG_ARG = "--admin-role-arn";
+    public static final String VPC_HOSTED_ZONE_NAME_LONG_ARG = "--vpc-hosted-zone-name";
+    public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
+    public static final String COST_CENTER_LONG_ARG = "--costcenter";
 
-    @Parameter(names = "--admin-role-arn",
+    @Parameter(names = ADMIN_ROLE_ARN_LONG_ARG,
             description = "A IAM role ARN that will be given elevated privileges for the KMS CMK created.",
             required = true)
     private String adminRoleArn;
 
-    @Parameter(names = "--vpc-hosted-zone-name",
+    @Parameter(names = VPC_HOSTED_ZONE_NAME_LONG_ARG,
             description = "The Route 53 hosted zone name that will be created for CNAME records used by internal ELBs.",
             required = true)
     private String vpcHostedZoneName;
 
-    @Parameter(names = "--owner-email",
+    @Parameter(names = OWNER_EMAIL_LONG_ARG,
             description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.",
             required = true)
     private String ownerEmail;
 
-    @Parameter(names = "--costcenter",
+    @Parameter(names = COST_CENTER_LONG_ARG,
             description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.",
             required = true)
     private String costcenter;
