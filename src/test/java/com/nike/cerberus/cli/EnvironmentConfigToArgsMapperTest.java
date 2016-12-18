@@ -55,6 +55,40 @@ public class EnvironmentConfigToArgsMapperTest {
     }
 
     @Test
+    public void test_that_mapper_copies_pre_command_flags_with_flag() {
+        String commandName = "I-don't-exist";
+
+        String[] userInput = {"--debug", "-f", "/path/to/environment.yaml", commandName, "--some-opt", "some-value"};
+
+        String[] expected = {
+                "--debug",
+                "-f", "/path/to/environment.yaml",
+                commandName,
+        };
+
+        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
+
+        assertArgsAreEqual(expected, actual,commandName);
+    }
+
+    @Test
+    public void test_that_mapper_copies_pre_command_flags_without_flag() {
+        String commandName = "I-don't-exist";
+
+        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, "--some-opt", "some-value"};
+
+        String[] expected = {
+                "-f", "/path/to/environment.yaml",
+                commandName,
+        };
+
+        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
+
+        assertArgsAreEqual(expected, actual,commandName);
+    }
+
+
+    @Test
     public void test_create_base() {
         String commandName = CreateBaseCommand.COMMAND_NAME;
 
@@ -373,6 +407,10 @@ public class EnvironmentConfigToArgsMapperTest {
     }
 
     private void assertArgsAreEqual(String[] expected, String[] actual, String commandName) {
+        if (expected.length != actual.length) {
+            fail(String.format("The args not the same length, expected length: %s, actual length: %s\nExpected Args: %s\nActual Args:   %s", expected.length, actual.length, String.join(" ", expected), String.join(" ", actual)));
+        }
+
         // the args up to and including the command should be the same
         int commandIndex = -1;
         for (int i = 0; i < expected.length; i++) {
