@@ -22,7 +22,6 @@ import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.WrappedParameter;
 import com.beust.jcommander.internal.Lists;
 import com.github.tomaslanger.chalk.Chalk;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -153,7 +152,6 @@ public class CerberusRunner {
      * @param args The args passed into CLI from the user
      * @return merged arg array containing file params merged with user params
      */
-    @VisibleForTesting
     private String[] getEnvironmentalConfigArgs(String[] args) {
         CerberusCommand cerberusCommand = new CerberusCommand();
         JCommander commander = new JCommander(cerberusCommand);
