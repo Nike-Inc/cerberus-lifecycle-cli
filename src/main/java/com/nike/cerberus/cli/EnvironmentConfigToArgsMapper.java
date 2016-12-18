@@ -145,7 +145,7 @@ public class EnvironmentConfigToArgsMapper {
         List<String> args = new LinkedList<>();
         String lambdaName = null;
         for (int i = 0; i < passedArgs.length; i++) {
-            if (StringUtils.equals(passedArgs[i],  PublishLambdaCommand.LAMBDA_NAME_LONG_ARG)) {
+            if (StringUtils.equals(passedArgs[i],  PublishLambdaCommand.LAMBDA_NAME_LONG_ARG) && i < passedArgs.length - 1) {
                 lambdaName = passedArgs[i+1];
             }
         }
