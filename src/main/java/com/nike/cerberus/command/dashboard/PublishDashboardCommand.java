@@ -33,11 +33,13 @@ import static com.nike.cerberus.command.dashboard.PublishDashboardCommand.COMMAN
 public class PublishDashboardCommand implements Command {
 
     public static final String COMMAND_NAME = "publish-dashboard";
+    public static final String ARTIFACT_URL_LONG_ARG = "--artifact-url";
+    public static final String OVERRIDE_ARTIFACT_URL_LONG_ARG = "--override-artifact-url";
 
-    @Parameter(names = "--artifact-url", description = "URL to the dashboard artifact.", required = true)
+    @Parameter(names = ARTIFACT_URL_LONG_ARG, description = "URL to the dashboard artifact.", required = true)
     private URL artifactUrl;
 
-    @Parameter(names = "--override-artifact-url", description = "URL to an artifact that will be extracted and merged into the main artifact before upload to s3.")
+    @Parameter(names = OVERRIDE_ARTIFACT_URL_LONG_ARG, description = "URL to an artifact that will be extracted and merged into the main artifact before upload to s3.")
     private URL overrideArtifactUrl;
 
     public URL getArtifactUrl() {

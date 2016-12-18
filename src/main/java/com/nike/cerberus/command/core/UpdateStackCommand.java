@@ -20,6 +20,7 @@ import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UpdateStackOperation;
@@ -36,37 +37,39 @@ import static com.nike.cerberus.command.core.UpdateStackCommand.COMMAND_NAME;
 public class UpdateStackCommand implements Command {
 
     public static final String COMMAND_NAME = "update-stack";
+    public static final String OVERWRITE_TEMPLATE_LONG_ARG = "--overwrite-template";
+    public static final String PARAMETER_SHORT_ARG = "-P";
 
     @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.")
     private StackName stackName;
 
-    @Parameter(names = "--owner-group",
+    @Parameter(names = StackDelegate.OWNER_GROUP_LONG_ARG,
             description = "The owning group for the resources to be updated. Will be tagged on all resources.",
             required = true)
     private String ownerGroup;
 
-    @Parameter(names = "--ami-id", description = "The AMI ID for the specified stack.")
+    @Parameter(names = StackDelegate.AMI_ID_LONG_ARG, description = "The AMI ID for the specified stack.")
     private String amiId;
 
-    @Parameter(names = "--instance-size", description = "Specify a custom instance size.")
+    @Parameter(names = StackDelegate.INSTANCE_SIZE_LONG_ARG, description = "Specify a custom instance size.")
     private String instanceSize;
 
-    @Parameter(names = "--key-pair-name", description = "SSH key pair name.")
+    @Parameter(names = StackDelegate.KEY_PAIR_NAME_LONG_ARG, description = "SSH key pair name.")
     private String keyPairName;
 
-    @Parameter(names = "--owner-email",
+    @Parameter(names = StackDelegate.OWNER_EMAIL_LONG_ARG,
             description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.")
     private String ownerEmail;
 
-    @Parameter(names = "--costcenter",
+    @Parameter(names = StackDelegate.COST_CENTER_LONG_ARG,
             description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.")
     private String costcenter;
 
-    @Parameter(names = "--overwrite-template",
+    @Parameter(names = OVERWRITE_TEMPLATE_LONG_ARG,
             description = "Flag for overwriting existing CloudFormation template")
     private boolean overwriteTemplate;
 
-    @DynamicParameter(names = "-P", description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
+    @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
     private Map<String, String> dynamicParameters = new HashMap<>();
 
     public StackName getStackName() {
