@@ -430,7 +430,11 @@ public class EnvironmentConfigToArgsMapperTest {
                 }
             }
             if (! found) {
-                fail(String.format("Failed to find [ %s %s ] in actual args \nactual args:   %s\nexpected args: %s\nactual size: %s\nexpected size: %s", eKey, eVal, String.join(" ", actual), String.join(" ", expected), actual.length, expected.length));
+                if (isPairE) {
+                    fail(String.format("Failed to find [ %s %s ] in actual args \nactual args:   %s\nexpected args: %s\nactual size: %s\nexpected size: %s", eKey, eVal, String.join(" ", actual), String.join(" ", expected), actual.length, expected.length));
+                } else {
+                    fail(String.format("Failed to find [ %s ] in actual args \nactual args:   %s\nexpected args: %s\nactual size: %s\nexpected size: %s", eKey, String.join(" ", actual), String.join(" ", expected), actual.length, expected.length));
+                }
             }
         }
     }
