@@ -2,7 +2,6 @@ version: 1
 # proxy information
 # You only need to configure this, if you plan on white listing proxy boxes and will need to jump
 # through them to talk to the instances that will live in the cerberus VPC
-# If your not using a proxy either delete this section or make type = DIRECT for direct connecting
 proxy-config:
   host: localhost
   port: 9000

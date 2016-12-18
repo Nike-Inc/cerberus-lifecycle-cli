@@ -18,12 +18,14 @@ package com.nike.cerberus.domain.input;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.net.Proxy;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ProxyConfig {
     private boolean enabled = false;
     private String host;
     private Integer port;
-    private String type;
+    private Proxy.Type type;
 
     public boolean isEnabled() {
         return enabled;
@@ -49,11 +51,11 @@ public class ProxyConfig {
         this.port = port;
     }
 
-    public String getType() {
+    public Proxy.Type getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(Proxy.Type type) {
         this.type = type;
     }
 }

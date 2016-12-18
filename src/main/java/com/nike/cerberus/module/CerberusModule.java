@@ -190,7 +190,7 @@ public class CerberusModule extends AbstractModule {
     public Proxy proxy() {
         final Proxy.Type type = proxyDelegate.getProxyType();
 
-        if (type == Proxy.Type.DIRECT) {
+        if (type == null || type == Proxy.Type.DIRECT) {
             return Proxy.NO_PROXY;
         }
 
