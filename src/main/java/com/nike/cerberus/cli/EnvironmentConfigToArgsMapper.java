@@ -61,8 +61,10 @@ public class EnvironmentConfigToArgsMapper {
         for (int i = 0; i < passedArgs.length; i++) {
             if (StringUtils.startsWith(passedArgs[i], "-")) {
                 args.add(passedArgs[i]);
-                args.add(passedArgs[i+1]);
-                i++;
+                if (i < passedArgs.length && ! StringUtils.startsWith(passedArgs[i+1], "-")) {
+                    args.add(passedArgs[i+1]);
+                    i++;
+                }
             } else {
                 commandName = passedArgs[i];
                 args.add(passedArgs[i]);
