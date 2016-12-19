@@ -53,7 +53,7 @@ public class CerberusCommandTest {
     }
 
     @Test
-    public void test_that_yaml_poxy_args_are_honored() throws URISyntaxException {
+    public void test_that_yaml_proxy_args_are_honored() throws URISyntaxException {
         URL url = getClass().getClassLoader().getResource("environment.yaml");
         File file = Paths.get(url.toURI()).toFile();
         String yamlFilePath = file.getAbsolutePath();
@@ -77,7 +77,7 @@ public class CerberusCommandTest {
     }
 
     @Test
-    public void test_that_command_line_poxy_args_overwrite_yaml_honored() throws URISyntaxException {
+    public void test_that_command_line_proxy_args_overwrite_yaml_honored() throws URISyntaxException {
         URL url = getClass().getClassLoader().getResource("environment.yaml");
         File file = Paths.get(url.toURI()).toFile();
         String yamlFilePath = file.getAbsolutePath();
