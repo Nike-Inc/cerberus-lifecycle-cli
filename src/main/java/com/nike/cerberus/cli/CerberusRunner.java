@@ -38,7 +38,6 @@ import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
 import com.nike.cerberus.command.consul.CreateConsulConfigCommand;
 import com.nike.cerberus.command.consul.CreateVaultAclCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
-import com.nike.cerberus.command.core.EnableConfigReplicationCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
@@ -242,7 +241,6 @@ public class CerberusRunner {
         registerCommand(new CreateConsulClusterCommand());
         registerCommand(new CreateVaultConfigCommand());
         registerCommand(new CreateVaultClusterCommand());
-        registerCommand(new EnableConfigReplicationCommand());
         registerCommand(new PublishDashboardCommand());
         registerCommand(new InitVaultClusterCommand());
         registerCommand(new UnsealVaultClusterCommand());
