@@ -108,6 +108,9 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         cmsParameters.getLaunchConfigParameters().setUserData(
                 ec2UserDataService.getUserData(StackName.CMS, command.getStackDelegate().getOwnerGroup()));
+        cmsParameters.getLaunchConfigParameters().setDesiredInstances(command.getStackDelegate().getDesiredInstances());
+        cmsParameters.getLaunchConfigParameters().setMinimumInstances(command.getStackDelegate().getMinimumInstances());
+        cmsParameters.getLaunchConfigParameters().setMaximumInstances(command.getStackDelegate().getMaximumInstances());
 
         cmsParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
         cmsParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentMetadata.getName());

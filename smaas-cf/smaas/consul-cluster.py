@@ -92,6 +92,24 @@ user_data_param = template.add_parameter(Parameter(
         Type="String"
 ))
 
+desired_instances_param = template.add_parameter(Parameter(
+    "desiredInstances",
+    Description="Desired Number of Auto Scaling Instances",
+    Type="Number"
+))
+
+maximum_instances_param = template.add_parameter(Parameter(
+    "maximumInstances",
+    Description="Maximum Number of Auto Scaling Instances",
+    Type="Number"
+))
+
+minimum_instances_param = template.add_parameter(Parameter(
+    "minimumInstances",
+    Description="Minimum Number of Auto Scaling Instances",
+    Type="Number"
+))
+
 subnet_id_refs = []
 for zone_identifier in range(1, 4):
     vpc_subnet_id = template.add_parameter(Parameter(
@@ -127,12 +145,12 @@ consul_launch_config = template.add_resource(LaunchConfiguration(
 
 consul_autoscaling_group = template.add_resource(AutoScalingGroup(
         "ConsulAutoScalingGroup",
-        DesiredCapacity=3,
+        DesiredCapacity=Ref(desired_instances_param),
         HealthCheckGracePeriod=60,
         HealthCheckType="EC2",
         LaunchConfigurationName=Ref(consul_launch_config),
-        MaxSize=3,
-        MinSize=3,
+        MaxSize=Ref(maximum_instances_param),
+        MinSize=Ref(minimum_instances_param),
         UpdatePolicy=UpdatePolicy(
                 AutoScalingRollingUpdate=AutoScalingRollingUpdate(
                         MaxBatchSize=1,

@@ -147,6 +147,24 @@ cname_param = template.add_parameter(Parameter(
     Type="String"
 ))
 
+desired_instances_param = template.add_parameter(Parameter(
+    "desiredInstances",
+    Description="Desired Number of Auto Scaling Instances",
+    Type="Number"
+))
+
+maximum_instances_param = template.add_parameter(Parameter(
+    "maximumInstances",
+    Description="Maximum Number of Auto Scaling Instances",
+    Type="Number"
+))
+
+minimum_instances_param = template.add_parameter(Parameter(
+    "minimumInstances",
+    Description="Minimum Number of Auto Scaling Instances",
+    Type="Number"
+))
+
 ###
 #
 # Elastic Load Balancer
@@ -251,15 +269,15 @@ vault_launch_config = template.add_resource(LaunchConfiguration(
 
 vault_autoscaling_group = template.add_resource(AutoScalingGroup(
     "VaultAutoScalingGroup",
-    DesiredCapacity=3,
+    DesiredCapacity=Ref(desired_instances_param),
     HealthCheckGracePeriod=60,
     HealthCheckType="EC2",
     LaunchConfigurationName=Ref(vault_launch_config),
     LoadBalancerNames=[
         Ref(vault_load_balancer)
     ],
-    MaxSize=3,
-    MinSize=3,
+    MaxSize=Ref(maximum_instances_param),
+    MinSize=Ref(minimum_instances_param),
     UpdatePolicy=UpdatePolicy(
             AutoScalingRollingUpdate=AutoScalingRollingUpdate(
                     MaxBatchSize=1,

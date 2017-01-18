@@ -185,6 +185,18 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
             launchConfigParameters.getTagParameters().setTagCostcenter(command.getCostcenter());
         }
 
+        if (command.getDesiredInstances() != null) {
+            launchConfigParameters.getLaunchConfigParameters().setDesiredInstances(command.getDesiredInstances());
+        }
+
+        if (command.getMinimumInstances() != null) {
+            launchConfigParameters.getLaunchConfigParameters().setMinimumInstances(command.getMinimumInstances());
+        }
+
+        if (command.getMaximumInstances() != null) {
+            launchConfigParameters.getLaunchConfigParameters().setMaximumInstances(command.getMaximumInstances());
+        }
+
         updateSslConfigParameters(stackName, launchConfigParameters);
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};

@@ -129,6 +129,24 @@ cname_param = template.add_parameter(Parameter(
     Type="String"
 ))
 
+desired_instances_param = template.add_parameter(Parameter(
+    "desiredInstances",
+    Description="Desired Number of Auto Scaling Instances",
+    Type="Number"
+))
+
+maximum_instances_param = template.add_parameter(Parameter(
+    "maximumInstances",
+    Description="Maximum Number of Auto Scaling Instances",
+    Type="Number"
+))
+
+minimum_instances_param = template.add_parameter(Parameter(
+    "minimumInstances",
+    Description="Minimum Number of Auto Scaling Instances",
+    Type="Number"
+))
+
 ###
 #
 # Elastic Load Balancers
@@ -207,15 +225,15 @@ launch_config = template.add_resource(LaunchConfiguration(
 
 autoscaling_group = template.add_resource(AutoScalingGroup(
         "CmsAutoScalingGroup",
-        DesiredCapacity=3,
+        DesiredCapacity=Ref(desired_instances_param),
         HealthCheckGracePeriod=360,
         HealthCheckType="ELB",
         LaunchConfigurationName=Ref(launch_config),
         LoadBalancerNames=[
             Ref(load_balancer)
         ],
-        MaxSize=3,
-        MinSize=3,
+        MaxSize=Ref(maximum_instances_param),
+        MinSize=Ref(minimum_instances_param),
         UpdatePolicy=UpdatePolicy(
             AutoScalingRollingUpdate=AutoScalingRollingUpdate(
                 MaxBatchSize=1,
