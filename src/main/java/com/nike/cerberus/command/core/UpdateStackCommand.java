@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,15 @@ public class UpdateStackCommand implements Command {
             description = "Flag for overwriting existing CloudFormation template")
     private boolean overwriteTemplate;
 
+    @Parameter(names = "--desired-instances", description = "Desired number of auto scaling instances.")
+    private Integer desiredInstances;
+
+    @Parameter(names = "--max-instances", description = "Maximum number of auto scaling instances.")
+    private Integer maximumInstances;
+
+    @Parameter(names = "--min-instances", description = "Minimum number of autos scaling instances")
+    private Integer minimumInstances;
+
     @DynamicParameter(names = "-P", description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
     private Map<String, String> dynamicParameters = new HashMap<>();
 
@@ -103,6 +112,18 @@ public class UpdateStackCommand implements Command {
 
     public Map<String, String> getDynamicParameters() {
         return dynamicParameters;
+    }
+
+    public Integer getDesiredInstances() {
+        return desiredInstances;
+    }
+
+    public Integer getMaximumInstances() {
+        return maximumInstances;
+    }
+
+    public Integer getMinimumInstances() {
+        return minimumInstances;
     }
 
     @Override

@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2016 Nike Inc.
+# Copyright (c) 2017 Nike Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -161,6 +161,24 @@ waf_lambda_key = template.add_parameter(Parameter(
     Description="Key for waf lambda function artifact"
 ))
 
+desired_instances_param = template.add_parameter(Parameter(
+    "desiredInstances",
+    Description="Desired Number of Auto Scaling Instances",
+    Type="Number"
+))
+
+maximum_instances_param = template.add_parameter(Parameter(
+    "maximumInstances",
+    Description="Maximum Number of Auto Scaling Instances",
+    Type="Number"
+))
+
+minimum_instances_param = template.add_parameter(Parameter(
+    "minimumInstances",
+    Description="Minimum Number of Auto Scaling Instances",
+    Type="Number"
+))
+
 ###
 #
 # Elastic Load Balancer
@@ -262,15 +280,15 @@ gateway_launch_config = template.add_resource(LaunchConfiguration(
 
 gateway_autoscaling_group = template.add_resource(AutoScalingGroup(
     "GatewayAutoScalingGroup",
-    DesiredCapacity=3,
+    DesiredCapacity=Ref(desired_instances_param),
     HealthCheckGracePeriod=300,
     HealthCheckType="ELB",
     LaunchConfigurationName=Ref(gateway_launch_config),
     LoadBalancerNames=[
         Ref(gateway_load_balancer)
     ],
-    MaxSize=3,
-    MinSize=3,
+    MaxSize=Ref(maximum_instances_param),
+    MinSize=Ref(minimum_instances_param),
     UpdatePolicy=UpdatePolicy(
         AutoScalingRollingUpdate=AutoScalingRollingUpdate(
             MaxBatchSize=1,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,12 @@ public class CreateVaultClusterOperation implements Operation<CreateVaultCluster
         vaultParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         vaultParameters.getLaunchConfigParameters().setUserData(
                 ec2UserDataService.getUserData(StackName.VAULT, command.getStackDelegate().getOwnerGroup()));
+        vaultParameters.getLaunchConfigParameters().setDesiredInstances(
+                command.getStackDelegate().getDesiredInstances());
+        vaultParameters.getLaunchConfigParameters().setMinimumInstances(
+                command.getStackDelegate().getMinimumInstances());
+        vaultParameters.getLaunchConfigParameters().setMaximumInstances(
+                command.getStackDelegate().getMaximumInstances());
 
         vaultParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
         vaultParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentMetadata.getName());

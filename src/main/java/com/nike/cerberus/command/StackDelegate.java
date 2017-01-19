@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,15 @@ public class StackDelegate {
             required = true)
     private String costcenter;
 
+    @Parameter(names = "--desired-instances", description = "Desired number of auto scaling instances.")
+    private int desiredInstances = 3;
+
+    @Parameter(names = "--max-instances", description = "Maximum number of auto scaling instances.")
+    private int maximumInstances = 3;
+
+    @Parameter(names = "--min-instances", description = "Minimum number of auto scaling instances")
+    private int minimumInstances = 3;
+
     public String getAmiId() {
         return amiId;
     }
@@ -69,5 +78,17 @@ public class StackDelegate {
 
     public String getCostcenter() {
         return costcenter;
+    }
+
+    public int getDesiredInstances() {
+        return desiredInstances;
+    }
+
+    public int getMaximumInstances() {
+        return maximumInstances;
+    }
+
+    public int getMinimumInstances() {
+        return minimumInstances;
     }
 }

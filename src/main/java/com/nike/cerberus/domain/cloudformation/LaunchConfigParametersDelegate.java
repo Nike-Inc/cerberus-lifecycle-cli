@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,12 @@ public class LaunchConfigParametersDelegate {
     private String keyPairName;
 
     private String userData;
+
+    private int desiredInstances;
+
+    private int maximumInstances;
+
+    private int minimumInstances;
 
     public String getAmiId() {
         return amiId;
@@ -62,6 +68,33 @@ public class LaunchConfigParametersDelegate {
 
     public LaunchConfigParametersDelegate setUserData(String userData) {
         this.userData = userData;
+        return this;
+    }
+
+    public int getDesiredInstances() {
+        return desiredInstances;
+    }
+
+    public LaunchConfigParametersDelegate setDesiredInstances(int desiredInstances) {
+        this.desiredInstances = desiredInstances;
+        return this;
+    }
+
+    public int getMaximumInstances() {
+        return maximumInstances;
+    }
+
+    public LaunchConfigParametersDelegate setMaximumInstances(int maximumInstances) {
+        this.maximumInstances = maximumInstances;
+        return this;
+    }
+
+    public int getMinimumInstances() {
+        return minimumInstances;
+    }
+
+    public LaunchConfigParametersDelegate setMinimumInstances(int minimumInstances) {
+        this.minimumInstances = minimumInstances;
         return this;
     }
 }

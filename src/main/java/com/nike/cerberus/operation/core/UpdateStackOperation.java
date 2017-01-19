@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,6 +183,18 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
         if (StringUtils.isNotBlank(command.getCostcenter())) {
             launchConfigParameters.getTagParameters().setTagCostcenter(command.getCostcenter());
+        }
+
+        if (command.getDesiredInstances() != null) {
+            launchConfigParameters.getLaunchConfigParameters().setDesiredInstances(command.getDesiredInstances());
+        }
+
+        if (command.getMinimumInstances() != null) {
+            launchConfigParameters.getLaunchConfigParameters().setMinimumInstances(command.getMinimumInstances());
+        }
+
+        if (command.getMaximumInstances() != null) {
+            launchConfigParameters.getLaunchConfigParameters().setMaximumInstances(command.getMaximumInstances());
         }
 
         updateSslConfigParameters(stackName, launchConfigParameters);

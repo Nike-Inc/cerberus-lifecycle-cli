@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,9 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         cmsParameters.getLaunchConfigParameters().setUserData(
                 ec2UserDataService.getUserData(StackName.CMS, command.getStackDelegate().getOwnerGroup()));
+        cmsParameters.getLaunchConfigParameters().setDesiredInstances(command.getStackDelegate().getDesiredInstances());
+        cmsParameters.getLaunchConfigParameters().setMinimumInstances(command.getStackDelegate().getMinimumInstances());
+        cmsParameters.getLaunchConfigParameters().setMaximumInstances(command.getStackDelegate().getMaximumInstances());
 
         cmsParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
         cmsParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentMetadata.getName());

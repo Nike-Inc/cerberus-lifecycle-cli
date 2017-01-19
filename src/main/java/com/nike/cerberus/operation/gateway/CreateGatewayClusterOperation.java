@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -114,6 +114,12 @@ public class CreateGatewayClusterOperation implements Operation<CreateGatewayClu
         gatewayParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         gatewayParameters.getLaunchConfigParameters().setUserData(
                 ec2UserDataService.getUserData(StackName.GATEWAY, command.getStackDelegate().getOwnerGroup()));
+        gatewayParameters.getLaunchConfigParameters().setDesiredInstances(
+                command.getStackDelegate().getDesiredInstances());
+        gatewayParameters.getLaunchConfigParameters().setMinimumInstances(
+                command.getStackDelegate().getMinimumInstances());
+        gatewayParameters.getLaunchConfigParameters().setMaximumInstances(
+                command.getStackDelegate().getMaximumInstances());
 
         gatewayParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
         gatewayParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentMetadata.getName());
