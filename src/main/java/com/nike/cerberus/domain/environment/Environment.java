@@ -36,8 +36,6 @@ public class Environment {
 
     private String configKeyId;
 
-    private String replicationBucketName;
-
     /**
      * Is the environment configured for continuous delivery
      */
@@ -116,15 +114,6 @@ public class Environment {
 
     public Environment setCd(boolean cd) {
         isCd = cd;
-        return this;
-    }
-
-    public String getReplicationBucketName() {
-        return replicationBucketName;
-    }
-
-    public Environment setReplicationBucketName(String replicationBucketName) {
-        this.replicationBucketName = replicationBucketName;
         return this;
     }
 }

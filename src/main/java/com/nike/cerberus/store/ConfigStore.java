@@ -208,37 +208,6 @@ public class ConfigStore {
     }
 
     /**
-     * Gets the replication bucket name from the config store.
-     *
-     * @return Replication bucket name
-     */
-    public String getReplicationBucketName() {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            return environment.getReplicationBucketName();
-        }
-    }
-
-    /**
-     * Stores the replication bucket name in the config store.  If its already defined an {@link IllegalStateException}
-     * is thrown.
-     *
-     * @param bucketName Replication bucket name
-     */
-    public void storeReplicationBucketName(final String bucketName) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-
-            if (StringUtils.isNotBlank(environment.getReplicationBucketName())) {
-                throw new IllegalStateException("Replication bucket name is already defined for this environment!  Aborting save...");
-            }
-
-            environment.setReplicationBucketName(bucketName);
-            saveEnvironmentData(environment);
-        }
-    }
-
-    /**
      * Checks if the consul configuration is present in the config store.
      *
      * @return If present
