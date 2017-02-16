@@ -56,6 +56,7 @@ public class CreateCmsConfigOperation implements Operation<CreateCmsConfigComman
     public void run(final CreateCmsConfigCommand command) {
         configStore.storeCmsAdminGroup(command.getAdminGroup());
 
+        logger.info("Retrieving configuration data from the configuration bucket.");
         final BaseOutputs baseOutputs = configStore.getBaseStackOutputs();
         final BaseParameters baseParameters = configStore.getBaseStackParameters();
         final VaultParameters vaultParameters = configStore.getVaultStackParamters();
@@ -85,7 +86,10 @@ public class CreateCmsConfigOperation implements Operation<CreateCmsConfigComman
             }
         });
 
+        logger.info("Uploading the CMS configuration to the configuration bucket.");
         configStore.storeCmsEnvConfig(cmsConfigMap);
+
+        logger.info("Uploading complete.");
     }
 
     @Override

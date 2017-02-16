@@ -131,6 +131,7 @@ public class CerberusRunner {
         } catch (Throwable e) {
             if (! cerberusCommand.isHelp()) {
                 System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
+                e.printStackTrace();
             }
 
             String commandName = commander.getParsedCommand();

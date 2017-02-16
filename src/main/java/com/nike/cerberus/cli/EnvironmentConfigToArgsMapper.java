@@ -27,6 +27,7 @@ import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
 import com.nike.cerberus.command.gateway.CreateCloudFrontLogProcessingLambdaConfigCommand;
 import com.nike.cerberus.command.gateway.CreateGatewayClusterCommand;
+import com.nike.cerberus.command.gateway.CreateGatewayConfigCommand;
 import com.nike.cerberus.command.gateway.PublishLambdaCommand;
 import com.nike.cerberus.command.vault.CreateVaultClusterCommand;
 import com.nike.cerberus.domain.input.CerberusStack;
@@ -102,6 +103,8 @@ public class EnvironmentConfigToArgsMapper {
                 return getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
             case CreateCmsConfigCommand.COMMAND_NAME:
                 return getCreateCmsConfigCommandArgs(environmentConfig);
+            case CreateGatewayConfigCommand.COMMAND_NAME:
+                return getCreateGatewayClusterConfigCommandArgs(environmentConfig);
             case UpdateStackCommand.COMMAND_NAME:
                 return getUpdateStackCommandArgs(environmentConfig, passedArgs);
             case PublishLambdaCommand.COMMAND_NAME:
@@ -158,7 +161,7 @@ public class EnvironmentConfigToArgsMapper {
         args.add(lambdaName);
         args.add(PublishLambdaCommand.ARTIFACT_URL_LONG_ARG);
 
-        switch (lambdaName) {
+        switch (lambdaName.toUpperCase()) {
             case "CLOUD_FRONT_SG_GROUP_IP_SYNC":
                 args.add(environmentConfig.getEdgeSecurity().getCloudfrontSecurityGroupIpSyncLambdaArtifactUrl());
                 break;
@@ -184,6 +187,15 @@ public class EnvironmentConfigToArgsMapper {
             args.add(CreateCmsConfigCommand.PROPERTY_SHORT_ARG);
             args.add(property);
         });
+
+        return args;
+    }
+
+    private static List<String> getCreateGatewayClusterConfigCommandArgs(EnvironmentConfig environmentConfig) {
+        List<String> args = new LinkedList<>();
+
+        args.add(CreateGatewayClusterCommand.HOSTNAME_LONG_ARG);
+        args.add(environmentConfig.getHostname());
 
         return args;
     }
@@ -214,7 +226,7 @@ public class EnvironmentConfigToArgsMapper {
         args.add(PublishDashboardCommand.ARTIFACT_URL_LONG_ARG);
         args.add(dashboard.getArtifactUrl());
 
-        if (StringUtils.isNotBlank(PublishDashboardCommand.OVERRIDE_ARTIFACT_URL_LONG_ARG)) {
+        if ( StringUtils.isNotBlank(dashboard.getOverrideArtifactUrl()) ) {
             args.add(PublishDashboardCommand.OVERRIDE_ARTIFACT_URL_LONG_ARG);
             args.add(dashboard.getOverrideArtifactUrl());
         }
