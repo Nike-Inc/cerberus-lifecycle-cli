@@ -18,9 +18,7 @@ package com.nike.cerberus.cli;
 
 import ch.qos.logback.classic.Level;
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.MissingCommandException;
 import com.beust.jcommander.ParameterDescription;
-import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.WrappedParameter;
 import com.beust.jcommander.internal.Lists;
 import com.github.tomaslanger.chalk.Chalk;
@@ -39,6 +37,7 @@ import com.nike.cerberus.command.consul.CreateConsulConfigCommand;
 import com.nike.cerberus.command.consul.CreateVaultAclCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
+import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
@@ -130,13 +129,14 @@ public class CerberusRunner {
         } catch (Throwable e) {
             if (! cerberusCommand.isHelp()) {
                 System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
-            }
-
-            String commandName = commander.getParsedCommand();
-            if (StringUtils.isNotBlank(commandName)) {
-                commander.usage(commandName);
+                e.printStackTrace();
             } else {
-                printCustomUsage();
+                String commandName = commander.getParsedCommand();
+                if (StringUtils.isNotBlank(commandName)) {
+                    commander.usage(commandName);
+                } else {
+                    printCustomUsage();
+                }
             }
         }
     }
@@ -260,6 +260,7 @@ public class CerberusRunner {
         registerCommand(new CreateCloudFrontLogProcessingLambdaConfigCommand());
         registerCommand(new CreateCloudFrontSecurityGroupUpdaterLambdaCommand());
         registerCommand(new WhitelistCidrForVpcAccessCommand());
+        registerCommand(new RestoreCompleteCerberusDataFromS3BackupCommand());
     }
 
     /**
