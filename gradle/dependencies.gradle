@@ -34,7 +34,7 @@ allprojects {
         compile group: 'com.amazonaws', name: 'aws-java-sdk-sns', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSDKVersion
 
-        compile 'com.nike:vault-client:1.0.0'
+        compile 'com.nike:vault-client:1.1.1'
         compile 'com.squareup.okhttp3:okhttp:3.3.1'
         compile 'com.beust:jcommander:1.55'
         compile 'com.fasterxml.jackson.core:jackson-core:2.7.+'

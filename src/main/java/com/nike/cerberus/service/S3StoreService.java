@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -72,13 +73,29 @@ public class S3StoreService implements StoreService {
 
 
     public Optional<String> get(String path) {
-        GetObjectRequest request = new GetObjectRequest(s3Bucket, getFullPath(path));
+        Optional<S3Object> s3ObjectOptional = getS3Object(path);
+        if (! s3ObjectOptional.isPresent()) {
+            return Optional.empty();
+        }
 
         try {
-            S3Object s3Object = s3Client.getObject(request);
-            InputStream object = s3Object.getObjectContent();
+            InputStream object = s3ObjectOptional.get().getObjectContent();
             return Optional.of(IOUtils.toString(object, ConfigConstants.DEFAULT_ENCODING));
-        } catch (AmazonServiceException ase) {
+        } catch (IOException e) {
+            String errorMessage =
+                    String.format("Unable to read contents of S3 object. Bucket: %s, Key: %s, Expected Encoding: %s",
+                            s3Bucket, getFullPath(path), ConfigConstants.DEFAULT_ENCODING);
+            logger.error(errorMessage);
+            throw new UnexpectedDataEncodingException(errorMessage, e);
+        }
+    }
+
+    protected Optional<S3Object> getS3Object(String path) {
+        GetObjectRequest request = new GetObjectRequest(s3Bucket, getFullPath(path));
+        try {
+            return Optional.of(s3Client.getObject(request));
+        }
+        catch (AmazonServiceException ase) {
             if (StringUtils.equalsIgnoreCase(ase.getErrorCode(), "NoSuchKey")) {
                 logger.debug(String.format("The S3 object doesn't exist. Bucket: %s, Key: %s", s3Bucket, request.getKey()));
                 return Optional.empty();
@@ -86,13 +103,16 @@ public class S3StoreService implements StoreService {
                 logger.error("Unexpected error communicating with AWS.", ase);
                 throw ase;
             }
-        } catch (IOException e) {
-            String errorMessage =
-                    String.format("Unable to read contents of S3 object. Bucket: %s, Key: %s, Expected Encoding: %s",
-                            s3Bucket, request.getKey(), ConfigConstants.DEFAULT_ENCODING);
-            logger.error(errorMessage);
-            throw new UnexpectedDataEncodingException(errorMessage, e);
         }
+    }
+
+    public Map<String, String> getS3ObjectUserMetaData(String path) {
+        Optional<S3Object> encryptedObjectOptional = getS3Object(path);
+        if (! encryptedObjectOptional.isPresent()) {
+            throw new RuntimeException("Cannot get metadata for an S3 Object that is not present");
+        }
+        S3Object s3Object = encryptedObjectOptional.get();
+        return s3Object.getObjectMetadata().getUserMetadata();
     }
 
     public List<String> listKeysInPartialPath(String path) {

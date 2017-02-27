@@ -151,7 +151,7 @@ public class VaultAdminClientFactory {
     }
 
 
-    private static class RootCredentialsProvider implements VaultCredentialsProvider {
+    public static class RootCredentialsProvider implements VaultCredentialsProvider {
 
         private final String rootToken;
 

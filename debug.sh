@@ -7,4 +7,4 @@ cd "$(dirname "$0")"
 ./gradlew clean sJ
 
 # Run
-java -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=y -jar ./build/libs/cerberus.jar "$@"
+java -Xdebug -Xrunjdwp:transport=dt_socket,address=5006,server=y,suspend=y -jar ./build/libs/cerberus.jar "$@"
