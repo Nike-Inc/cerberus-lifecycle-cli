@@ -42,6 +42,7 @@ import com.nike.vault.client.model.VaultListResponse;
 import com.nike.vault.client.model.VaultTokenAuthRequest;
 import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +99,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
                 new StaticVaultUrlResolver(command.getCerberusUrl()),
                 new VaultAdminClientFactory.RootCredentialsProvider(generateAdminToken()),
                 new OkHttpClient.Builder()
+                        .hostnameVerifier(new NoopHostnameVerifier())
                         .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                         .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                         .readTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
@@ -109,6 +111,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
                 logger.info("Processing backup: {}", sdbBackupKey);
                 String json = getDecryptedJson(sdbBackupKey, s3EncryptionStoreService);
                 processBackup(json, cerberusAdminClient);
+                logger.info("Successfully processed backup: {}", sdbBackupKey);
             } catch (Throwable t) {
                 logger.error("Failed to process backup json for {}", sdbBackupKey, t);
             }
