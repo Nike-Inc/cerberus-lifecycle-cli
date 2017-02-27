@@ -27,6 +27,8 @@ public enum StackName {
     GATEWAY("gateway"),
     @Deprecated
     LAMBDA("lambda"),
+    @Deprecated
+    RDSBACKUP("rdsbackup"),
     CLOUD_FRONT_IP_SYNCHRONIZER("cloud-front-ip-synchronizer");
 
     private final String name;

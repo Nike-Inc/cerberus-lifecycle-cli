@@ -129,13 +129,14 @@ public class CerberusRunner {
         } catch (Throwable e) {
             if (! cerberusCommand.isHelp()) {
                 System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
-            }
-
-            String commandName = commander.getParsedCommand();
-            if (StringUtils.isNotBlank(commandName)) {
-                commander.usage(commandName);
+                e.printStackTrace();
             } else {
-                printCustomUsage();
+                String commandName = commander.getParsedCommand();
+                if (StringUtils.isNotBlank(commandName)) {
+                    commander.usage(commandName);
+                } else {
+                    printCustomUsage();
+                }
             }
         }
     }

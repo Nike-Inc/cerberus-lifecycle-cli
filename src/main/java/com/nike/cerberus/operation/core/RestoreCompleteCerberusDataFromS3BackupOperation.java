@@ -213,21 +213,28 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
     }
 
     private String generateAdminToken() {
-        VaultAdminClient adminClient = vaultAdminClientFactory.getClientForLeader().get();
+        VaultAuthResponse vaultAuthResponse;
+        try {
+            logger.info("Attempting to generate an admin token with the root token");
+            VaultAdminClient adminClient = vaultAdminClientFactory.getClientForLeader().get();
 
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("is_admin", "true");
-        metadata.put("username", "admin-cli");
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put("is_admin", "true");
+            metadata.put("username", "admin-cli");
 
-        Set<String> policies = new HashSet<>();
-        policies.add("root");
+            Set<String> policies = new HashSet<>();
+            policies.add("root");
 
-        VaultAuthResponse vaultAuthResponse = adminClient.createOrphanToken(new VaultTokenAuthRequest()
-                .setDisplayName("admin-cli")
-                .setPolicies(policies)
-                .setMeta(metadata)
-                .setTtl("10m")
-                .setNoDefaultPolicy(true));
+            vaultAuthResponse = adminClient.createOrphanToken(new VaultTokenAuthRequest()
+                    .setDisplayName("admin-cli")
+                    .setPolicies(policies)
+                    .setMeta(metadata)
+                    .setTtl("10m")
+                    .setNoDefaultPolicy(true));
+        } catch (VaultClientException e) {
+            throw new RuntimeException("There was an error while trying to create an admin token, this command " +
+                    "requires proxy access or direct a connect to the vault leader, is your ip white listed?", e);
+        }
 
         return vaultAuthResponse.getClientToken();
     }
