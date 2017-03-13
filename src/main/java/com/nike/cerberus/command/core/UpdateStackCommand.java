@@ -69,13 +69,13 @@ public class UpdateStackCommand implements Command {
             description = "Flag for overwriting existing CloudFormation template")
     private boolean overwriteTemplate;
 
-    @Parameter(names = "--desired-instances", description = "Desired number of auto scaling instances.")
+    @Parameter(names = StackDelegate.DESIRED_INSTANCES_LONG_ARG, description = "Desired number of auto scaling instances.")
     private Integer desiredInstances;
 
-    @Parameter(names = "--max-instances", description = "Maximum number of auto scaling instances.")
+    @Parameter(names = StackDelegate.MAX_INSTANCES_LONG_ARG, description = "Maximum number of auto scaling instances.")
     private Integer maximumInstances;
 
-    @Parameter(names = "--min-instances", description = "Minimum number of autos scaling instances")
+    @Parameter(names = StackDelegate.MIN_INSTANCES_LONG_ARG, description = "Minimum number of autos scaling instances")
     private Integer minimumInstances;
 
     @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")

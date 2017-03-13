@@ -160,6 +160,9 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",
                 StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
                 StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
+                StackDelegate.DESIRED_INSTANCES_LONG_ARG, "2",
+                StackDelegate.MAX_INSTANCES_LONG_ARG, "4",
+                StackDelegate.MIN_INSTANCES_LONG_ARG, "2"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -182,6 +185,9 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",
                 StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
                 StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
+                StackDelegate.DESIRED_INSTANCES_LONG_ARG, "2",
+                StackDelegate.MAX_INSTANCES_LONG_ARG, "4",
+                StackDelegate.MIN_INSTANCES_LONG_ARG, "2"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -203,7 +209,7 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",
                 StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-                StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
+                StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -292,8 +298,7 @@ public class EnvironmentConfigToArgsMapperTest {
                 CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.api_region=us",
                 CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.client_id=123",
                 CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.client_secret=312",
-                CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.subdomain=nike",
-
+                CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.subdomain=nike"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -341,7 +346,7 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
                 StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
                 UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG,
-                UpdateStackCommand.PARAMETER_SHORT_ARG, "k=v"
+                UpdateStackCommand.PARAMETER_SHORT_ARG, "k=v",
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);

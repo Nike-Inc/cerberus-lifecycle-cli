@@ -29,6 +29,9 @@ public class StackDelegate {
     public static final String OWNER_GROUP_LONG_ARG = "--owner-group";
     public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
     public static final String COST_CENTER_LONG_ARG = "--costcenter";
+    public static final String DESIRED_INSTANCES_LONG_ARG = "--desired-instances";
+    public static final String MAX_INSTANCES_LONG_ARG = "--max-instances";
+    public static final String MIN_INSTANCES_LONG_ARG = "--min-instances";
 
     @Parameter(names = AMI_ID_LONG_ARG, description = "The AMI ID for the specified stack.", required = true)
     private String amiId;
@@ -54,13 +57,13 @@ public class StackDelegate {
             required = true)
     private String costcenter;
 
-    @Parameter(names = "--desired-instances", description = "Desired number of auto scaling instances.")
+    @Parameter(names = DESIRED_INSTANCES_LONG_ARG, description = "Desired number of auto scaling instances.")
     private int desiredInstances = 3;
 
-    @Parameter(names = "--max-instances", description = "Maximum number of auto scaling instances.")
+    @Parameter(names = MAX_INSTANCES_LONG_ARG, description = "Maximum number of auto scaling instances.")
     private int maximumInstances = 3;
 
-    @Parameter(names = "--min-instances", description = "Minimum number of auto scaling instances")
+    @Parameter(names = MIN_INSTANCES_LONG_ARG, description = "Minimum number of auto scaling instances")
     private int minimumInstances = 3;
 
     public String getAmiId() {

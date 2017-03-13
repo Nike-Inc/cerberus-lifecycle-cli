@@ -25,6 +25,9 @@ public class CerberusStack {
     private String amiId;
     private String instanceSize;
     private String keyPairName;
+    private String desiredInstances;
+    private String maxInstances;
+    private String minInstances;
 
     public String getCertPath() {
         return certPath;
@@ -56,5 +59,29 @@ public class CerberusStack {
 
     public void setKeyPairName(String keyPairName) {
         this.keyPairName = keyPairName;
+    }
+
+    public String getDesiredInstances() {
+        return desiredInstances;
+    }
+
+    public void setDesiredInstances(String desiredInstances) {
+        this.desiredInstances = desiredInstances;
+    }
+
+    public String getMaxInstances() {
+        return maxInstances;
+    }
+
+    public void setMaxInstances(String maxInstances) {
+        this.maxInstances = maxInstances;
+    }
+
+    public String getMinInstances() {
+        return minInstances;
+    }
+
+    public void setMinInstances(String minInstances) {
+        this.minInstances = minInstances;
     }
 }

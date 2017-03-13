@@ -281,6 +281,20 @@ public class EnvironmentConfigToArgsMapper {
         args.add(stack.getInstanceSize());
         args.add(StackDelegate.KEY_PAIR_NAME_LONG_ARG);
         args.add(stack.getKeyPairName());
+
+        if (stack.getDesiredInstances() != null) {
+            args.add(StackDelegate.DESIRED_INSTANCES_LONG_ARG);
+            args.add(stack.getDesiredInstances());
+        }
+        if (stack.getMinInstances() != null) {
+            args.add(StackDelegate.MIN_INSTANCES_LONG_ARG);
+            args.add(stack.getMinInstances());
+        }
+        if (stack.getMaxInstances() != null) {
+            args.add(StackDelegate.MAX_INSTANCES_LONG_ARG);
+            args.add(stack.getMaxInstances());
+        }
+
         args.add(StackDelegate.COST_CENTER_LONG_ARG);
         args.add(environmentConfig.getCostCenter());
         args.add(StackDelegate.OWNER_EMAIL_LONG_ARG);
