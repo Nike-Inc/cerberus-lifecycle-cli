@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-sourceSets {
-    integrationTest {
-        java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDir file('src/integration-test/java')
+subprojects {
+    sourceSets {
+        integration {
+            java.srcDir file('src/integration/java')
+            resources.srcDir file('src/integration/resources')
         }
-        resources.srcDir file('src/integration-test/resources')
     }
-}
 
-configurations {
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestRuntime.extendsFrom testRuntime
-}
+    task integration(type: Test, description: 'Runs integration tests') {
+        testClassesDir = sourceSets.integration.output.classesDir
+        classpath = sourceSets.integration.runtimeClasspath
+    }
 
-task integrationTest(type: Test) {
-    testClassesDir = sourceSets.integrationTest.output.classesDir
-    classpath = sourceSets.integrationTest.runtimeClasspath
+    dependencies {
+        integrationCompile sourceSets.main.output
+        integrationCompile configurations.testCompile
+        integrationCompile sourceSets.test.output
+        integrationRuntime configurations.testRuntime
+    }
 }
