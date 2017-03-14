@@ -28,7 +28,7 @@ public enum StackName {
     @Deprecated
     LAMBDA("lambda"),
     @Deprecated
-    RDSBACKUP("rdsbackup"),
+    RDSBACKUP("rdsbackup"), // TODO: need to remove but casually deleting will cause JSON parse error
     CLOUD_FRONT_IP_SYNCHRONIZER("cloud-front-ip-synchronizer");
 
     private final String name;
