@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Named;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -92,18 +93,14 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
 
     @Override
     public void run(RestoreCompleteCerberusDataFromS3BackupCommand command) {
-        logger.info("---------------------------------------------------------------------------------------------");
         String backup = Chalk.on(String.format("s3://%s/%s",
                 command.getS3Bucket(),
                 command.getS3Prefix())
         ).yellow().bold().toString();
 
-        String url = Chalk.on(command.getCerberusUrl()).yellow().bold().toString();
-
         logger.info(Chalk.on(
-                String.format("Starting restore for %s using backup located at %s", url, backup)
+                String.format("Starting restore with backup located at %s", backup)
         ).green().toString());
-        logger.info("---------------------------------------------------------------------------------------------");
         Region region = Region.getRegion(Regions.fromName(command.getS3Region()));
 
         AmazonS3 s3 = new AmazonS3Client();
@@ -137,16 +134,21 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
         validateRestore(s3EncryptionStoreService, command);
 
         keys.remove(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY);
+        Double i = 0d;
+        DecimalFormat df = new DecimalFormat("#.##");
         for (String sdbBackupKey : keys) {
             try {
-                logger.info("Processing backup: {}", Chalk.on(sdbBackupKey).green().toString());
+                Double percent = i / keys.size() * 100;
+                System.out.print(String.format("Restoring backups %s%% complete\r", df.format(percent)));
                 String json = getDecryptedJson(sdbBackupKey, s3EncryptionStoreService);
                 processBackup(json, cerberusAdminClient);
-                logger.info("Successfully processed backup: {}", Chalk.on(sdbBackupKey).green().toString());
             } catch (Throwable t) {
                 logger.error("Failed to process backup json for {}", Chalk.on(sdbBackupKey).red().toString(), t);
             }
+            i++;
         }
+        System.out.print("Restoring backups 100% complete\n");
+        logger.info("Restore complete");
     }
 
     /**
@@ -169,25 +171,37 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
         String backupSdbCount = backupMetadata.containsKey(CERBERUS_BACKUP_SDB_COUNT) ? backupMetadata.get(CERBERUS_BACKUP_SDB_COUNT) : "unknown";
 
         StringBuilder msg = new StringBuilder()
-                .append("\nThe backup you are attempting to restore was created from ").append(Chalk.on(backupApiUrl).green().bold().toString()).append(" on ").append(Chalk.on(backupDate).green().bold().toString())
-                .append("\nFrom the backup lambda in account ").append(backupLambdaAccountId).append(" in region ").append(backupLambdaRegion)
-                .append("\nThis backup contains ").append(backupSdbCount).append(" SDB records. ")
-                .append("\nYou are attempting to restore this backup to ").append(command.getCerberusUrl());
+                .append("\nThe backup you are attempting to restore was created from ").append(Chalk.on(backupApiUrl).green().toString()).append(" on ").append(Chalk.on(backupDate).green().bold().toString())
+                .append("\nFrom the backup lambda in account ")
+                .append(Chalk.on(backupLambdaAccountId).green().toString())
+                .append(" in region ")
+                .append(Chalk.on(backupLambdaRegion).green().toString())
+                .append("\nThis backup contains ")
+                .append(Chalk.on(backupSdbCount).green().toString())
+                .append(" SDB records. ")
+                .append("\nYou are attempting to restore this backup to ")
+                .append(Chalk.on(command.getCerberusUrl()).green().toString());
 
         if (! backupApiUrl.equalsIgnoreCase(command.getCerberusUrl())) {
             msg.append("\n\n")
-                    .append(Chalk.on("Warning: The backup was created for ").red().toString())
-                    .append(Chalk.on(backupApiUrl).green().bold().toString())
-                    .append(Chalk.on(" and you are attempting to restore to ").red().toString())
-                    .append(Chalk.on(command.getCerberusUrl()).green().bold().toString())
-                    .append(Chalk.on(" These urls do not match, proceed with caution!\n").red().toString());
+                    .append(Chalk.on("Warning: ").red().toString())
+                    .append(Chalk.on("The backup was created for ").red().toString())
+                    .append(Chalk.on(backupApiUrl).green().toString())
+                    .append(Chalk.on("\nYou are attempting to restore to ").red().toString())
+                    .append(Chalk.on(command.getCerberusUrl()).green().toString())
+                    .append(Chalk.on("\nThese urls do not match, proceed with extreme caution!\n").red().toString());
         }
 
-        msg.append("\nType \"proceed\" to restore this backup");
+        msg.append("\nType \"proceed\" to restore this backup, anything else will exit");
+
+        logger.info("");
+        logger.info(Chalk.on("##########################################################################################").red().toString());
+        logger.info(Chalk.on("#                                     DANGER ZONE                                        #").red().toString());
+        logger.info(Chalk.on("##########################################################################################").red().toString());
+        logger.info(msg.toString());
 
         String proceed;
         try {
-            logger.info(msg.toString());
             proceed = console.readLine("");
         } catch (IOException e) {
             throw new RuntimeException("Failed to validate that the user wanted to proceed with backup", e);
