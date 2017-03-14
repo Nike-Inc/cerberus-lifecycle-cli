@@ -116,15 +116,14 @@ public class S3StoreService implements StoreService {
         return s3Object.getObjectMetadata().getUserMetadata();
     }
 
-    public Set<String> listKeysInPartialPath(String path) {
+    public Set<String> getKeysInPartialPath(String path) {
         ObjectListing objectListing = s3Client.listObjects(s3Bucket, getFullPath(path));
 
-        Set<String> s3PathKeys = objectListing
+        return objectListing
                         .getObjectSummaries()
                         .stream()
                         .map(objectSummary -> StringUtils.stripStart(objectSummary.getKey(), s3Prefix + "/"))
                         .collect(Collectors.toSet());
-        return Collections.unmodifiableSet(s3PathKeys);
     }
 
     public void deleteAllKeysOnPartialPath(String path) {

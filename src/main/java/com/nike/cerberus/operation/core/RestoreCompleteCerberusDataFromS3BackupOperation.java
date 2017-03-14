@@ -108,9 +108,9 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
 
         AmazonS3 s3 = new AmazonS3Client();
         s3.setRegion(region);
-        S3StoreService s3StoreService = new S3StoreService(s3, command.getS3Bucket(), "");
+        S3StoreService s3StoreService = new S3StoreService(s3, command.getS3Bucket(), command.getS3Prefix());
 
-        Set<String> keys = s3StoreService.listKeysInPartialPath(command.getS3Prefix());
+        Set<String> keys = s3StoreService.getKeysInPartialPath("");
         if (keys.isEmpty()) {
             logger.error("There where no keys in {}/{}", command.getS3Bucket(), command.getS3Prefix());
         }
@@ -134,7 +134,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
                         .build()
         );
 
-        validateRestore(s3EncryptionStoreService);
+        validateRestore(s3EncryptionStoreService, command);
 
         keys.remove(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY);
         for (String sdbBackupKey : keys) {
@@ -153,7 +153,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
      * Use the metadata from the backup and ensure that the user wants to proceed
      * @param s3StoreService - The encrypted S3 store service
      */
-    private void validateRestore(S3StoreService s3StoreService) {
+    private void validateRestore(S3StoreService s3StoreService, RestoreCompleteCerberusDataFromS3BackupCommand command) {
         String backupMetadataJsonString = getDecryptedJson(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         Map<String, String> backupMetadata;
         try {
@@ -169,21 +169,26 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
         String backupSdbCount = backupMetadata.containsKey(CERBERUS_BACKUP_SDB_COUNT) ? backupMetadata.get(CERBERUS_BACKUP_SDB_COUNT) : "unknown";
 
         StringBuilder msg = new StringBuilder()
-                .append("The backup you are attempting to restore was created from ")
-                .append(Chalk.on(backupApiUrl).green().bold())
-                .append(" on ")
-                .append(Chalk.on(backupDate).green().bold())
-                .append("from the backup lambda in account ")
-                .append(backupLambdaAccountId)
-                .append(" in region ")
-                .append(backupLambdaRegion)
-                .append(" and contains ")
-                .append(backupSdbCount)
-                .append(" SDB records. Type \"proceed\" to restore this backup");
+                .append("\nThe backup you are attempting to restore was created from ").append(Chalk.on(backupApiUrl).green().bold().toString()).append(" on ").append(Chalk.on(backupDate).green().bold().toString())
+                .append("\nFrom the backup lambda in account ").append(backupLambdaAccountId).append(" in region ").append(backupLambdaRegion)
+                .append("\nThis backup contains ").append(backupSdbCount).append(" SDB records. ")
+                .append("\nYou are attempting to restore this backup to ").append(command.getCerberusUrl());
+
+        if (! backupApiUrl.equalsIgnoreCase(command.getCerberusUrl())) {
+            msg.append("\n\n")
+                    .append(Chalk.on("Warning: The backup was created for ").red().toString())
+                    .append(Chalk.on(backupApiUrl).green().bold().toString())
+                    .append(Chalk.on(" and you are attempting to restore to ").red().toString())
+                    .append(Chalk.on(command.getCerberusUrl()).green().bold().toString())
+                    .append(Chalk.on(" These urls do not match, proceed with caution!\n").red().toString());
+        }
+
+        msg.append("\nType \"proceed\" to restore this backup");
 
         String proceed;
         try {
-            proceed = console.readLine(msg.toString());
+            logger.info(msg.toString());
+            proceed = console.readLine("");
         } catch (IOException e) {
             throw new RuntimeException("Failed to validate that the user wanted to proceed with backup", e);
         }
@@ -206,7 +211,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
                                 .withAwsKmsRegion(region))
                         .withRegion(region);
 
-        return new S3StoreService(encryptionClient, command.getS3Bucket(), "");
+        return new S3StoreService(encryptionClient, command.getS3Bucket(), command.getS3Prefix());
     }
 
     private String getKmsCmkId(String path, S3StoreService s3StoreService) {

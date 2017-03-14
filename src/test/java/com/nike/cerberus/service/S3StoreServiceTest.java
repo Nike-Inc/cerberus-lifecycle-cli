@@ -33,8 +33,8 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -173,7 +173,7 @@ public class S3StoreServiceTest {
     }
 
     @Test
-    public void testListKeysInPartialPath() {
+    public void testGetKeysInPartialPath() {
         AmazonS3 client = mock(AmazonS3.class);
         S3StoreService service = new S3StoreService(client, S3_BUCKET, S3_PREFIX);
 
@@ -189,10 +189,10 @@ public class S3StoreServiceTest {
         when(client.listObjects(S3_BUCKET, S3_PREFIX + "/" + path)).thenReturn(listing);
 
         // invoke method under test
-        List<String> results = service.listKeysInPartialPath(path);
+        Set<String> results = service.getKeysInPartialPath(path);
 
         assertEquals(1, results.size());
-        assertEquals(key, results.get(0));
+        assertEquals(key, results.iterator().next());
     }
 
     @Test

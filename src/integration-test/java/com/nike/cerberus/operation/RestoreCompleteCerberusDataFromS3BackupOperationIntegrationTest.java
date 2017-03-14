@@ -19,6 +19,7 @@ package com.nike.cerberus.operation;
 import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.core.RestoreCompleteCerberusDataFromS3BackupOperation;
+import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.util.EnvVarUtils;
 import com.nike.cerberus.vault.VaultAdminClientFactory;
 import com.nike.vault.client.StaticVaultUrlResolver;
@@ -27,9 +28,11 @@ import okhttp3.OkHttpClient;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +51,8 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationIntegrationTest {
     private RestoreCompleteCerberusDataFromS3BackupOperation operation;
 
     @Before
-    public void before() {
+    public void before() throws IOException {
+        ConsoleService consoleService = mock(ConsoleService.class);
         VaultAdminClientFactory vaultAdminClientFactory = mock(VaultAdminClientFactory.class);
         VaultAdminClient adminClient = new VaultAdminClient(
                 new StaticVaultUrlResolver("http://127.0.0.1:8200"),
@@ -60,8 +64,10 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationIntegrationTest {
                         .build());
         when(vaultAdminClientFactory.getClientForLeader()).thenReturn(Optional.of(adminClient));
 
+        when(consoleService.readLine(anyString())).thenReturn("proceed");
+
         CerberusModule module = new CerberusModule(null, null, null);
-        operation = new RestoreCompleteCerberusDataFromS3BackupOperation(vaultAdminClientFactory, module.configObjectMapper());
+        operation = new RestoreCompleteCerberusDataFromS3BackupOperation(vaultAdminClientFactory, module.configObjectMapper(), consoleService);
     }
 
     @Test

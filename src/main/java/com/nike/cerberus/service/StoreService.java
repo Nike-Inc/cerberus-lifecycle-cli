@@ -28,7 +28,7 @@ public interface StoreService {
 
     Optional<String> get(String path);
 
-    Set<String> listKeysInPartialPath(String path);
+    Set<String> getKeysInPartialPath(String path);
 
     void deleteAllKeysOnPartialPath(String path);
 }
