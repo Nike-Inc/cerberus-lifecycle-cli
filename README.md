@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Nike-Inc/cerberus-lifecycle-cli.svg?branch=master)](https://travis-ci.org/Nike-Inc/cerberus-lifecycle-cli)
+
 # Cerberus Lifecycle Management CLI
 
 This project is a CLI for managing the lifecycle of a Cerberus environment using CloudFormation, native Vault APIs, and AWS API calls.
