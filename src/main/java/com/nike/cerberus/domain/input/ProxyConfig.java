@@ -16,11 +16,11 @@
 
 package com.nike.cerberus.domain.input;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.net.Proxy;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Stores parameters for a Squid Proxy or other proxy parsed from YAML
+ */
 public class ProxyConfig {
     private boolean enabled = false;
     private String host;

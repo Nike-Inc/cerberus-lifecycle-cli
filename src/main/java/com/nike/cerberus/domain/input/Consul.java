@@ -16,5 +16,8 @@
 
 package com.nike.cerberus.domain.input;
 
+/**
+ * Stores Consul-specific parameters parsed from YAML
+ */
 public class Consul extends CerberusStack {
 }

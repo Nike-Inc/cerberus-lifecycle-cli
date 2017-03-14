@@ -16,9 +16,9 @@
 
 package com.nike.cerberus.domain.input;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Stores Dashboard-specific parameters parsed from YAML
+ */
 public class Dashboard {
 
     private String artifactUrl;

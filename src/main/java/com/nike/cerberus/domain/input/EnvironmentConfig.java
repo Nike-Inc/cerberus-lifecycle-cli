@@ -16,9 +16,10 @@
 
 package com.nike.cerberus.domain.input;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Stores all YAML data for a given Cerberus environment
+ */
 public class EnvironmentConfig {
 
     private String version;

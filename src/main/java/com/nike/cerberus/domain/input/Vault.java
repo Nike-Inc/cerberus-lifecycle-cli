@@ -16,8 +16,9 @@
 
 package com.nike.cerberus.domain.input;
 
+
 /**
- * Created by field on 12/17/2016.
+ * Stores Vault-specific parameters parsed from YAML
  */
 public class Vault extends CerberusStack {
 }

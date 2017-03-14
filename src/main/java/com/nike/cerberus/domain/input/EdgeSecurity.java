@@ -16,9 +16,10 @@
 
 package com.nike.cerberus.domain.input;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Stores CloudFront-specific parameters parsed from YAML
+ */
 public class EdgeSecurity {
 
     private String cloudfrontLambdaArtifactUrl;

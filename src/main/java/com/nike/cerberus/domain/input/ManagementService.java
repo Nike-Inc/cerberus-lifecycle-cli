@@ -16,11 +16,12 @@
 
 package com.nike.cerberus.domain.input;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+
+/**
+ * Stores Management Service-specific parameters parsed from YAML
+ */
 public class ManagementService extends CerberusStack {
 
     private String adminGroup;

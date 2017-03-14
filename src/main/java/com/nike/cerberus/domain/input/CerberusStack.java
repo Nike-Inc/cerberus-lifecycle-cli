@@ -16,9 +16,9 @@
 
 package com.nike.cerberus.domain.input;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Stores CloudFormation stack parameters parsed from YAML
+ */
 public class CerberusStack {
 
     private String certPath;

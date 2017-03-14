@@ -16,11 +16,11 @@
 
 package com.nike.cerberus.domain.input;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * Stores CIDRs to whitelist for VPC access
+ */
 public class VpcAccessWhitelist {
     private List<String> cidrs;
     private List<String> ports;
