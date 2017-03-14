@@ -126,7 +126,7 @@ public class CerberusRunner {
                     operation.run(command);
                 }
             }
-        } catch (Throwable e) {
+        } catch (Throwable e) { // TODO TEST HELP COMMAND
             if (! cerberusCommand.isHelp()) {
                 System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
                 e.printStackTrace();

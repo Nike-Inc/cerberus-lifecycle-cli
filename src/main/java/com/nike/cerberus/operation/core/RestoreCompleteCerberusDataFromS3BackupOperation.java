@@ -27,11 +27,13 @@ import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomaslanger.chalk.Chalk;
 import com.google.inject.Inject;
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.Operation;
+import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.service.S3StoreService;
 import com.nike.cerberus.vault.VaultAdminClientFactory;
 import com.nike.vault.client.StaticVaultUrlResolver;
@@ -64,36 +66,62 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final int DEFAULT_TIMEOUT = 15;
-
+    private static final int DEFAULT_TIMEOUT = 60;
     private static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
+    private static final String CERBERUS_BACKUP_METADATA_JSON_FILE_KEY = "cerberus-backup-metadata.json";
+    private static final String CERBERUS_BACKUP_API_URL = "cerberusUrl";
+    private static final String CERBERUS_BACKUP_DATE = "backupDate";
+    private static final String CERBERUS_BACKUP_LAMBDA_ACCOUNT_ID = "lambdaBackupAccountId";
+    private static final String CERBERUS_BACKUP_LAMBDA_REGION = "lambdaBackupRegion";
+    private static final String CERBERUS_BACKUP_SDB_COUNT = "numberOfSdbs";
 
     private final VaultAdminClientFactory vaultAdminClientFactory;
     private final ObjectMapper objectMapper;
+    private final ConsoleService console;
 
     @Inject
     public RestoreCompleteCerberusDataFromS3BackupOperation(VaultAdminClientFactory vaultAdminClientFactory,
                                                             @Named(CerberusModule.CONFIG_OBJECT_MAPPER)
-                                                                    ObjectMapper objectMapper) {
+                                                                    ObjectMapper objectMapper,
+                                                            ConsoleService console) {
 
         this.vaultAdminClientFactory = vaultAdminClientFactory;
         this.objectMapper = objectMapper;
+        this.console = console;
     }
 
     @Override
     public void run(RestoreCompleteCerberusDataFromS3BackupCommand command) {
+        logger.info("---------------------------------------------------------------------------------------------");
+        String backup = Chalk.on(String.format("s3://%s/%s",
+                command.getS3Bucket(),
+                command.getS3Prefix())
+        ).yellow().bold().toString();
+
+        String url = Chalk.on(command.getCerberusUrl()).yellow().bold().toString();
+
+        logger.info(Chalk.on(
+                String.format("Starting restore for %s using backup located at %s", url, backup)
+        ).green().toString());
+        logger.info("---------------------------------------------------------------------------------------------");
         Region region = Region.getRegion(Regions.fromName(command.getS3Region()));
 
         AmazonS3 s3 = new AmazonS3Client();
         s3.setRegion(region);
         S3StoreService s3StoreService = new S3StoreService(s3, command.getS3Bucket(), "");
 
-        List<String> keys = s3StoreService.listKeysInPartialPath(command.getS3Prefix());
+        Set<String> keys = s3StoreService.listKeysInPartialPath(command.getS3Prefix());
         if (keys.isEmpty()) {
             logger.error("There where no keys in {}/{}", command.getS3Bucket(), command.getS3Prefix());
         }
 
-        String kmsCustomerMasterKeyId = getKmsCmkId(keys.get(0), s3StoreService);
+        if (! keys.contains(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY)) {
+            throw new RuntimeException(
+                    String.format("cerberus-backup-metadata.json was not found in s3://%s/%s/ is this a complete backup?",
+                            command.getS3Bucket(), command.getS3Prefix()));
+        }
+
+        String kmsCustomerMasterKeyId = getKmsCmkId(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         S3StoreService s3EncryptionStoreService = getS3EncryptionStoreService(kmsCustomerMasterKeyId, command);
         CerberusAdminClient cerberusAdminClient = new CerberusAdminClient(
                 new StaticVaultUrlResolver(command.getCerberusUrl()),
@@ -106,15 +134,62 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
                         .build()
         );
 
+        validateRestore(s3EncryptionStoreService);
+
+        keys.remove(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY);
         for (String sdbBackupKey : keys) {
             try {
-                logger.info("Processing backup: {}", sdbBackupKey);
+                logger.info("Processing backup: {}", Chalk.on(sdbBackupKey).green().toString());
                 String json = getDecryptedJson(sdbBackupKey, s3EncryptionStoreService);
                 processBackup(json, cerberusAdminClient);
-                logger.info("Successfully processed backup: {}", sdbBackupKey);
+                logger.info("Successfully processed backup: {}", Chalk.on(sdbBackupKey).green().toString());
             } catch (Throwable t) {
-                logger.error("Failed to process backup json for {}", sdbBackupKey, t);
+                logger.error("Failed to process backup json for {}", Chalk.on(sdbBackupKey).red().toString(), t);
             }
+        }
+    }
+
+    /**
+     * Use the metadata from the backup and ensure that the user wants to proceed
+     * @param s3StoreService - The encrypted S3 store service
+     */
+    private void validateRestore(S3StoreService s3StoreService) {
+        String backupMetadataJsonString = getDecryptedJson(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
+        Map<String, String> backupMetadata;
+        try {
+            backupMetadata = objectMapper.readValue(backupMetadataJsonString, new TypeReference<HashMap<String,String>>() {});
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to deserialize backup metadata", e);
+        }
+
+        String backupApiUrl = backupMetadata.containsKey(CERBERUS_BACKUP_API_URL) ? backupMetadata.get(CERBERUS_BACKUP_API_URL) : "unknown";
+        String backupDate = backupMetadata.containsKey(CERBERUS_BACKUP_DATE) ? backupMetadata.get(CERBERUS_BACKUP_DATE) : "unknown";
+        String backupLambdaAccountId = backupMetadata.containsKey(CERBERUS_BACKUP_LAMBDA_ACCOUNT_ID) ? backupMetadata.get(CERBERUS_BACKUP_LAMBDA_ACCOUNT_ID) : "unknown";
+        String backupLambdaRegion = backupMetadata.containsKey(CERBERUS_BACKUP_LAMBDA_REGION) ? backupMetadata.get(CERBERUS_BACKUP_LAMBDA_REGION) : "unknown";
+        String backupSdbCount = backupMetadata.containsKey(CERBERUS_BACKUP_SDB_COUNT) ? backupMetadata.get(CERBERUS_BACKUP_SDB_COUNT) : "unknown";
+
+        StringBuilder msg = new StringBuilder()
+                .append("The backup you are attempting to restore was created from ")
+                .append(Chalk.on(backupApiUrl).green().bold())
+                .append(" on ")
+                .append(Chalk.on(backupDate).green().bold())
+                .append("from the backup lambda in account ")
+                .append(backupLambdaAccountId)
+                .append(" in region ")
+                .append(backupLambdaRegion)
+                .append(" and contains ")
+                .append(backupSdbCount)
+                .append(" SDB records. Type \"proceed\" to restore this backup");
+
+        String proceed;
+        try {
+            proceed = console.readLine(msg.toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to validate that the user wanted to proceed with backup", e);
+        }
+
+        if (! proceed.equalsIgnoreCase("proceed")) {
+            System.exit(1);
         }
     }
 

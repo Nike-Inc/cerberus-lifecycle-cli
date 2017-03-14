@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -115,15 +116,15 @@ public class S3StoreService implements StoreService {
         return s3Object.getObjectMetadata().getUserMetadata();
     }
 
-    public List<String> listKeysInPartialPath(String path) {
+    public Set<String> listKeysInPartialPath(String path) {
         ObjectListing objectListing = s3Client.listObjects(s3Bucket, getFullPath(path));
 
-        List<String> s3PathKeys = objectListing
+        Set<String> s3PathKeys = objectListing
                         .getObjectSummaries()
                         .stream()
                         .map(objectSummary -> StringUtils.stripStart(objectSummary.getKey(), s3Prefix + "/"))
-                        .collect(Collectors.toList());
-        return Collections.unmodifiableList(s3PathKeys);
+                        .collect(Collectors.toSet());
+        return Collections.unmodifiableSet(s3PathKeys);
     }
 
     public void deleteAllKeysOnPartialPath(String path) {

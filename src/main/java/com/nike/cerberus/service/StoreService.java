@@ -16,8 +16,8 @@
 
 package com.nike.cerberus.service;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Interface for common operations on storage services.
@@ -28,7 +28,7 @@ public interface StoreService {
 
     Optional<String> get(String path);
 
-    List listKeysInPartialPath(String path);
+    Set<String> listKeysInPartialPath(String path);
 
     void deleteAllKeysOnPartialPath(String path);
 }
