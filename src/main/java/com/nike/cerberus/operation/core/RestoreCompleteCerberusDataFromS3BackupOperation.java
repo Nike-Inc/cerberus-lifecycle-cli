@@ -194,7 +194,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
         }
 
         if (! proceed.equalsIgnoreCase("proceed")) {
-            System.exit(1);
+            throw new RuntimeException("User did not confirm to proceed with backup restore");
         }
     }
 

@@ -35,7 +35,7 @@ public class ConsoleService {
             return System.console().readLine(format, args);
         }
         System.out.print(String.format(format, args));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
         return reader.readLine();
     }
 
