@@ -31,20 +31,25 @@ import static com.nike.cerberus.command.gateway.CreateCloudFrontLogProcessingLam
 public class CreateCloudFrontLogProcessingLambdaConfigCommand implements Command {
 
     public static final String COMMAND_NAME = "create-cloud-front-log-processor-lambda-config";
+    public static final String RATE_LIMIT_PER_MINUTE_LONG_ARG = "--rate-limit-per-minute";
+    public static final String RATE_LIMIT_VIOLATION_BLOCK_PERIOD_IN_MINUTES_LONG_ARG = "--rate-limit-violation-block-period-in-minutes";
+    public static final String SLACK_WEB_HOOK_URL_LONG_ARG = "--slack-web-hook-url";
+    public static final String SLACK_ICON_LONG_ARG = "--slack-icon";
+    public static final String GOOGLE_ANALYTICS_TRACKING_ID_LONG_ARG = "--google-analytics-tracking-id";
 
-    @Parameter(names = "--rate-limit-per-minute", description = "The maximum number of requests from an IP per minute that can flow through the gateway before being auto blocked.", required = true)
+    @Parameter(names = RATE_LIMIT_PER_MINUTE_LONG_ARG, description = "The maximum number of requests from an IP per minute that can flow through the gateway before being auto blocked.", required = true)
     private Integer requestPerMinuteLimit;
 
-    @Parameter(names = "--rate-limit-violation-block-period-in-minutes", description = "Time in minutes to block an ip that violates the rate limit.", required = true)
+    @Parameter(names = RATE_LIMIT_VIOLATION_BLOCK_PERIOD_IN_MINUTES_LONG_ARG, description = "Time in minutes to block an ip that violates the rate limit.", required = true)
     private Integer rateLimitViolationBlacklistPeriodInMinutes;
 
-    @Parameter(names = "--slack-web-hook-url", description = "If you provide a web hook url for slack the lambda will send messages on errors and summary info.")
+    @Parameter(names = SLACK_WEB_HOOK_URL_LONG_ARG, description = "If you provide a web hook url for slack the lambda will send messages on errors and summary info.")
     private String slackWebHookUrl;
 
-    @Parameter(names = "--slack-icon", description = "If you provide an emoji or an icon url the lambda will use it when sending messages.")
+    @Parameter(names = SLACK_ICON_LONG_ARG, description = "If you provide an emoji or an icon url the lambda will use it when sending messages.")
     private String slackIcon;
 
-    @Parameter(names = "--google-analytics-tracking-id", description = "If you provide a Google Analytics tracking id, the KPI processer will send events to that GA Account.")
+    @Parameter(names = GOOGLE_ANALYTICS_TRACKING_ID_LONG_ARG, description = "If you provide a Google Analytics tracking id, the KPI processer will send events to that GA Account.")
     private String googleAnalyticsId;
 
     public Integer getRequestPerMinuteLimit() {

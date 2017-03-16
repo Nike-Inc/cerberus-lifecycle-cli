@@ -23,37 +23,47 @@ import com.beust.jcommander.Parameter;
  */
 public class StackDelegate {
 
-    @Parameter(names = "--ami-id", description = "The AMI ID for the specified stack.", required = true)
+    public static final String AMI_ID_LONG_ARG = "--ami-id";
+    public static final String INSTANCE_SIZE_LONG_ARG = "--instance-size";
+    public static final String KEY_PAIR_NAME_LONG_ARG = "--key-pair-name";
+    public static final String OWNER_GROUP_LONG_ARG = "--owner-group";
+    public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
+    public static final String COST_CENTER_LONG_ARG = "--costcenter";
+    public static final String DESIRED_INSTANCES_LONG_ARG = "--desired-instances";
+    public static final String MAX_INSTANCES_LONG_ARG = "--max-instances";
+    public static final String MIN_INSTANCES_LONG_ARG = "--min-instances";
+
+    @Parameter(names = AMI_ID_LONG_ARG, description = "The AMI ID for the specified stack.", required = true)
     private String amiId;
 
-    @Parameter(names = "--instance-size", description = "Specify a custom instance size.")
+    @Parameter(names = INSTANCE_SIZE_LONG_ARG, description = "Specify a custom instance size.")
     private String instanceSize;
 
-    @Parameter(names = "--key-pair-name", required = true, description = "SSH key pair name.")
+    @Parameter(names = KEY_PAIR_NAME_LONG_ARG, required = true, description = "SSH key pair name.")
     private String keyPairName;
 
-    @Parameter(names = "--owner-group",
+    @Parameter(names = OWNER_GROUP_LONG_ARG,
             description = "The owning group for the provision resources. Will be tagged on all resources.",
             required = true)
     private String ownerGroup;
 
-    @Parameter(names = "--owner-email",
+    @Parameter(names = OWNER_EMAIL_LONG_ARG,
             description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.",
             required = true)
     private String ownerEmail;
 
-    @Parameter(names = "--costcenter",
+    @Parameter(names = COST_CENTER_LONG_ARG,
             description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.",
             required = true)
     private String costcenter;
 
-    @Parameter(names = "--desired-instances", description = "Desired number of auto scaling instances.")
+    @Parameter(names = DESIRED_INSTANCES_LONG_ARG, description = "Desired number of auto scaling instances.")
     private int desiredInstances = 3;
 
-    @Parameter(names = "--max-instances", description = "Maximum number of auto scaling instances.")
+    @Parameter(names = MAX_INSTANCES_LONG_ARG, description = "Maximum number of auto scaling instances.")
     private int maximumInstances = 3;
 
-    @Parameter(names = "--min-instances", description = "Minimum number of auto scaling instances")
+    @Parameter(names = MIN_INSTANCES_LONG_ARG, description = "Minimum number of auto scaling instances")
     private int minimumInstances = 3;
 
     public String getAmiId() {
