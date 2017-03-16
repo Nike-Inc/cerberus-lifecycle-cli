@@ -2,9 +2,8 @@
 version: 1
 
 # proxy information
-# You only need to configure this, if you plan on white listing proxy boxes and will need to jump
-# through them to talk to the instances that will live in the Cerberus VPC
-# If your not using a proxy either delete this section or make type = DIRECT for direct connecting
+# Configure this if you require a proxy to talk directly to the instances in the
+# Cerberus VPC. Otherwise, you can either delete this section, or make type = DIRECT
 proxy-config:
   host: localhost
   port: 9000
@@ -32,8 +31,8 @@ hostname: example.cerberis-oss.io
 # The hostedZoneId that will allow the registration of the hostname
 hosted-zone-id: X5CT6JROG9F2DR
 
-# Here we can define the ports and CIDRs that we want to allow ingress into the Cerberus env VPC
-# You can add your current ip or proxy boxes here and use the above proxy config
+# Define ports and CIDRs that should be allowed ingress into the Cerberus environment VPC. For example,
+# add the IP addresses of your proxy boxes here, and configure the 'proxy-config' block (shown above)
 vpc-access-whitelist:
   ports:
     - 443
@@ -64,7 +63,7 @@ vault:
   key-pair-name: example-key
   # optional: desired, min, and max instance values default to 3
 
-# Cerberus Managament Service-specific paramters
+# Cerberus Management Service-specific parameters
 management-service:
   cert-path: /path/to/example/certs/
   ami-id: ami-3333
@@ -97,8 +96,8 @@ dashboard:
   # The secondary artifact that will get merged into the above artifact before getting uploaded to s3, we use this for custom help page.
   override-artifact-url: https://someplace.com/where/you/want/to/store/this.tar.gz
 
-# By default The gateway elb for Cerberus is exposed to the public internet on port 443
-# We configure CloudFront and WAF to enable things like manual black and white lists as well as auto black listing
+# By default The gateway ELB for Cerberus is exposed to the public internet on port 443
+# We configure CloudFront and WAF to enable manual black and white lists, and auto blacklisting
 edge-security:
     # The artifact url for the CloudFront Lambda that process CloudFront Logs to enable things like rate limiting and KPI reporting
     cloudfront-lambda-artifact-url: https://github.com/Nike-Inc/cerberus-cloudfront-lambda/releases/download/v1.1.0/cerberus-cloudfront-lambda.jar
