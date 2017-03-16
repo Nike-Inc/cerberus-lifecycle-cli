@@ -36,23 +36,26 @@ import static com.nike.cerberus.command.core.UploadCertFilesCommand.COMMAND_NAME
 public class UploadCertFilesCommand implements Command {
 
     public static final String COMMAND_NAME = "upload-cert";
+    public static final String STACK_NAME_LONG_ARG = "--stack-name";
+    public static final String CERT_PATH_LONG_ARG = "--cert-path";
+    public static final String OVERWRITE_LONG_ARG = "--overwrite";
 
     @Parameter(
-            names = {"--stack-name"},
+            names = {STACK_NAME_LONG_ARG},
             required = true,
             description = "Stack name the certificate is for.",
             validateValueWith = UploadCertFilesStackNameValidator.class)
     private StackName stackName;
 
     @Parameter(
-            names = {"--cert-path"},
+            names = {CERT_PATH_LONG_ARG},
             required = true,
             description = "Path to the directory that contains the certificate files.",
             validateValueWith = UploadCertFilesPathValidator.class)
     private Path certPath;
 
     @Parameter(
-            names = {"--overwrite"},
+            names = {OVERWRITE_LONG_ARG},
             description = "If certificate is already present for the environment and component, overwrite it."
     )
     private boolean overwrite;

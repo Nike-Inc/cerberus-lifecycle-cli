@@ -32,7 +32,7 @@ public class CreateGatewayConfigCommand implements Command {
 
     public static final String COMMAND_NAME = "create-gateway-config";
 
-    @Parameter(names = "--hostname",
+    @Parameter(names = CreateGatewayClusterCommand.HOSTNAME_LONG_ARG,
             description = "The hostname that will be used to expose this Cerberus environment.",
             required = true)
     private String hostname;

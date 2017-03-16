@@ -34,11 +34,13 @@ import static com.nike.cerberus.command.gateway.PublishLambdaCommand.COMMAND_NAM
 public class PublishLambdaCommand implements Command {
 
     public static final String COMMAND_NAME = "publish-lambda";
+    public static final String LAMBDA_NAME_LONG_ARG = "--lambda-name";
+    public static final String ARTIFACT_URL_LONG_ARG = "--artifact-url";
 
-    @Parameter(names = "--lambda-name", description = "Which lambda is being uploaded.", required = true)
+    @Parameter(names = LAMBDA_NAME_LONG_ARG, description = "Which lambda is being uploaded.", required = true)
     private LambdaName lambdaName;
 
-    @Parameter(names = "--artifact-url", description = "URL to the lambda artifact.", required = true)
+    @Parameter(names = ARTIFACT_URL_LONG_ARG, description = "URL to the lambda artifact.", required = true)
     private URL artifactUrl;
 
     public LambdaName getLambdaName() {

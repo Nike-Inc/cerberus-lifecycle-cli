@@ -146,7 +146,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         final String stackId = configStore.getStackId(command.getStackName());
 
         if (StringUtils.isBlank(stackId)) {
-            logger.error("The stack name specified has been created for this environment yet!");
+            logger.error("The stack name specified has not been created for this environment yet!");
             isRunnable = false;
         } else if (!cloudFormationService.isStackPresent(stackId)) {
             logger.error("CloudFormation doesn't have the specified stack: {}", stackId);
