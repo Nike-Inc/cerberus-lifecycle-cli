@@ -37,6 +37,7 @@ import com.nike.cerberus.command.consul.CreateConsulConfigCommand;
 import com.nike.cerberus.command.consul.CreateVaultAclCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
+import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
@@ -138,7 +139,11 @@ public class CerberusRunner {
             if (StringUtils.isNotBlank(commandName)) {
                 commander.usage(commandName);
             } else {
-                printCustomUsage();
+                if (StringUtils.isNotBlank(commandName)) {
+                    commander.usage(commandName);
+                } else {
+                    printCustomUsage();
+                }
             }
         }
     }
@@ -285,6 +290,7 @@ public class CerberusRunner {
         registerCommand(new CreateCloudFrontLogProcessingLambdaConfigCommand());
         registerCommand(new CreateCloudFrontSecurityGroupUpdaterLambdaCommand());
         registerCommand(new WhitelistCidrForVpcAccessCommand());
+        registerCommand(new RestoreCompleteCerberusDataFromS3BackupCommand());
     }
 
     /**
