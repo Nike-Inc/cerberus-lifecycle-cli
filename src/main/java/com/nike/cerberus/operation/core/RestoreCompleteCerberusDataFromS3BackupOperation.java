@@ -242,7 +242,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
             encryptionContextMap = objectMapper.readValue(serializedEncryptionContext,
                     new TypeReference<HashMap<String,String>>() {});
         } catch (IOException e) {
-            throw new RuntimeException("Failed to convert encryption contect metadata value into Map");
+            throw new RuntimeException("Failed to convert encryption context metadata value into Map");
         }
         return encryptionContextMap.get("kms_cmk_id");
     }
@@ -309,6 +309,9 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
         }
     }
 
+    /**
+     * Generates and admin token that CMS will reconize as an Admin so we can us the restore endpoint
+     */
     private String generateAdminToken() {
         VaultAuthResponse vaultAuthResponse;
         try {

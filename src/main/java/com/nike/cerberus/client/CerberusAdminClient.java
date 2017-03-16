@@ -32,7 +32,7 @@ import javax.net.ssl.SSLException;
 import java.io.IOException;
 
 /**
- *
+ * A Cerberus admin client with the ability to restore metadata
  */
 public class CerberusAdminClient extends VaultAdminClient {
 
