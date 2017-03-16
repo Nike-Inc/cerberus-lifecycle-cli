@@ -30,7 +30,7 @@ server {
     # Simple health response
     location = /sys/health {
         access_log off;
-        return 200;
+        return 204;
     }
 
     location /robots.txt {
