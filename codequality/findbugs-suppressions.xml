@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<FindBugsFilter>
+    <Match>
+        <Class name="com.nike.cerberus.cli.CerberusRunner" />
+        <Method name="run" />
+        <Bug pattern="DM_EXIT" />
+    </Match>
+</FindBugsFilter>
