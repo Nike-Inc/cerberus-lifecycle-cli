@@ -125,6 +125,7 @@ public class CerberusRunner {
                 System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
                 e.printStackTrace();
                 cerberusHelp.print();
+                System.exit(1);
             }
         }
     }
