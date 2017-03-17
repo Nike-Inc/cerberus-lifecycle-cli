@@ -18,9 +18,6 @@ package com.nike.cerberus.cli;
 
 import ch.qos.logback.classic.Level;
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.ParameterDescription;
-import com.beust.jcommander.WrappedParameter;
-import com.beust.jcommander.internal.Lists;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.common.collect.Maps;
 import com.google.inject.Guice;
@@ -62,10 +59,7 @@ import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.util.LocalEnvironmentValidator;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -76,6 +70,7 @@ public class CerberusRunner {
     private final Map<String, Command> commandMap;
     private CerberusCommand cerberusCommand;
     private final JCommander commander;
+    private final CerberusHelp cerberusHelp;
 
     private CerberusRunner() {
         commandMap = Maps.newHashMap();
@@ -83,6 +78,7 @@ public class CerberusRunner {
         commander = new JCommander(cerberusCommand);
         commander.setProgramName("cerberus");
         commander.setAcceptUnknownOptions(true);
+        cerberusHelp = new CerberusHelp(commander);
     }
 
     /**
@@ -100,50 +96,35 @@ public class CerberusRunner {
             commander.parse(args);
 
             configureLogging(cerberusCommand.isDebug());
-            final String commandName = commander.getParsedCommand();
+            String commandName = commander.getParsedCommand();
             Command command = commandMap.get(commandName);
 
-            final Injector propsInjector = Guice.createInjector(new PropsModule());
-
             if(cerberusCommand.isVersion()) {
-                String version = propsInjector.getInstance(Key.get(String.class, Names.named(ConfigConstants.VERSION_PROPERTY)));
-                String versionMessage = Chalk.on(String.format("Cerberus Lifecycle CLI version: %s", version)).green().bold().toString();
-                System.out.println(versionMessage);
+                printCliVersion();
             } else if (cerberusCommand.isHelp() || commandName == null) {
-                if (StringUtils.isNotBlank(commandName)) {
-                    commander.usage(commandName);
-                } else {
-                    printCustomUsage();
-                }
+                cerberusHelp.print();
             } else {
-                final Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
+                Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
                         cerberusCommand.getEnvironment(), cerberusCommand.getRegion()), new PropsModule());
 
                 // fail early if there is any problem in local environment
                 LocalEnvironmentValidator validator = injector.getInstance(LocalEnvironmentValidator.class);
                 validator.validate();
 
-                final Operation operation = injector.getInstance(command.getOperationClass());
+                Operation operation = injector.getInstance(command.getOperationClass());
 
                 if (operation.isRunnable(command)) {
                     operation.run(command);
                 }
             }
         } catch (Throwable e) {
-            if (! cerberusCommand.isHelp()) {
+            if (cerberusCommand.isHelp()) {
+                cerberusHelp.print();
+            }
+            else {
                 System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
                 e.printStackTrace();
-            }
-
-            String commandName = commander.getParsedCommand();
-            if (StringUtils.isNotBlank(commandName)) {
-                commander.usage(commandName);
-            } else {
-                if (StringUtils.isNotBlank(commandName)) {
-                    commander.usage(commandName);
-                } else {
-                    printCustomUsage();
-                }
+                cerberusHelp.print();
             }
         }
     }
@@ -172,94 +153,13 @@ public class CerberusRunner {
         return args;
     }
 
-    private void printCommands() {
-        System.out.println("Commands, use cerberus [-h, --help] [command name] for more info:");
-        commander.getCommands().keySet().forEach(command -> {
-            String msg = String.format("    %s, %s",
-                    Chalk.on(command).green().bold().toString(),
-                    commander.getCommandDescription(command));
-            System.out.println(msg);
-        });
+    private void printCliVersion() {
+        Injector propsInjector = Guice.createInjector(new PropsModule());
+        String version = propsInjector.getInstance(Key.get(String.class, Names.named(ConfigConstants.VERSION_PROPERTY)));
+        String versionMessage = Chalk.on(String.format("Cerberus Lifecycle CLI version: %s", version)).green().bold().toString();
+        System.out.println(versionMessage);
     }
 
-    private void printCustomUsage() {
-        StringBuilder sb = new StringBuilder("Usage: cerberus [options] [command] [command options]\n");
-
-        String indent = "";
-        //indenting
-        int descriptionIndent = 6;
-        int indentCount = indent.length() + descriptionIndent;
-
-        int longestName = 0;
-        List<ParameterDescription> sorted = Lists.newArrayList();
-        for (ParameterDescription pd : commander.getParameters()) {
-            if (! pd.getParameter().hidden()) {
-                sorted.add(pd);
-                // + to have an extra space between the name and the description
-                int length = pd.getNames().length() + 2;
-                if (length > longestName) {
-                    longestName = length;
-                }
-            }
-        }
-
-        sb.append(indent).append("  Options:\n");
-
-        sorted.stream()
-                .sorted((p0, p1) -> p0.getLongestName().compareTo(p1.getLongestName()))
-                .forEach(pd -> {
-                    WrappedParameter parameter = pd.getParameter();
-                    sb.append(indent).append("  "
-                            + (parameter.required() ? "* " : "  ")
-                            + Chalk.on(pd.getNames()).green().bold().toString()
-                            + "\n");
-                    wrapDescription(sb, indentCount, s(indentCount) + pd.getDescription());
-                    Object def = pd.getDefault();
-                    if (def != null) {
-                        String displayedDef = StringUtils.isBlank(def.toString())
-                                ? "<empty string>"
-                                : def.toString();
-                        sb.append("\n" + s(indentCount)).append("Default: " + Chalk.on(displayedDef).yellow().bold().toString());
-                    }
-                    Class<?> type =  pd.getParameterized().getType();
-                    if(type.isEnum()){
-                        String values = EnumSet.allOf((Class<? extends Enum>) type).toString();
-                        sb.append("\n" + s(indentCount)).append("Possible Values: " + Chalk.on(values).yellow().bold().toString());
-                    }
-                    sb.append("\n");
-                });
-
-        System.out.println(sb.toString());
-        System.out.print("  ");
-        printCommands();
-    }
-
-    private String s(int count) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < count; i++) {
-            result.append(" ");
-        }
-
-        return result.toString();
-    }
-
-    private void wrapDescription(StringBuilder out, int indent, String description) {
-        int max = 79;
-        String[] words = description.split(" ");
-        int current = 0;
-        int i = 0;
-        while (i < words.length) {
-            String word = words[i];
-            if (word.length() > max || current + 1 + word.length() <= max) {
-                out.append(word).append(" ");
-                current += word.length() + 1;
-            } else {
-                out.append("\n").append(s(indent)).append(word).append(" ");
-                current = indent + 1 + word.length();
-            }
-            i++;
-        }
-    }
 
     /**
      * Convenience method for registering all top level commands.
@@ -298,7 +198,7 @@ public class CerberusRunner {
      *
      * @param command Command to be registered
      */
-    private void registerCommand(final Command command) {
+    private void registerCommand(Command command) {
         commandMap.put(command.getCommandName(), command);
         commander.addCommand(command.getCommandName(), command);
     }
