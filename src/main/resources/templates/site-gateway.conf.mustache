@@ -30,7 +30,8 @@ server {
     # Simple health response
     location = /sys/health {
         access_log off;
-        return 200;
+        add_header Content-Type text/plain;
+        return 200 "Gateway is Healthy";
     }
 
     location /robots.txt {
