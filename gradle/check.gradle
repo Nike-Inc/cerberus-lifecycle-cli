@@ -21,6 +21,7 @@ apply plugin: 'com.github.kt3k.coveralls'
 
 findbugs {
     ignoreFailures = false
+    excludeFilter = rootProject.file('codequality/findbugs-suppressions.xml')
     sourceSets = [ project.sourceSets.main ]
 }
 

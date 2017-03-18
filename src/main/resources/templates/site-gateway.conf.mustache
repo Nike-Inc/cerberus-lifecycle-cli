@@ -34,6 +34,11 @@ server {
         return 200 "Gateway is Healthy";
     }
 
+    location /robots.txt {
+        add_header Content-Type text/plain;
+        return 200 "User-agent: *\nDisallow: /\n";
+    }
+
     # Dashboard
     location /dashboard {
         add_header X-Frame-Options deny;
