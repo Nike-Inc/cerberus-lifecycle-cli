@@ -30,7 +30,12 @@ server {
     # Simple health response
     location = /sys/health {
         access_log off;
-        return 200;
+        return 204;
+    }
+
+    location /robots.txt {
+       add_header Content-Type text/plain;
+       return 200 "User-agent: *\nDisallow: /\n";
     }
 
     location /robots.txt {
