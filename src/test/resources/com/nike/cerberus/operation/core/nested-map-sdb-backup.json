@@ -1,0 +1,38 @@
+{
+  "category":"Applications",
+  "created_by":"john.doe@nike.com",
+  "created_ts":"2016-12-27T21:25:07Z",
+  "data":{
+    "app/foo/slack":{
+      "client_id":"111111.22222",
+      "client_secret":"asdfasdfasdf"
+    },
+    "app/foo/slack_oauth":{
+      "access_token":"111111",
+      "incoming_webhook":{
+        "channel":"#be-amazed",
+        "channel_id":"asdfads32",
+        "configuration_url":"https://foo.slack.com/services/asdfasdf",
+        "url":"https://hooks.slack.com/services/1111111/2222222/sdfgsdfgsdfg"
+      },
+      "ok":true,
+      "scope":"foo,bar,bam",
+      "team_id":"123123",
+      "team_name":"Be Amazed",
+      "user_id":"asdfdsfasdf"
+    }
+  },
+  "description":"",
+  "iam_role_permissions":{
+    "arn:aws:iam::1111111:role/asdfasdfasdfasdf":"write",
+    "arn:aws:iam::1111111:role/awesomo4000-Awesomo4000Role-asdfasdf":"read"
+  },
+  "last_updated_by":"john.doe@nike.com",
+  "last_updated_ts":"2016-12-27T21:25:07Z",
+  "name":"foo",
+  "owner":"fooowner",
+  "path":"app/fooo/",
+  "user_group_permissions":{
+    "bar":"read"
+  }
+}

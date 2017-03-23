@@ -24,6 +24,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import com.amazonaws.services.s3.model.CryptoConfiguration;
 import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -261,7 +262,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
      * Step 2: Restores the secrete data to Vault
      * @param sdbBackupJson the json string from s3
      */
-    private void processBackup(String sdbBackupJson, CerberusAdminClient cerberusAdminClient) throws IOException {
+    protected void processBackup(String sdbBackupJson, CerberusAdminClient cerberusAdminClient) throws IOException {
 
         JsonNode sdb = objectMapper.readTree(sdbBackupJson);
 
@@ -270,10 +271,26 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
         deleteAllSecrets(sdb.get("path").asText(), cerberusAdminClient);
         // restore secret vault data
         JsonNode data = sdb.get("data");
-        Map<String, Map<String, String>> kvPairs = objectMapper.convertValue(data,
-                new TypeReference<HashMap<String,Map<String, String>>>() {});
+        Map<String, Map<String, JsonNode>> kvPairs = objectMapper.convertValue(data,
+                new TypeReference<HashMap<String,Map<String, JsonNode>>>() {});
 
-        kvPairs.forEach(cerberusAdminClient::write);
+        kvPairs.forEach((String path, Map<String, JsonNode> secretData) -> {
+            Map<String, Object> genericDataMap = new HashMap<>();
+            secretData.forEach((String key , JsonNode valueNode)-> {
+                if (valueNode.isObject()) {
+                    genericDataMap.put(key , objectMapper.convertValue(valueNode,
+                            new TypeReference<HashMap<Object,Object>>() {})
+                    );
+                } else if (valueNode.isTextual()) {
+                    genericDataMap.put(key , valueNode.textValue());
+                } else if (valueNode.isBoolean()) {
+                    genericDataMap.put(key , valueNode.booleanValue());
+                } else {
+                    throw new RuntimeException("Unexpected value type for secret value. Type: " + valueNode.getClass());
+                }
+            });
+            cerberusAdminClient.writeJson(path, genericDataMap);
+        });
     }
 
     /**
@@ -281,7 +298,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
      *
      * @param path path to start deleting at.
      */
-    private void deleteAllSecrets(final String path, VaultAdminClient vaultAdminClient) {
+    protected void deleteAllSecrets(final String path, VaultAdminClient vaultAdminClient) {
         try {
             String fixedPath = path;
 
