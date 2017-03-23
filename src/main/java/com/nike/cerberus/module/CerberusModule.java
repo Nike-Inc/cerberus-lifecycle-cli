@@ -135,7 +135,7 @@ public class CerberusModule extends AbstractModule {
     @Provides
     @Singleton
     @Named(CONFIG_OBJECT_MAPPER)
-    public ObjectMapper configObjectMapper() {
+    public static ObjectMapper configObjectMapper() {
         final ObjectMapper om = new ObjectMapper();
         om.findAndRegisterModules();
         om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);

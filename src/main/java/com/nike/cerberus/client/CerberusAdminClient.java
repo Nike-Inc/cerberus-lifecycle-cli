@@ -16,12 +16,14 @@
 
 package com.nike.cerberus.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.nike.vault.client.UrlResolver;
 import com.nike.vault.client.VaultAdminClient;
 import com.nike.vault.client.VaultClientException;
 import com.nike.vault.client.auth.VaultCredentialsProvider;
 import com.nike.vault.client.http.HttpHeader;
 import com.nike.vault.client.http.HttpMethod;
+import com.nike.vault.client.http.HttpStatus;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -30,6 +32,7 @@ import okhttp3.Response;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * A Cerberus admin client with the ability to restore metadata
@@ -60,6 +63,15 @@ public class CerberusAdminClient extends VaultAdminClient {
         Response response = execute(url, HttpMethod.PUT, jsonPayload);
         if (! response.isSuccessful()) {
             throw new RuntimeException("Failed to restore metadata with cms body: " + response.message());
+        }
+    }
+
+    public void writeJson(final String path, final Map<String, Object> data) {
+        final HttpUrl url = buildUrl(SECRET_PATH_PREFIX, path);
+        final Response response = execute(url, HttpMethod.POST, data);
+
+        if (response.code() != HttpStatus.NO_CONTENT) {
+            parseAndThrowErrorResponse(response);
         }
     }
 
