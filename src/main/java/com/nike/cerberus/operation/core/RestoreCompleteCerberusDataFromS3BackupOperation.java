@@ -68,8 +68,8 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final int DEFAULT_TIMEOUT = 60;
-    private static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
+    public static final int DEFAULT_TIMEOUT = 60;
+    public static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
     private static final String CERBERUS_BACKUP_METADATA_JSON_FILE_KEY = "cerberus-backup-metadata.json";
     private static final String CERBERUS_BACKUP_API_URL = "cerberusUrl";
     private static final String CERBERUS_BACKUP_DATE = "backupDate";
