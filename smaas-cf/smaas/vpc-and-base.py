@@ -554,6 +554,21 @@ gateway_iam_role = template.add_resource(Role(
             "Action": ["sts:AssumeRole"]
         }]
     },
+    Policies=[
+        Policy(
+                PolicyName="gatewayPolicy",
+                PolicyDocument={
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Action": [
+                            "EC2:Describe*",
+                            "cloudformation:SignalResource"
+                        ],
+                        "Resource": "*"
+                    }],
+                }
+        )
+    ],
     Path="/"
 ))
 
@@ -569,6 +584,21 @@ cms_iam_role = template.add_resource(Role(
             "Action": ["sts:AssumeRole"]
         }]
     },
+    Policies=[
+        Policy(
+                PolicyName="cmsPolicy",
+                PolicyDocument={
+                    "Statement": [{
+                        "Effect": "Allow",
+                        "Action": [
+                            "EC2:Describe*",
+                            "cloudformation:SignalResource"
+                        ],
+                        "Resource": "*"
+                    }],
+                }
+        )
+    ],
     Path="/"
 ))
 
