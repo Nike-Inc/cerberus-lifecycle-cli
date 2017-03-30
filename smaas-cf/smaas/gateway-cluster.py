@@ -293,7 +293,8 @@ gateway_autoscaling_group = template.add_resource(AutoScalingGroup(
         AutoScalingRollingUpdate=AutoScalingRollingUpdate(
             MaxBatchSize=1,
             MinInstancesInService=2,
-            PauseTime="PT3M"
+            PauseTime="PT15M",
+            WaitOnResourceSignals=True
         )
     ),
     VPCZoneIdentifier=subnet_id_refs,
