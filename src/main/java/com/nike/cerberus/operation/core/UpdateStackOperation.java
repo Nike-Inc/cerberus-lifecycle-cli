@@ -46,6 +46,7 @@ import javax.inject.Named;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.amazonaws.services.cloudformation.model.StackStatus.*;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
 import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
@@ -119,10 +120,15 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
             final StackStatus endStatus =
                     cloudFormationService.waitForStatus(stackId,
-                            Sets.newHashSet(StackStatus.UPDATE_COMPLETE,
-                                    StackStatus.UPDATE_COMPLETE_CLEANUP_IN_PROGRESS, StackStatus.UPDATE_ROLLBACK_COMPLETE));
+                            Sets.newHashSet(
+                                    UPDATE_COMPLETE,
+                                    UPDATE_COMPLETE_CLEANUP_IN_PROGRESS,
+                                    UPDATE_ROLLBACK_COMPLETE,
+                                    UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS,
+                                    UPDATE_ROLLBACK_FAILED
+                            ));
 
-            if (endStatus == StackStatus.ROLLBACK_COMPLETE) {
+            if (endStatus != UPDATE_COMPLETE || endStatus != UPDATE_COMPLETE_CLEANUP_IN_PROGRESS) {
                 final String errorMessage = String.format("Unexpected end status: %s", endStatus.name());
                 logger.error(errorMessage);
 
