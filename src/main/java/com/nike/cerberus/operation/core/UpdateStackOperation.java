@@ -20,6 +20,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.UpdateStackCommand;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.amazonaws.services.cloudformation.model.StackStatus.*;
@@ -128,8 +130,8 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                                     UPDATE_ROLLBACK_FAILED
                             ));
 
-            if (endStatus != UPDATE_COMPLETE || endStatus != UPDATE_COMPLETE_CLEANUP_IN_PROGRESS) {
-                final String errorMessage = String.format("Unexpected end status: %s", endStatus.name());
+            if (! ImmutableList.of(UPDATE_COMPLETE, UPDATE_COMPLETE_CLEANUP_IN_PROGRESS).contains(endStatus)) {
+                final String errorMessage = String.format("CloudFormation reports that updating the stack was not successful. end status: %s", endStatus.name());
                 logger.error(errorMessage);
 
                 throw new UnexpectedCloudFormationStatusException(errorMessage);
