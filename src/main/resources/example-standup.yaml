@@ -52,8 +52,8 @@ consul:
   key-pair-name: example-key
   # optional: desired, min, and max instance values default to 3
   desired-instances: 3
-  max-instances: 4
-  min-instances: 2
+  max-instances: 3
+  min-instances: 3
 
 # Vault-specific parameters
 vault:
