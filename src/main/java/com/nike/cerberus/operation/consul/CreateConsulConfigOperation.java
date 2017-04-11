@@ -51,6 +51,10 @@ public class CreateConsulConfigOperation implements Operation<CreateConsulConfig
         final ConsulConfiguration consulConfiguration =
                 consulConfigGenerator.generate(ConfigConstants.CONSUL_DATACENTER);
 
+        if (configStore.hasConsulConfig()) {
+            logger.info("Consul configuration was already present for specified environment, overwriting...");
+        }
+
         logger.info("Uploading Consul configuration to the configuration bucket.");
         configStore.storeConsulConfig(consulConfiguration);
 
@@ -59,12 +63,6 @@ public class CreateConsulConfigOperation implements Operation<CreateConsulConfig
 
     @Override
     public boolean isRunnable(final CreateConsulConfigCommand command) {
-        final boolean hasConsulConfig = configStore.hasConsulConfig();
-
-        if (hasConsulConfig) {
-            logger.error("Consul configuration present for specified environment, use the update command.");
-        }
-
-        return !hasConsulConfig;
+        return true;
     }
 }
