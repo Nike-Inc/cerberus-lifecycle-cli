@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.command.vault;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
@@ -30,6 +31,19 @@ import static com.nike.cerberus.command.vault.CreateCmsVaultTokenCommand.COMMAND
 public class CreateCmsVaultTokenCommand implements Command {
 
     public static final String COMMAND_NAME = "create-cms-vault-token";
+
+    public static final String FORCE_OVERWRITE_LONG_ARG = "--force-overwrite";
+
+    // This option is mainly useful if:
+    // 1) you want to go through some manual steps to rotate the CMS vault token
+    // 2) you've partially hosed a development system
+    @Parameter(names = FORCE_OVERWRITE_LONG_ARG,
+            description = "Force overwriting existing CMS vault token in secrets.json.  It is important to manually revoke the old CMS token when using this option.")
+    private boolean forceOverwrite = false;
+
+    public boolean isForceOverwrite() {
+        return forceOverwrite;
+    }
 
     @Override
     public String getCommandName() {
