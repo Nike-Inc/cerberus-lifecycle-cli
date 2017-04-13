@@ -32,6 +32,7 @@ import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
 import com.nike.cerberus.command.consul.CreateConsulConfigCommand;
 import com.nike.cerberus.command.consul.CreateVaultAclCommand;
+import com.nike.cerberus.command.consul.UpdateConsulConfigCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
@@ -169,6 +170,7 @@ public class CerberusRunner {
         registerCommand(new CreateBaseCommand());
         registerCommand(new UploadCertFilesCommand());
         registerCommand(new CreateConsulConfigCommand());
+        registerCommand(new UpdateConsulConfigCommand());
         registerCommand(new CreateVaultAclCommand());
         registerCommand(new CreateConsulClusterCommand());
         registerCommand(new CreateVaultConfigCommand());

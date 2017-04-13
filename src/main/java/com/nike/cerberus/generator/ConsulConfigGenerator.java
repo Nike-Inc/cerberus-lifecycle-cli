@@ -53,11 +53,21 @@ public class ConsulConfigGenerator {
 
     /**
      * Generates a configuration object that contains the newly generated gossip encryption token,
-     * acl master token and a string representation of the full JSON configuration for Consul.
+     * acl master token, and string representations of the full JSON configuration for Consul.
      */
     public ConsulConfiguration generate(final String datacenter) {
         final String aclMasterToken = uuidSupplier.get();
         final String gossipEncryptionToken = tokenSupplier.get();
+        return generate(datacenter, aclMasterToken, gossipEncryptionToken);
+    }
+
+    /**
+     * Generates a configuration object that contains the supplied gossip encryption token,
+     * acl master token, and string representations of the full JSON configuration for Consul.
+     */
+    public ConsulConfiguration generate(final String datacenter,
+                                        final String aclMasterToken,
+                                        final String gossipEncryptionToken) {
         final ConsulConfigurationInput input = new ConsulConfigurationInput()
                 .setAclMasterToken(aclMasterToken)
                 .setGossipEncryptionToken(gossipEncryptionToken)

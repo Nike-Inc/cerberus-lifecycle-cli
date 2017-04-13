@@ -239,6 +239,26 @@ public class ConfigStore {
     }
 
     /**
+     * Retrieves the AclMasterToken for Consul from the config store.
+     */
+    public String getAclMasterToken() {
+        synchronized (secretsDataLock) {
+            final Secrets secrets = getSecretsData();
+            return secrets.getConsul().getAclMasterToken();
+        }
+    }
+
+    /**
+     * Retrieves the GossipEncryptionToken for Consul from the config store.
+     */
+    public String getGossipEncryptionToken() {
+        synchronized (secretsDataLock) {
+            final Secrets secrets = getSecretsData();
+            return secrets.getConsul().getGossipEncryptionToken();
+        }
+    }
+
+    /**
      * Checks if the Vault ACL entry JSON is present in the config store.
      *
      * @return If present

@@ -17,7 +17,7 @@
 package com.nike.cerberus.operation.consul;
 
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.command.consul.CreateConsulConfigCommand;
+import com.nike.cerberus.command.consul.UpdateConsulConfigCommand;
 import com.nike.cerberus.domain.configuration.ConsulConfiguration;
 import com.nike.cerberus.generator.ConsulConfigGenerator;
 import com.nike.cerberus.operation.Operation;
@@ -30,7 +30,7 @@ import javax.inject.Inject;
 /**
  * Generates the configuration files for Consul and uploads them to the config store.
  */
-public class CreateConsulConfigOperation implements Operation<CreateConsulConfigCommand> {
+public class UpdateConsulConfigOperation implements Operation<UpdateConsulConfigCommand> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,17 +39,21 @@ public class CreateConsulConfigOperation implements Operation<CreateConsulConfig
     private final ConfigStore configStore;
 
     @Inject
-    public CreateConsulConfigOperation(final ConsulConfigGenerator consulConfigGenerator,
+    public UpdateConsulConfigOperation(final ConsulConfigGenerator consulConfigGenerator,
                                        final ConfigStore configStore) {
         this.consulConfigGenerator = consulConfigGenerator;
         this.configStore = configStore;
     }
 
     @Override
-    public void run(final CreateConsulConfigCommand command) {
-        logger.info("Generating the Consul configuration.");
-        final ConsulConfiguration consulConfiguration =
-                consulConfigGenerator.generate(ConfigConstants.CONSUL_DATACENTER);
+    public void run(final UpdateConsulConfigCommand command) {
+        logger.info("Regenerating the Consul configuration while maintaining values such as the AclMasterToken and GossipEncryptionToken.");
+
+        final ConsulConfiguration consulConfiguration = consulConfigGenerator.generate(
+                ConfigConstants.CONSUL_DATACENTER,
+                configStore.getAclMasterToken(),
+                configStore.getGossipEncryptionToken()
+        );
 
         logger.info("Uploading Consul configuration to the configuration bucket.");
         configStore.storeConsulConfig(consulConfiguration);
@@ -58,15 +62,13 @@ public class CreateConsulConfigOperation implements Operation<CreateConsulConfig
     }
 
     @Override
-    public boolean isRunnable(final CreateConsulConfigCommand command) {
+    public boolean isRunnable(final UpdateConsulConfigCommand command) {
         final boolean hasConsulConfig = configStore.hasConsulConfig();
 
-        if (hasConsulConfig) {
-            // you don't want to just overwrite the config here because it contains
-            // tokens that need to be maintained for the cluster to keep working
-            logger.error("Consul configuration present for specified environment, use the update command.");
+        if (!hasConsulConfig) {
+            logger.error("Consul configuration is NOT present for specified environment, use the create command.");
         }
 
-        return !hasConsulConfig;
+        return hasConsulConfig;
     }
 }
