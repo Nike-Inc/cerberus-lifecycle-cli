@@ -60,8 +60,8 @@ public class StackDelegate {
     @Parameter(names = DESIRED_INSTANCES_LONG_ARG, description = "Desired number of auto scaling instances.")
     private int desiredInstances = 3;
 
-    @Parameter(names = MAX_INSTANCES_LONG_ARG, description = "Maximum number of auto scaling instances.")
-    private int maximumInstances = 3;
+    @Parameter(names = MAX_INSTANCES_LONG_ARG, description = "Maximum number of auto scaling instances (must be larger than min).")
+    private int maximumInstances = 4;
 
     @Parameter(names = MIN_INSTANCES_LONG_ARG, description = "Minimum number of auto scaling instances")
     private int minimumInstances = 3;

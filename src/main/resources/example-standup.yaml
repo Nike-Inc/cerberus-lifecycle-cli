@@ -50,9 +50,9 @@ consul:
   ami-id: ami-1111
   instance-size: m3.medium
   key-pair-name: example-key
-  # optional: desired, min, and max instance values default to 3
+  # optional: desired, min, and max instance values
   desired-instances: 3
-  max-instances: 3
+  max-instances: 4
   min-instances: 3
 
 # Vault-specific parameters
@@ -61,7 +61,7 @@ vault:
   ami-id: ami-2222
   instance-size: m3.medium
   key-pair-name: example-key
-  # optional: desired, min, and max instance values default to 3
+  # optional: desired, min, and max instance values
 
 # Cerberus Management Service-specific parameters
 management-service:
@@ -80,7 +80,7 @@ management-service:
     - auth.connector.onelogin.client_id=123
     - auth.connector.onelogin.client_secret=312
     - auth.connector.onelogin.subdomain=example  # example.onelogin.com ~> 'example'
-  # optional: desired, min, and max instance values default to 3
+  # optional: desired, min, and max instance values
 
 
 gateway:
@@ -88,7 +88,7 @@ gateway:
   ami-id: ami-4444
   instance-size: m3.medium
   key-pair-name: cerberus-test
-  # optional: desired, min, and max instance values default to 3
+  # optional: desired, min, and max instance values
 
 dashboard:
   # The url of the dashboard artifact, probably the newest release on the dashboard Github release page

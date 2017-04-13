@@ -132,19 +132,22 @@ cname_param = template.add_parameter(Parameter(
 desired_instances_param = template.add_parameter(Parameter(
     "desiredInstances",
     Description="Desired Number of Auto Scaling Instances",
-    Type="Number"
+    Type="Number",
+    Default="3"
 ))
 
 maximum_instances_param = template.add_parameter(Parameter(
     "maximumInstances",
-    Description="Maximum Number of Auto Scaling Instances",
-    Type="Number"
+    Description="Maximum Number of Auto Scaling Instances (must be larger than min)",
+    Type="Number",
+    Default="4"
 ))
 
 minimum_instances_param = template.add_parameter(Parameter(
     "minimumInstances",
     Description="Minimum Number of Auto Scaling Instances",
-    Type="Number"
+    Type="Number",
+    Default="3"
 ))
 
 ###
@@ -237,7 +240,7 @@ autoscaling_group = template.add_resource(AutoScalingGroup(
         UpdatePolicy=UpdatePolicy(
             AutoScalingRollingUpdate=AutoScalingRollingUpdate(
                 MaxBatchSize=1,
-                MinInstancesInService=2,
+                MinInstancesInService=Ref(minimum_instances_param),
                 PauseTime="PT15M",
                 WaitOnResourceSignals=True
             )
