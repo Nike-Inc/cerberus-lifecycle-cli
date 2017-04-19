@@ -47,12 +47,23 @@ public class UpdateConsulConfigOperation implements Operation<UpdateConsulConfig
 
     @Override
     public void run(final UpdateConsulConfigCommand command) {
-        logger.info("Regenerating the Consul configuration while maintaining values such as the AclMasterToken and GossipEncryptionToken.");
+        logger.info("Regenerating Consul configuration");
+
+        String aclMasterToken = command.getAclMasterToken();
+        if (aclMasterToken == null) {
+            logger.info("Regenerating Consul configuration: maintaining existing ACL Master Token");
+            aclMasterToken = configStore.getAclMasterToken();
+        }
+        String gossipEncryptionToken = command.getGossipEncryptionToken();
+        if (gossipEncryptionToken == null) {
+            logger.info("Regenerating Consul configuration: maintaining existing Gossip Encryption Token");
+            gossipEncryptionToken = configStore.getGossipEncryptionToken();
+        }
 
         final ConsulConfiguration consulConfiguration = consulConfigGenerator.generate(
                 ConfigConstants.CONSUL_DATACENTER,
-                configStore.getAclMasterToken(),
-                configStore.getGossipEncryptionToken()
+                aclMasterToken,
+                gossipEncryptionToken
         );
 
         logger.info("Uploading Consul configuration to the configuration bucket.");
