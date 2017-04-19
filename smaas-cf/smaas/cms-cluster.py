@@ -150,6 +150,20 @@ minimum_instances_param = template.add_parameter(Parameter(
     Default="3"
 ))
 
+pause_time_param = template.add_parameter(Parameter(
+    "pauseTime",
+    Description="Pause time for AutoScalingRollingUpdate e.g PT15M",
+    Type="String",
+    Default="PT15M"
+))
+
+wait_on_resource_signals_param = template.add_parameter(Parameter(
+    "waitOnResourceSignals",
+    Description="Enabling WaitOnResourceSignals allows CloudFormation to wait until you have received a success signal before performing the next scaling action.",
+    Type="String",
+    Default="True"
+))
+
 ###
 #
 # Elastic Load Balancers
@@ -241,8 +255,8 @@ autoscaling_group = template.add_resource(AutoScalingGroup(
             AutoScalingRollingUpdate=AutoScalingRollingUpdate(
                 MaxBatchSize=1,
                 MinInstancesInService=Ref(minimum_instances_param),
-                PauseTime="PT15M",
-                WaitOnResourceSignals=True
+                PauseTime=Ref(pause_time_param),
+                WaitOnResourceSignals=Ref(wait_on_resource_signals_param)
             )
         ),
         VPCZoneIdentifier=subnet_id_refs,
