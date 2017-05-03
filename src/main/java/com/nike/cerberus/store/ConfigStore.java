@@ -518,6 +518,15 @@ public class ConfigStore {
     }
 
     /**
+     * Return configuration file contents
+     * @param path - Path to configuration file (e.g. 'config/environment.properties')
+     */
+    public Optional<String> getConfigProperties(String path) {
+
+        return getEncryptedObject(path);
+    }
+
+    /**
      * Get the base stack parameters.
      *
      * @return Base parameters
