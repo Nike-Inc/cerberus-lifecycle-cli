@@ -16,6 +16,8 @@
 
 package com.nike.cerberus;
 
+import com.google.common.collect.ImmutableSet;
+
 public class ConfigConstants {
 
     public static final String ENV_PREFIX = "cerberus-";
@@ -77,4 +79,33 @@ public class ConfigConstants {
     public static final String CF_ELB_IP_SYNC_STACK_TEMPLATE_PATH = "/cloudformation/cloudfront-elb-security-group-updater-lambda.json";
 
     public static final String VERSION_PROPERTY = "cli.version";
+
+    public static final String CMS_ADMIN_GROUP_KEY = "cms.admin.group";
+
+    public static final String VAULT_ADDR_KEY = "vault.addr";
+
+    public static final String VAULT_TOKEN_KEY = "vault.token";
+
+    public static final String ROOT_USER_ARN_KEY = "root.user.arn";
+
+    public static final String ADMIN_ROLE_ARN_KEY = "admin.role.arn";
+
+    public static final String CMS_ROLE_ARN_KEY = "cms.role.arn";
+
+    public static final String JDBC_URL_KEY = "JDBC.url";
+
+    public static final String JDBC_USERNAME_KEY = "JDBC.username";
+
+    public static final String JDBC_PASSWORD_KEY ="JDBC.password";
+
+    public static final ImmutableSet<String> SYSTEM_CONFIGURED_PROPERTIES = ImmutableSet.of(
+            CMS_ADMIN_GROUP_KEY,
+            VAULT_ADDR_KEY,
+            VAULT_TOKEN_KEY,
+            ROOT_USER_ARN_KEY,
+            ADMIN_ROLE_ARN_KEY,
+            CMS_ROLE_ARN_KEY,
+            JDBC_URL_KEY,
+            JDBC_USERNAME_KEY,
+            JDBC_PASSWORD_KEY);
 }

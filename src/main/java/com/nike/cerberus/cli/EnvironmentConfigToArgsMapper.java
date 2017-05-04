@@ -19,6 +19,7 @@ package com.nike.cerberus.cli;
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
+import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
@@ -111,6 +112,8 @@ public class EnvironmentConfigToArgsMapper {
                 return getPublishLambdaCommandArgs(environmentConfig, passedArgs);
             case CreateCloudFrontLogProcessingLambdaConfigCommand.COMMAND_NAME:
                 return getCreateCloudFrontLogProcessingLambdaConfigCommandArgs(environmentConfig);
+            case UpdateCmsConfigCommand.COMMAND_NAME:
+                return getCreateCmsConfigCommandArgs(environmentConfig);
             default:
                 return new LinkedList<>();
         }

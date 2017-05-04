@@ -55,9 +55,11 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CA;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CERT;
@@ -503,18 +505,42 @@ public class ConfigStore {
         }
     }
 
-    public void storeCmsEnvConfig(final Map<String, String> cmsConfigMap) {
+    public void storeCmsEnvConfig(final Properties cmsConfigMap) {
         final StringBuilder cmsConfigContents = new StringBuilder();
 
-        for (final Map.Entry<String, String> entry : cmsConfigMap.entrySet()) {
-            cmsConfigContents.append(entry.getKey()).append('=').append(entry.getValue()).append('\n');
-        }
+        cmsConfigMap.keySet().stream().forEach(key -> {
+            cmsConfigContents.append(key).append('=').append(cmsConfigMap.get(key)).append('\n');
+        });
+
+        logger.info(cmsConfigContents.toString());
 
         saveEncryptedObject(ConfigConstants.CMS_ENV_CONFIG_PATH, cmsConfigContents.toString());
     }
 
     public Optional<String> getCmsEnvConfig() {
         return getEncryptedObject(ConfigConstants.CMS_ENV_CONFIG_PATH);
+    }
+
+    /**
+     * Get the CMS environment properties
+     * @return CMS properties
+     */
+    public Properties getCmsEnvProperties() {
+
+        Properties properties = new Properties();
+        Optional<String> config = getEncryptedObject(ConfigConstants.CMS_ENV_CONFIG_PATH);
+
+        if (config.isPresent()) {
+            try {
+                properties.load(new StringReader(config.get()));
+            } catch (IOException ioe) {
+                throw new IllegalStateException("Failed to read CMS properties");
+            }
+        } else {
+            throw new IllegalStateException("Failed to read CMS properties");
+        }
+
+        return properties;
     }
 
     /**
