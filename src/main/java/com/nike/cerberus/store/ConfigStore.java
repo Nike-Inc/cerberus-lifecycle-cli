@@ -22,6 +22,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import com.amazonaws.services.s3.model.CryptoConfiguration;
 import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nike.cerberus.ConfigConstants;
@@ -61,10 +64,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
+import static com.nike.cerberus.ConfigConstants.ADMIN_ROLE_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CA;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CERT;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
+import static com.nike.cerberus.ConfigConstants.CMS_ROLE_ARN_KEY;
+import static com.nike.cerberus.ConfigConstants.JDBC_PASSWORD_KEY;
+import static com.nike.cerberus.ConfigConstants.JDBC_URL_KEY;
+import static com.nike.cerberus.ConfigConstants.JDBC_USERNAME_KEY;
+import static com.nike.cerberus.ConfigConstants.ROOT_USER_ARN_KEY;
+import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
+import static com.nike.cerberus.ConfigConstants.VAULT_ADDR_KEY;
+import static com.nike.cerberus.ConfigConstants.VAULT_TOKEN_KEY;
 import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 import static com.nike.cerberus.module.CerberusModule.CONFIG_OBJECT_MAPPER;
 
@@ -95,10 +107,13 @@ public class ConfigStore {
 
     private StoreService configStoreService;
 
+    private AWSSecurityTokenService securityTokenService;
+
     @Inject
     public ConfigStore(final AmazonS3 s3Client,
                        final CloudFormationService cloudFormationService,
                        final IdentityManagementService iamService,
+                       final AWSSecurityTokenService securityTokenService,
                        final EnvironmentMetadata environmentMetadata,
                        @Named(CONFIG_OBJECT_MAPPER) final ObjectMapper configObjectMapper,
                        @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
@@ -108,6 +123,7 @@ public class ConfigStore {
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
         this.s3Client = s3Client;
         this.environmentMetadata = environmentMetadata;
+        this.securityTokenService = securityTokenService;
     }
 
     /**
@@ -512,8 +528,6 @@ public class ConfigStore {
             cmsConfigContents.append(key).append('=').append(cmsConfigMap.get(key)).append('\n');
         });
 
-        logger.info(cmsConfigContents.toString());
-
         saveEncryptedObject(ConfigConstants.CMS_ENV_CONFIG_PATH, cmsConfigContents.toString());
     }
 
@@ -525,10 +539,10 @@ public class ConfigStore {
      * Get the CMS environment properties
      * @return CMS properties
      */
-    public Properties getCmsEnvProperties() {
+    public Properties getAllExistingCmsEnvProperties() {
 
         Properties properties = new Properties();
-        Optional<String> config = getEncryptedObject(ConfigConstants.CMS_ENV_CONFIG_PATH);
+        Optional<String> config = getCmsEnvConfig();
 
         if (config.isPresent()) {
             try {
@@ -539,6 +553,53 @@ public class ConfigStore {
         } else {
             throw new IllegalStateException("Failed to read CMS properties");
         }
+
+        return properties;
+    }
+
+    /**
+     * Get generated CMS properties that are not set by the user
+     * @return - System configured properties
+     */
+    public Properties getCmsSystemProperties() {
+
+        final BaseOutputs baseOutputs = getBaseStackOutputs();
+        final BaseParameters baseParameters = getBaseStackParameters();
+        final VaultParameters vaultParameters = getVaultStackParamters();
+        final Optional<String> cmsVaultToken = getCmsVaultToken();
+        final Optional<String> cmsDatabasePassword = getCmsDatabasePassword();
+
+        final GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
+                new GetCallerIdentityRequest());
+        final String rootUserArn = String.format("arn:aws:iam::%s:root", callerIdentity.getAccount());
+
+        final Properties properties = new Properties();
+        properties.put(VAULT_ADDR_KEY, String.format("https://%s", cnameToHost(vaultParameters.getCname())));
+        properties.put(VAULT_TOKEN_KEY, cmsVaultToken.get());
+        properties.put(ROOT_USER_ARN_KEY, rootUserArn);
+        properties.put(ADMIN_ROLE_ARN_KEY, baseParameters.getAccountAdminArn());
+        properties.put(CMS_ROLE_ARN_KEY, baseOutputs.getCmsIamRoleArn());
+        properties.put(JDBC_URL_KEY, baseOutputs.getCmsDbJdbcConnectionString());
+        properties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
+        properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword.get());
+
+        return properties;
+    }
+
+    /**
+     * Get existing CMS properties configured by the user
+     * @return - User configured properties
+     */
+    public Properties getExistingCmsUserProperties() {
+
+        Properties properties = new Properties();
+        Properties existingProperties = getAllExistingCmsEnvProperties();
+
+        existingProperties.forEach((key, value) -> {
+            if (! SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(key)) {
+                properties.put(key, value);
+            }
+        });
 
         return properties;
     }
@@ -844,5 +905,15 @@ public class ConfigStore {
 
     private String buildCertFilePath(final StackName stackName, final String suffix) {
         return "data/" + stackName.getName() + "/" + stackName.getName() + "-" + suffix;
+    }
+
+    /**
+     * Removes the final '.' from the CNAME.
+     *
+     * @param cname The cname to convert
+     * @return The host derived from the CNAME
+     */
+    private String cnameToHost(final String cname) {
+        return cname.substring(0, cname.length() - 1);
     }
 }

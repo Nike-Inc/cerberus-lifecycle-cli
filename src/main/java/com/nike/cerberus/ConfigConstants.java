@@ -98,8 +98,7 @@ public class ConfigConstants {
 
     public static final String JDBC_PASSWORD_KEY ="JDBC.password";
 
-    public static final ImmutableSet<String> SYSTEM_CONFIGURED_PROPERTIES = ImmutableSet.of(
-            CMS_ADMIN_GROUP_KEY,
+    public static final ImmutableSet<String> SYSTEM_CONFIGURED_CMS_PROPERTIES = ImmutableSet.of(
             VAULT_ADDR_KEY,
             VAULT_TOKEN_KEY,
             ROOT_USER_ARN_KEY,

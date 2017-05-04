@@ -16,14 +16,7 @@
 
 package com.nike.cerberus.operation.cms;
 
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.domain.cloudformation.BaseOutputs;
-import com.nike.cerberus.domain.cloudformation.BaseParameters;
-import com.nike.cerberus.domain.cloudformation.VaultParameters;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
@@ -34,16 +27,8 @@ import javax.inject.Inject;
 import java.util.Optional;
 import java.util.Properties;
 
-import static com.nike.cerberus.ConfigConstants.ADMIN_ROLE_ARN_KEY;
-import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_PROPERTIES;
+import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
 import static com.nike.cerberus.ConfigConstants.CMS_ADMIN_GROUP_KEY;
-import static com.nike.cerberus.ConfigConstants.CMS_ROLE_ARN_KEY;
-import static com.nike.cerberus.ConfigConstants.JDBC_PASSWORD_KEY;
-import static com.nike.cerberus.ConfigConstants.JDBC_URL_KEY;
-import static com.nike.cerberus.ConfigConstants.JDBC_USERNAME_KEY;
-import static com.nike.cerberus.ConfigConstants.ROOT_USER_ARN_KEY;
-import static com.nike.cerberus.ConfigConstants.VAULT_ADDR_KEY;
-import static com.nike.cerberus.ConfigConstants.VAULT_TOKEN_KEY;
 
 /**
  * Gathers all of the CMS environment configuration and puts it in the config bucket.
@@ -54,70 +39,47 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
     private final ConfigStore configStore;
 
-    private final AWSSecurityTokenService securityTokenService;
-
     @Inject
-    public UpdateCmsConfigOperation(final ConfigStore configStore,
-                                    final AWSSecurityTokenService securityTokenService) {
+    public UpdateCmsConfigOperation(final ConfigStore configStore) {
         this.configStore = configStore;
-        this.securityTokenService = securityTokenService;
     }
 
     @Override
     public void run(final UpdateCmsConfigCommand command) {
 
         logger.debug("Retrieving configuration data from the configuration bucket.");
-        final BaseOutputs baseOutputs = configStore.getBaseStackOutputs();
-        final BaseParameters baseParameters = configStore.getBaseStackParameters();
-        final VaultParameters vaultParameters = configStore.getVaultStackParamters();
-        final GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
-                new GetCallerIdentityRequest());
-        final Optional<String> cmsVaultToken = configStore.getCmsVaultToken();
-        final Optional<String> cmsDatabasePassword = configStore.getCmsDatabasePassword();
-        final String rootUserArn = String.format("arn:aws:iam::%s:root", callerIdentity.getAccount());
-        final String adminGroupParameter = command.getAdminGroup();
-        final boolean overwriteCustomProperties = command.getOverwrite();
 
-        final Properties newProperties = new Properties();
-        final Properties existingProperties = configStore.getCmsEnvProperties();
-        final String existingAdminGroup = existingProperties.getProperty(CMS_ADMIN_GROUP_KEY);
-        if (! overwriteCustomProperties) {
-            // keep already existing custom properties
-            newProperties.putAll(existingProperties);
-        } else if (adminGroupParameter == null) {
-            // admin group is required for overwrite
-            throw new IllegalStateException("Please provide admin group with overwrite flag.");
-        } else {
-            // admin group may not be set in this case, so set it
-            newProperties.put(CMS_ADMIN_GROUP_KEY, existingAdminGroup == null ? adminGroupParameter : existingAdminGroup);
+        final Properties newProperties = configStore.getCmsSystemProperties();
+        final Properties existingCustomProperties = configStore.getExistingCmsUserProperties();
+        if (! command.getOverwrite()) {
+            // keep existing custom properties
+            newProperties.putAll(existingCustomProperties);
         }
 
-        // retrieve generated properties
-        newProperties.put(VAULT_ADDR_KEY, String.format("https://%s", cnameToHost(vaultParameters.getCname())));
-        newProperties.put(VAULT_TOKEN_KEY, cmsVaultToken.get());
-        newProperties.put(ROOT_USER_ARN_KEY, rootUserArn);
-        newProperties.put(ADMIN_ROLE_ARN_KEY, baseParameters.getAccountAdminArn());
-        newProperties.put(CMS_ROLE_ARN_KEY, baseOutputs.getCmsIamRoleArn());
-        newProperties.put(JDBC_URL_KEY, baseOutputs.getCmsDbJdbcConnectionString());
-        newProperties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
-        newProperties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword.get());
-
-        // only update if necessary
-        if (adminGroupParameter != null && !StringUtils.equals(adminGroupParameter, existingAdminGroup)) {
-            logger.warn(String.format("Updating CMS admin group from '%s' to '%s'", existingAdminGroup, adminGroupParameter));
-            configStore.storeCmsAdminGroup(adminGroupParameter);
-            newProperties.put(CMS_ADMIN_GROUP_KEY, adminGroupParameter);
-        }
-
+        // update existing custom properties, add new ones
         command.getAdditionalProperties().forEach((k, v) -> {
-            if (! SYSTEM_CONFIGURED_PROPERTIES.contains(k)) {
+            if (! SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(k)) {
                 newProperties.put(k, v);
             } else {
                 logger.warn("Ignoring additional property that would override system configured property, " + k);
             }
         });
 
+        final String existingAdminGroup = existingCustomProperties.getProperty(CMS_ADMIN_GROUP_KEY);
+        final String adminGroupParameter = command.getAdminGroup();
+        String newAdminGroupValue = existingAdminGroup;  // keep existing admin group by default
+
+        if (shouldOverwriteAdminGroup(existingAdminGroup, adminGroupParameter)) {
+            logger.warn(String.format("Updating CMS admin group from '%s' to '%s'", existingAdminGroup, adminGroupParameter));
+            configStore.storeCmsAdminGroup(adminGroupParameter);
+            newAdminGroupValue = adminGroupParameter;  // overwrite admin group
+        }
+        newProperties.put(CMS_ADMIN_GROUP_KEY, newAdminGroupValue);
+
+        logger.info("Uploading the CMS configuration to the configuration bucket.");
         configStore.storeCmsEnvConfig(newProperties);
+
+        logger.info("Uploading complete.");
     }
 
     @Override
@@ -139,13 +101,17 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
         return isRunnable;
     }
 
-    /**
-     * Removes the final '.' from the CNAME.
-     *
-     * @param cname The cname to convert
-     * @return The host derived from the CNAME
-     */
-    private String cnameToHost(final String cname) {
-        return cname.substring(0, cname.length() - 1);
+    private boolean shouldOverwriteAdminGroup(final String existingAdminGroup, final String newAdminGroup) {
+        if (newAdminGroup == null && existingAdminGroup == null) {
+            throw new IllegalStateException("Admin group does not exist in S3 config and was not provided as a " +
+                    "parameter. Please use --admin-group parameter to fix.");
+        }
+
+        if (newAdminGroup == null) {
+            logger.warn("Admin group not provided, using existing group.");
+            return false;
+        }
+
+        return !StringUtils.equals(newAdminGroup, existingAdminGroup);
     }
 }
