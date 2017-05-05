@@ -47,7 +47,7 @@ public class ViewConfigOperation implements Operation<ViewConfigCommand> {
         if (fileContents.isPresent()) {
             logger.info(fileContents.get());
         } else {
-            logger.error("Failed to load config file: %s", command.getPathToConfig());
+            logger.error(String.format("Failed to load config file: '%s'", command.getPathToConfig()));
         }
     }
 
