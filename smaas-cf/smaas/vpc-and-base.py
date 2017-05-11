@@ -652,6 +652,7 @@ consul_iam_role = template.add_resource(Role(
                     "Effect": "Allow",
                     "Action": [
                         "EC2:Describe*",
+                        "cloudformation:DescribeStacks",
                         "cloudformation:SignalResource"
                     ],
                     "Resource": "*"
