@@ -203,7 +203,7 @@ vault_load_balancer = template.add_resource(LoadBalancer(
     HealthCheck=HealthCheck(
             HealthyThreshold=2,
             Interval=5,
-            Target="HTTPS:8200/v1/sys/health",
+            Target="HTTPS:8200/v1/sys/health?standbyok",
             Timeout=2,
             UnhealthyThreshold=2
     ),

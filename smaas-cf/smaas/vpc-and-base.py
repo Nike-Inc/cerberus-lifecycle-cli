@@ -407,6 +407,17 @@ template.add_resource(SecurityGroupIngress(
     ToPort=8200
 ))
 
+# Allow the Vault server ELB to talk to Vault server instances over HTTPS (8201)
+# Vault does internal communication by default on the port above the normal listening port, in this case 8201
+template.add_resource(SecurityGroupIngress(
+    "VaultServerIngressFromVaultElb8201",
+    GroupId=Ref(vault_server_sg),
+    SourceSecurityGroupId=Ref(vault_server_elb_sg),
+    FromPort=8201,
+    IpProtocol="tcp",
+    ToPort=8201
+))
+
 # Allow Vault server instances to talk to other Vault server instances on 8200
 template.add_resource(SecurityGroupIngress(
     "VaultServerIngress8200",
