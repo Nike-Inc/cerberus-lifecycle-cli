@@ -30,6 +30,7 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
+import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.UuidSupplier;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +56,8 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
 
     private final Ec2UserDataService ec2UserDataService;
 
+    private final AmiTagCheckService amiTagCheckService;
+
     private final UuidSupplier uuidSupplier;
 
     private final ConfigStore configStore;
@@ -65,12 +68,14 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
     public CreateConsulClusterOperation(final EnvironmentMetadata environmentMetadata,
                                final CloudFormationService cloudFormationService,
                                final Ec2UserDataService ec2UserDataService,
+                               final AmiTagCheckService amiTagCheckService,
                                final UuidSupplier uuidSupplier,
                                final ConfigStore configStore,
                                @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.ec2UserDataService = ec2UserDataService;
+        this.amiTagCheckService = amiTagCheckService;
         this.uuidSupplier = uuidSupplier;
         this.configStore = configStore;
         this.cloudformationObjectMapper = cloudformationObjectMapper;
@@ -80,6 +85,11 @@ public class CreateConsulClusterOperation implements Operation<CreateConsulClust
     public void run(final CreateConsulClusterCommand command) {
         final String uniqueStackName = String.format("%s-%s", StackName.CONSUL.getName(), uuidSupplier.get());
         final BaseOutputs baseOutputs = configStore.getBaseStackOutputs();
+
+        // Make sure the given AmiId is for Consul component. Check if it contains required tag
+        if ( !command.isSkipAmiTagCheck() ) {
+            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), StackName.CONSUL);
+        }
 
         final ConsulParameters consulParameters = new ConsulParameters()
                 .setInstanceProfileName(baseOutputs.getConsulInstanceProfileName())

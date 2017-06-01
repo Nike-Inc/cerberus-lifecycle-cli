@@ -39,6 +39,7 @@ public class UpdateStackCommand implements Command {
     public static final String COMMAND_NAME = "update-stack";
     public static final String OVERWRITE_TEMPLATE_LONG_ARG = "--overwrite-template";
     public static final String PARAMETER_SHORT_ARG = "-P";
+    public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
 
     @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.")
     private StackName stackName;
@@ -77,6 +78,10 @@ public class UpdateStackCommand implements Command {
 
     @Parameter(names = StackDelegate.MIN_INSTANCES_LONG_ARG, description = "Minimum number of autos scaling instances")
     private Integer minimumInstances;
+
+    @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
+            description = "Flag for skipping validation of AMI with matching stackname tags")
+    private boolean skipAmiTagCheck;
 
     @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
     private Map<String, String> dynamicParameters = new HashMap<>();
@@ -127,6 +132,10 @@ public class UpdateStackCommand implements Command {
 
     public Integer getMinimumInstances() {
         return minimumInstances;
+    }
+
+    public boolean isSkipAmiTagCheck() {
+        return skipAmiTagCheck;
     }
 
     @Override

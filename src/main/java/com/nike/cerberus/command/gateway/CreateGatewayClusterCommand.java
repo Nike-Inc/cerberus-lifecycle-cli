@@ -35,6 +35,7 @@ public class CreateGatewayClusterCommand implements Command {
     public static final String COMMAND_NAME = "create-gateway-cluster";
     public static final String HOSTED_ZONE_ID_LONG_ARG = "--hosted-zone-id";
     public static final String HOSTNAME_LONG_ARG = "--hostname";
+    public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
 
     @Parameter(names = HOSTED_ZONE_ID_LONG_ARG,
             description = "The Route 53 hosted zone ID that will be used to create the CNAME record for Cerberus.",
@@ -46,6 +47,10 @@ public class CreateGatewayClusterCommand implements Command {
             required = true)
     private String hostname;
 
+    @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
+            description = "Flag for skipping validation of AMI with matching stackname tags")
+    private boolean skipAmiTagCheck;
+
     @ParametersDelegate
     private StackDelegate stackDelegate = new StackDelegate();
 
@@ -55,6 +60,10 @@ public class CreateGatewayClusterCommand implements Command {
 
     public String getHostname() {
         return hostname;
+    }
+
+    public boolean isSkipAmiTagCheck() {
+        return skipAmiTagCheck;
     }
 
     public StackDelegate getStackDelegate() {
