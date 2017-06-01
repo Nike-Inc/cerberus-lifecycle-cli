@@ -107,4 +107,14 @@ public class ConfigConstants {
             JDBC_URL_KEY,
             JDBC_USERNAME_KEY,
             JDBC_PASSWORD_KEY);
+
+    public static final String CERBERUS_AMI_TAG_NAME = "tag:cerberus_component";
+
+    public static final String CMS_AMI_TAG_VALUE = "cms";
+
+    public static final String GATEWAY_AMI_TAG_VALUE = "gateway";
+
+    public static final String CONSUL_AMI_TAG_VALUE = "consul";
+
+    public static final String VAULT_AMI_TAG_VALUE = "vault";
 }

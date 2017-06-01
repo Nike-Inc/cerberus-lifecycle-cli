@@ -37,6 +37,7 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
+import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -71,15 +72,19 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
     private final Ec2UserDataService ec2UserDataService;
 
+    private final AmiTagCheckService amiTagCheckService;
+
     @Inject
     public UpdateStackOperation(final ConfigStore configStore,
                                 final CloudFormationService cloudFormationService,
                                 @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper,
-                                final Ec2UserDataService ec2UserDataService) {
+                                final Ec2UserDataService ec2UserDataService,
+                                final AmiTagCheckService amiTagCheckService) {
         this.configStore = configStore;
         this.cloudFormationService = cloudFormationService;
         this.cloudformationObjectMapper = cloudformationObjectMapper;
         this.ec2UserDataService = ec2UserDataService;
+        this.amiTagCheckService = amiTagCheckService;
 
         stackParameterMap = new HashMap<>();
         stackParameterMap.put(StackName.CONSUL, ConsulParameters.class);
@@ -107,6 +112,12 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
             parameters = getUpdatedBaseStackParameters(command);
         } else {
             throw new IllegalArgumentException("The specified stack does not support the update stack command!");
+        }
+
+        // Make sure the given AmiId is for this component. Check if it contains required tag
+        // There is no AMI for Base.
+        if ( !command.isSkipAmiTagCheck() && StackName.BASE != command.getStackName() ) {
+            amiTagCheckService.validateAmiTagForStack(command.getAmiId(),command.getStackName());
         }
 
         parameters.putAll(command.getDynamicParameters());

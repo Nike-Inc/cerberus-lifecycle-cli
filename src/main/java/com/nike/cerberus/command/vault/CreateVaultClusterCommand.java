@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.command.vault;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
@@ -33,6 +34,8 @@ public class CreateVaultClusterCommand implements Command {
 
     public static final String COMMAND_NAME = "create-vault-cluster";
 
+    public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
+
     @ParametersDelegate
     private StackDelegate stackDelegate = new StackDelegate();
 
@@ -43,6 +46,14 @@ public class CreateVaultClusterCommand implements Command {
     @Override
     public String getCommandName() {
         return COMMAND_NAME;
+    }
+
+    @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
+            description = "Flag for skipping validation of AMI with matching stackname tags")
+    private boolean skipAmiTagCheck;
+
+    public boolean isSkipAmiTagCheck() {
+        return skipAmiTagCheck;
     }
 
     @Override
