@@ -16,7 +16,7 @@
 
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
-apply plugin: 'cobertura'
+// apply plugin: 'cobertura'
 apply plugin: 'com.github.kt3k.coveralls'
 
 findbugs {
@@ -35,15 +35,15 @@ tasks.withType(FindBugs) {
     }
 }
 
-cobertura {
-    // https://github.com/stevesaliman/gradle-cobertura-plugin/blob/master/usage.md
-    coverageReportDir = new File("$buildDir/reports/cobertura")
-    coverageFormats = ['html', 'xml']
-    coverageIgnoreTrivial = true
-    coverageExcludes = [
-    ]
-}
-test.finalizedBy(project.tasks.coberturaReport)
+// cobertura {
+//     // https://github.com/stevesaliman/gradle-cobertura-plugin/blob/master/usage.md
+//     coverageReportDir = new File("$buildDir/reports/cobertura")
+//     coverageFormats = ['html', 'xml']
+//     coverageIgnoreTrivial = true
+//     coverageExcludes = [
+//     ]
+// }
+// test.finalizedBy(project.tasks.coberturaReport)
 
 task findbugsHtml {
     group = "Verification"
