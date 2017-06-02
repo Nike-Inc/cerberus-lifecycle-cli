@@ -25,6 +25,8 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.gateway.CreateGatewayClusterOperation;
 
 import static com.nike.cerberus.command.gateway.CreateGatewayClusterCommand.COMMAND_NAME;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
 
 /**
  * Command to create the Gateway cluster.
@@ -35,7 +37,6 @@ public class CreateGatewayClusterCommand implements Command {
     public static final String COMMAND_NAME = "create-gateway-cluster";
     public static final String HOSTED_ZONE_ID_LONG_ARG = "--hosted-zone-id";
     public static final String HOSTNAME_LONG_ARG = "--hostname";
-    public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
 
     @Parameter(names = HOSTED_ZONE_ID_LONG_ARG,
             description = "The Route 53 hosted zone ID that will be used to create the CNAME record for Cerberus.",
@@ -48,7 +49,7 @@ public class CreateGatewayClusterCommand implements Command {
     private String hostname;
 
     @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
-            description = "Flag for skipping validation of AMI with matching stackname tags")
+            description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
     private boolean skipAmiTagCheck;
 
     @ParametersDelegate

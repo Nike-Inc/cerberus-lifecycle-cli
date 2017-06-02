@@ -25,6 +25,8 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.vault.CreateVaultClusterOperation;
 
 import static com.nike.cerberus.command.vault.CreateVaultClusterCommand.COMMAND_NAME;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
 
 /**
  * Command to create the Vault cluster.
@@ -33,8 +35,6 @@ import static com.nike.cerberus.command.vault.CreateVaultClusterCommand.COMMAND_
 public class CreateVaultClusterCommand implements Command {
 
     public static final String COMMAND_NAME = "create-vault-cluster";
-
-    public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
 
     @ParametersDelegate
     private StackDelegate stackDelegate = new StackDelegate();
@@ -49,7 +49,7 @@ public class CreateVaultClusterCommand implements Command {
     }
 
     @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
-            description = "Flag for skipping validation of AMI with matching stackname tags")
+            description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
     private boolean skipAmiTagCheck;
 
     public boolean isSkipAmiTagCheck() {

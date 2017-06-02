@@ -25,6 +25,8 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.consul.CreateConsulClusterOperation;
 
 import static com.nike.cerberus.command.consul.CreateConsulClusterCommand.COMMAND_NAME;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
 
 /**
  * Command to create the consul cluster.
@@ -33,8 +35,6 @@ import static com.nike.cerberus.command.consul.CreateConsulClusterCommand.COMMAN
 public class CreateConsulClusterCommand implements Command {
 
     public static final String COMMAND_NAME = "create-consul-cluster";
-
-    public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
 
     @ParametersDelegate
     private StackDelegate stackDelegate = new StackDelegate();
@@ -49,7 +49,7 @@ public class CreateConsulClusterCommand implements Command {
     }
 
     @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
-            description = "Flag for skipping validation of AMI with matching stackname tags")
+            description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
     private boolean skipAmiTagCheck;
 
     public boolean isSkipAmiTagCheck() {
