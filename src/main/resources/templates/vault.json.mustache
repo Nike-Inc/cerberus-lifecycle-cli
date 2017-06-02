@@ -7,17 +7,19 @@
             "tls_min_version": "tls12"
         }
     },
-    "backend": {
-        "consul": {
-            "scheme": "https",
-            "address": "127.0.0.1:8500",
-            "path": "vault",
-            "datacenter": "{{{datacenter}}}",
-            "tls_ca_file": "/etc/consul/ca.pem",
-            "tls_cert_file": "/etc/consul/cert.pem",
-            "tls_key_file": "/etc/consul/key.pem",
-            "tls_skip_verify": "true",
-            "token": "{{{aclToken}}}"
+    "storage": {
+        "s3": {
+            "bucket": "dynamo-vault-storage",
+            "region": "us-west-2"
+        }
+    },
+    "ha_storage": {
+        "dynamodb": {
+            "ha_enabled": "true",
+            "region": "us-west-2",
+            "read_capacity":"1000",
+            "write_capacity":"1000",
+            "table": "dynamo-vault-storage-backend-3"
         }
     },
     "default_lease_ttl": "1h",
