@@ -82,7 +82,7 @@ public class AmiTagCheckService {
      */
     public void validateAmiTagForStack(final String amiId, final StackName stackName) {
         if (!isAmiWithTagExist(amiId, ConfigConstants.CERBERUS_AMI_TAG_NAME, stackAmiTagValueMap.get(stackName) )) {
-            throw new IllegalStateException("AMI tag check failed!. Given AMI ID does not contain cerberus tag 'cerberus_component' with stack name");
+            throw new IllegalStateException(ConfigConstants.AMI_TAG_CHECK_ERROR_MESSAGE);
         }
     }
 }

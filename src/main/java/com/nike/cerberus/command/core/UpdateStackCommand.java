@@ -29,6 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.nike.cerberus.command.core.UpdateStackCommand.COMMAND_NAME;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
+
 
 /**
  * Command for updating the specified CloudFormation stack with the new parameters.
@@ -39,7 +42,6 @@ public class UpdateStackCommand implements Command {
     public static final String COMMAND_NAME = "update-stack";
     public static final String OVERWRITE_TEMPLATE_LONG_ARG = "--overwrite-template";
     public static final String PARAMETER_SHORT_ARG = "-P";
-    public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
 
     @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.")
     private StackName stackName;
@@ -80,7 +82,7 @@ public class UpdateStackCommand implements Command {
     private Integer minimumInstances;
 
     @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
-            description = "Flag for skipping validation of AMI with matching stackname tags")
+            description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
     private boolean skipAmiTagCheck;
 
     @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")

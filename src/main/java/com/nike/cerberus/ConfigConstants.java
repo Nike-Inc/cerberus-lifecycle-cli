@@ -117,4 +117,15 @@ public class ConfigConstants {
     public static final String CONSUL_AMI_TAG_VALUE = "consul";
 
     public static final String VAULT_AMI_TAG_VALUE = "vault";
+
+    public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
+
+    public static final String SKIP_AMI_TAG_CHECK_DESCRIPTION = "Skip validation of 'cerberus_component' tag on AMI";
+
+    public static final String AMI_TAG_CHECK_ERROR_MESSAGE
+                        = "FAIL: AMI tag check failed!\n"
+                        + "Given AMI ID either does not exist "
+                        + "or does not contain cerberus tag 'cerberus_component' with stack name "
+                        + "or cerberus tag does not match the stack that is being deployed.\n"
+                        + "Please refer documentation on AMI Tagging or use '"+ SKIP_AMI_TAG_CHECK_ARG +"' option to skip this check.";
 }
