@@ -12,10 +12,14 @@ import static com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand
 /**
  * Command to reboot the CMS cluster.
  */
-@Parameters(commandNames = COMMAND_NAME, commandDescription = "Performs a safe rolling reboot on instances in the given cluster.")
+@Parameters(
+        commandNames = COMMAND_NAME,
+        commandDescription = "Performs a safe rolling reboot on instances in the given cluster, checking that " +
+                "the previous instance is healthy before rebooting the next one."
+)
 public class RollingRebootWithHealthCheckCommand implements Command {
 
-    public static final String COMMAND_NAME = "reboot-cluster";
+    public static final String COMMAND_NAME = "rolling-reboot-with-health-check";
 
     @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to reboot.")
     private StackName stackName = StackName.CMS;

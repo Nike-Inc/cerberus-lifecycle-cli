@@ -13,6 +13,7 @@ import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2Service;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.vault.client.http.HttpStatus;
+import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -189,17 +190,16 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
                 .readTimeout(DEFAULT_HTTP_TIMEOUT, DEFAULT_HTTP_TIMEOUT_UNIT)
                 .build();
 
-        Request requestBuilder = new Request.Builder()
+        final Request requestBuilder = new Request.Builder()
                 .url(healthCheckUrl)
                 .get()
                 .build();
 
-        try {
-            final Response response = okHttpClient.newCall(requestBuilder).execute();
+        final Call healthCheckCall = okHttpClient.newCall(requestBuilder);
+
+        try(final Response response = healthCheckCall.execute()) {
             logger.debug("Health check returned status: {}, URL: {}", response.code(), healthCheckUrl);
-            int responseCode = response.code();
-            response.close();
-            return responseCode;
+            return response.code();
         } catch (IOException ioe) {
             final String message = Chalk.on("Health check failed, Cause: {}, URL: {}").red().toString();
             logger.debug(message, ioe.getMessage(), healthCheckUrl);
@@ -212,14 +212,18 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
     public boolean isRunnable(final RollingRebootWithHealthCheckCommand command) {
 
         final StackName stackName = command.getStackName();
+        final String stackNameStr = stackName.getName();
         final String stackId = configStore.getStackId(stackName);
         final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
 
-        if (HEALTH_CHECK_MAP.containsKey(stackName.getName()) && stackParameters.containsKey(MIN_INSTANCES_STACK_PARAMETER_KEY)) {
+        if (! HEALTH_CHECK_MAP.containsKey(stackNameStr)) {
+            logger.error("Cannot reboot cluster: {}. Allowed stacks: {}", stackName, HEALTH_CHECK_MAP.keySet());
+            return false;
+        } else if (! stackParameters.containsKey(MIN_INSTANCES_STACK_PARAMETER_KEY)) {
+            logger.error("Could not find parameter 'minInstances' on stack: {}", stackId);
+            return false;
+        } else {
             return true;
         }
-
-        logger.error("Cannot reboot cluster: {}. Allowed stacks: {}", stackName, HEALTH_CHECK_MAP.keySet());
-        return false;
     }
 }
