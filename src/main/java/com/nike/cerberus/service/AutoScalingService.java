@@ -20,6 +20,9 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
+import com.amazonaws.services.autoscaling.model.EnterStandbyRequest;
+import com.amazonaws.services.autoscaling.model.ExitStandbyRequest;
+import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
@@ -52,10 +55,7 @@ public class AutoScalingService {
      */
     public List<String> getPublicDnsForAutoScalingGroup(final String logicalId) {
         final List<String> instanceIds = Lists.newLinkedList();
-        final DescribeAutoScalingGroupsRequest describeAsg = new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(logicalId);
-        final DescribeAutoScalingGroupsResult result = autoScalingClient.describeAutoScalingGroups(describeAsg);
-        final Optional<AutoScalingGroup> autoScalingGroup = result.getAutoScalingGroups().stream().findFirst();
+        final Optional<AutoScalingGroup> autoScalingGroup = describeAutoScalingGroup(logicalId);
         final List<String> publicDnsNames = Lists.newLinkedList();
 
         if (autoScalingGroup.isPresent()) {
@@ -74,5 +74,56 @@ public class AutoScalingService {
         }
 
         return publicDnsNames;
+    }
+
+    /**
+     * Updates the minimum number of instances allowed in the auto scaling group
+     * @param logicalId - Name of the auto scaling group
+     */
+    public void updateMinInstancesForAutoScalingGroup(final String logicalId, final int minInstances) {
+
+        final UpdateAutoScalingGroupRequest request = new UpdateAutoScalingGroupRequest()
+                .withAutoScalingGroupName(logicalId)
+                .withMinSize(minInstances);
+
+        autoScalingClient.updateAutoScalingGroup(request);
+    }
+
+    /**
+     * Set an EC2 instance to standby state, so that the desired instance count on the AutoScaling group is decreased
+     * and a new instance is not spun up on instance reboot. This also removes the instance from the ELB, so that the
+     * instance is not terminated when the health check fails.
+     * @param logicalId - Name of the auto scaling group
+     * @param instanceId - ID of the EC2 instance
+     */
+    public void setInstanceStateToStandby(final String logicalId, final String instanceId) {
+        final EnterStandbyRequest request = new EnterStandbyRequest()
+                .withAutoScalingGroupName(logicalId)
+                .withInstanceIds(instanceId)
+                .withShouldDecrementDesiredCapacity(true);
+
+        autoScalingClient.enterStandby(request);
+    }
+
+    /**
+     * Signify that the EC2 instance is now in service and ready to be re-added to the ELB and AutoScaling group. This
+     * will also increase the desired instance count for the ASG.
+     * @param logicalId - Name of the auto scaling group
+     * @param instanceId - ID of the EC2 instance
+     */
+    public void setInstanceStateToInService(final String logicalId, final String instanceId) {
+        final ExitStandbyRequest request = new ExitStandbyRequest()
+                .withAutoScalingGroupName(logicalId)
+                .withInstanceIds(instanceId);
+
+        autoScalingClient.exitStandby(request);
+    }
+
+    private Optional<AutoScalingGroup> describeAutoScalingGroup(final String autoscalingGroupName) {
+        final DescribeAutoScalingGroupsRequest describeAsg = new DescribeAutoScalingGroupsRequest()
+                .withAutoScalingGroupNames(autoscalingGroupName);
+        final DescribeAutoScalingGroupsResult result = autoScalingClient.describeAutoScalingGroups(describeAsg);
+
+        return result.getAutoScalingGroups().stream().findFirst();
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation.cms;
+package com.nike.cerberus.operation.core;
 
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.operation.Operation;
@@ -26,7 +26,7 @@ import javax.inject.Inject;
 import java.util.Optional;
 
 /**
- * Gathers all of the CMS environment configuration and puts it in the config bucket.
+ * Displays the given configuration file from S3.
  */
 public class ViewConfigOperation implements Operation<ViewConfigCommand> {
 

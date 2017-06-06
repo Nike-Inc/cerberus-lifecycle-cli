@@ -30,6 +30,7 @@ import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
+import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
 import com.nike.cerberus.command.consul.CreateConsulConfigCommand;
@@ -198,6 +199,7 @@ public class CerberusRunner {
         registerCommand(new RestoreCompleteCerberusDataFromS3BackupCommand());
         registerCommand(new ViewConfigCommand());
         registerCommand(new UpdateCmsConfigCommand());
+        registerCommand(new RollingRebootWithHealthCheckCommand());
     }
 
     /**

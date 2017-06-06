@@ -64,6 +64,10 @@ public class CloudFormationService {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    public final static String AUTO_SCALING_GROUP_LOGICAL_ID_OUTPUT_KEY = "autoscalingGroupLogicalId";
+
+    public final static String MIN_INSTANCES_STACK_PARAMETER_KEY = "minimumInstances";
+
     private final AmazonCloudFormation cloudFormationClient;
     private final EnvironmentMetadata environmentMetadata;
 
