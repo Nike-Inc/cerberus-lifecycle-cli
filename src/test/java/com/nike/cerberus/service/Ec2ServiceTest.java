@@ -21,29 +21,48 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AvailabilityZone;
 import com.amazonaws.services.ec2.model.AvailabilityZoneState;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsResult;
+import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.ImportKeyPairRequest;
 import com.amazonaws.services.ec2.model.ImportKeyPairResult;
+import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
+import com.amazonaws.services.ec2.model.RebootInstancesRequest;
+import com.amazonaws.services.ec2.model.Reservation;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 
+import static com.nike.cerberus.service.Ec2Service.FILTER_NAME_TEMPL_FOR_EC2_TAGS;
+import static com.nike.cerberus.service.Ec2Service.INSTANCE_STATE_FILTER_NAME;
+import static com.nike.cerberus.service.Ec2Service.INSTANCE_STATE_RUNNING_FILTER_VALUE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class Ec2ServiceTest {
 
+    private AmazonEC2 ec2Client;
+
+    private Ec2Service ec2Service;
+
+    @Before
+    public void setup() {
+        ec2Client = mock(AmazonEC2.class);
+
+        ec2Service = new Ec2Service(ec2Client);
+    }
+
     @Test
     public void testImportKey() {
-
-        AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        Ec2Service ec2Service = new Ec2Service(ec2Client);
 
         String keyName = "key-name";
         String publicKeyMaterial = "public-key-material";
@@ -60,8 +79,6 @@ public class Ec2ServiceTest {
 
     @Test
     public void testIsKeyPairPresentTrue() {
-        AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        Ec2Service ec2Service = new Ec2Service(ec2Client);
 
         String keyName = "key-name";
 
@@ -82,8 +99,6 @@ public class Ec2ServiceTest {
 
     @Test
     public void testIsKeyPairPresentFalse() {
-        AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        Ec2Service ec2Service = new Ec2Service(ec2Client);
 
         String keyName = "key-name";
 
@@ -96,8 +111,6 @@ public class Ec2ServiceTest {
 
     @Test
     public void testIsKeyPairPresentFalseNotFound() {
-        AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        Ec2Service ec2Service = new Ec2Service(ec2Client);
 
         String keyName = "key-name";
 
@@ -113,8 +126,6 @@ public class Ec2ServiceTest {
 
     @Test
     public void testIsKeyPairPresentException() {
-        AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        Ec2Service ec2Service = new Ec2Service(ec2Client);
 
         String keyName = "key-name";
         String fakeExceptionMessage = "fake-exception";
@@ -134,8 +145,6 @@ public class Ec2ServiceTest {
 
     @Test
     public void testGetAvailabilityZones() {
-        AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        Ec2Service ec2Service = new Ec2Service(ec2Client);
 
         String zoneName = "zone-name";
 
@@ -156,6 +165,45 @@ public class Ec2ServiceTest {
 
         assertEquals(1, results.size());
         assertEquals(zoneName, results.get(0));
+    }
+
+    @Test
+    public void testGetInstancesByTagHappy() {
+
+        String tagKey = "tag key";
+        String tagValue = "tag value";
+        Filter filter = new Filter().withName(INSTANCE_STATE_FILTER_NAME).withValues(INSTANCE_STATE_RUNNING_FILTER_VALUE);
+        Instance instance = mock(Instance.class);
+
+        when(ec2Client.describeInstances(new DescribeInstancesRequest()
+                .withFilters(
+                        filter,
+                        new Filter()
+                                .withName(String.format(FILTER_NAME_TEMPL_FOR_EC2_TAGS, tagKey))
+                                .withValues(tagValue)
+                )
+        )).thenReturn(
+                new DescribeInstancesResult()
+                        .withReservations(
+                                new Reservation()
+                                        .withInstances(instance))
+        );
+
+        List<Instance> instances = ec2Service.getInstancesByTag(tagKey, tagValue, filter);
+
+        assertTrue(instances.contains(instance));
+    }
+
+    @Test
+    public void testRebootInstancesHappy() {
+
+        String instanceId = "instance id";
+
+        ec2Service.rebootEc2Instance(instanceId);
+
+        verify(ec2Client).rebootInstances(new RebootInstancesRequest()
+                .withInstanceIds(instanceId)
+        );
     }
 
 }

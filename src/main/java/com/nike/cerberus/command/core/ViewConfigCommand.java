@@ -20,14 +20,14 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.cms.ViewConfigOperation;
+import com.nike.cerberus.operation.core.ViewConfigOperation;
 
 import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
 
 /**
- * Command to create the CMS cluster.
+ * Command to view configuration files in S3.
  */
-@Parameters(commandNames = COMMAND_NAME, commandDescription = "Shows the CMS config.")
+@Parameters(commandNames = COMMAND_NAME, commandDescription = "Shows configuration files from S3.")
 public class ViewConfigCommand implements Command {
 
     public static final String COMMAND_NAME = "view-config";

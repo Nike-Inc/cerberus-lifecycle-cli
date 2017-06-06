@@ -16,7 +16,6 @@
 
 package com.nike.cerberus.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.nike.vault.client.UrlResolver;
 import com.nike.vault.client.VaultAdminClient;
 import com.nike.vault.client.VaultClientException;
