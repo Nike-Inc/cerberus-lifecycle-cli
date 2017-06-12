@@ -132,9 +132,9 @@ public class S3StoreService implements StoreService {
 
         return getKeysInPartialPath(path)
                 .stream()
-                .map(str -> StringUtils.removeStart(str, path))
-                .map(str -> StringUtils.removeStart(str, "/"))
-                .map(str -> StringUtils.substringBefore(str, "/"))
+                .map(str -> StringUtils.removeStart(str, path)) // remove the path from the beginning of the output
+                .map(str -> StringUtils.removeStart(str, "/")) // remove any leading slash
+                .map(str -> StringUtils.substringBefore(str, "/")) // remove everything after the next slash so the listing is not recursive
                 .distinct()
                 .collect(Collectors.toSet());
     }
