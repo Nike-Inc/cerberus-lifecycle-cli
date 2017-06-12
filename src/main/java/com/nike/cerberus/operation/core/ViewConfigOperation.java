@@ -19,11 +19,13 @@ package com.nike.cerberus.operation.core;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.store.ConfigStore;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Displays the given configuration file from S3.
@@ -42,18 +44,28 @@ public class ViewConfigOperation implements Operation<ViewConfigCommand> {
     @Override
     public void run(final ViewConfigCommand command) {
 
-        Optional<String> fileContents = configStore.getConfigProperties(command.getPathToConfig());
+        String path = command.getPathToConfig();
+        if (StringUtils.startsWith(path, "/")) {
+            logger.warn("Path started with leading slash, removing...");
+            path = StringUtils.stripStart(path, "/");
+        }
 
+        Optional<String> fileContents = configStore.getConfigProperties(path);
         if (fileContents.isPresent()) {
             logger.info(fileContents.get());
         } else {
-            logger.error(String.format("Failed to load config file: '%s'", command.getPathToConfig()));
+            Set<String> keys = configStore.listUnderPartialPath(path);
+            if (!keys.isEmpty()) {
+                logger.info("List under path '{}': {}", path, keys);
+            }
+            else {
+                logger.error(String.format("Failed to load file: '%s'", path));
+            }
         }
     }
 
     @Override
     public boolean isRunnable(final ViewConfigCommand command) {
-
         return true;
     }
 }
