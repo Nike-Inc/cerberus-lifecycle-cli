@@ -30,5 +30,10 @@ public interface StoreService {
 
     Set<String> getKeysInPartialPath(String path);
 
+    /**
+     * List under a path as-if it were a folder
+     */
+    Set<String> listUnderPartialPath(String path);
+
     void deleteAllKeysOnPartialPath(String path);
 }

@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 
 import static com.nike.cerberus.ConfigConstants.ADMIN_ROLE_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CA;
@@ -864,6 +865,15 @@ public class ConfigStore {
         initConfigStoreService();
 
         return configStoreService.get(path);
+    }
+
+    /**
+     * List under a path as-if it were a folder
+     */
+    public Set<String> listUnderPartialPath(final String path) {
+        initConfigStoreService();
+
+        return configStoreService.listUnderPartialPath(path);
     }
 
     private void saveEncryptedObject(final String path, final String value) {

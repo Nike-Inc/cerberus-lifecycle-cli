@@ -33,7 +33,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -124,6 +123,20 @@ public class S3StoreService implements StoreService {
                         .stream()
                         .map(objectSummary -> StringUtils.stripStart(objectSummary.getKey(), s3Prefix + "/"))
                         .collect(Collectors.toSet());
+    }
+
+    /**
+     * List under a path as-if it were a folder
+     */
+    public Set<String> listUnderPartialPath(String path) {
+
+        return getKeysInPartialPath(path)
+                .stream()
+                .map(str -> StringUtils.removeStart(str, path)) // remove the path from the beginning of the output
+                .map(str -> StringUtils.removeStart(str, "/")) // remove any leading slash
+                .map(str -> StringUtils.substringBefore(str, "/")) // remove everything after the next slash so the listing is not recursive
+                .distinct()
+                .collect(Collectors.toSet());
     }
 
     public void deleteAllKeysOnPartialPath(String path) {
