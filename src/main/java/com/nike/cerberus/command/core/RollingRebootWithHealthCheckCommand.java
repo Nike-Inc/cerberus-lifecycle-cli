@@ -19,7 +19,7 @@ import static com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand
 )
 public class RollingRebootWithHealthCheckCommand implements Command {
 
-    public static final String COMMAND_NAME = "rolling-reboot-with-health-check";
+    public static final String COMMAND_NAME = "rolling-reboot";
 
     @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to reboot.")
     private StackName stackName = StackName.CMS;
