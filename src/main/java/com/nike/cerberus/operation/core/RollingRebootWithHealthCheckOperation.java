@@ -41,10 +41,10 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
 
     private final static ImmutableMap<String, String> HEALTH_CHECK_MAP = ImmutableMap.of(
             StackName.CMS.getName(),     "http://%s:8080/healthcheck",
-            StackName.GATEWAY.getName(), "https://%s:443/sys/health"
-            //  TODO: Test that command works with remaining stacks
-//            StackName.VAULT.getName(),   "https://%s:8200/v1/sys/health?standbyok",
-//            StackName.CONSUL.getName(),  "https://%s:8500/v1/sys/health"
+            StackName.GATEWAY.getName(), "https://%s:443/sys/health",
+            StackName.VAULT.getName(),   "https://%s:8200/v1/sys/health?standbyok"
+            // TODO: upgrade Consul and use new healthcheck
+//            StackName.CONSUL.getName(),  "http://%s:8580/v1/status/peers"
     );
 
     private final static int DEFAULT_HTTP_TIMEOUT = 15;
@@ -56,6 +56,8 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
     private final static int EXPECTED_NUM_SUCCESSES_AFTER_REBOOT = 10;
 
     private final static int EXPECTED_NUM_FAILURES_AFTER_REBOOT = 3;
+
+    private final static int EXPECTED_NUM_SUCCESSES_BEFORE_REBOOT = 1;
 
     private final static int HEALTH_CHECK_FAILED_CODE = -1;
 
@@ -118,15 +120,19 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
      * Reboot an instance and make sure it comes back healthy
      */
     private void rebootInstance(StackName stackName, String autoScalingGroupId, Instance instance) {
+
+        final String healthCheckUrlTmpl = HEALTH_CHECK_MAP.get(stackName.getName());
+        final String healthCheckUrl = String.format(healthCheckUrlTmpl, instance.getPublicDnsName());
+
+        logger.info("Checking that instance health check is reachable...");
+        waitForHealthCheckStatusCode(healthCheckUrl, HttpStatus.OK, EXPECTED_NUM_SUCCESSES_BEFORE_REBOOT);
+
         final String instanceId = instance.getInstanceId();
         logger.info("Setting instance state to standby: {}", instanceId);
         autoScalingService.setInstanceStateToStandby(autoScalingGroupId, instanceId);
 
         logger.info("Rebooting instance: {}", instanceId);
         ec2Service.rebootEc2Instance(instanceId);
-
-        final String healthCheckUrlTmpl = HEALTH_CHECK_MAP.get(stackName.getName());
-        final String healthCheckUrl = String.format(healthCheckUrlTmpl, instance.getPublicDnsName());
 
         // wait for health check fail to confirm box reboot
         logger.info("Waiting for health check failure to confirm reboot...");
@@ -201,7 +207,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
             logger.debug("Health check returned status: {}, URL: {}", response.code(), healthCheckUrl);
             return response.code();
         } catch (IOException ioe) {
-            final String message = Chalk.on("Health check failed, Cause: {}, URL: {}").red().toString();
+            final String message = Chalk.on("Health check failed, Cause: \"{}\", URL: {}").red().toString();
             logger.debug(message, ioe.getMessage(), healthCheckUrl);
         }
 
@@ -223,6 +229,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
             logger.error("Could not find parameter 'minInstances' on stack: {}", stackId);
             return false;
         } else {
+
             return true;
         }
     }
