@@ -229,7 +229,6 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
             logger.error("Could not find parameter 'minInstances' on stack: {}", stackId);
             return false;
         } else {
-
             return true;
         }
     }
