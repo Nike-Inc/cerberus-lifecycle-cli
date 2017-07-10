@@ -87,7 +87,7 @@ public class CerberusHelp {
 
     private void printCommands() {
         System.out.println("Commands, use cerberus [-h, --help] [command name] for more info:");
-        commander.getCommands().keySet().forEach(command -> {
+        commander.getCommands().keySet().stream().sorted().forEach(command -> {
             String msg = String.format("    %s, %s",
                     Chalk.on(command).green().bold().toString(),
                     commander.getCommandDescription(command));
