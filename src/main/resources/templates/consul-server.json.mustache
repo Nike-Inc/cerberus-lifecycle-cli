@@ -1,7 +1,7 @@
 {
   "data_dir": "/var/consul/data",
   "ui_dir": "/var/consul/webui",
-  "log_level": "INFO",
+  "log_level": "info",
   "leave_on_terminate": true,
   "skip_leave_on_interrupt": false,
   "client_addr": "0.0.0.0",
@@ -32,5 +32,7 @@
   "acl_master_token": "{{{aclMasterToken}}}",
   "acl_default_policy": "deny",
   "acl_down_policy": "deny",
-  "acl_enforce_version_8": false
+  "acl_enforce_version_8": false,
+  "reconnect_timeout": "16h",
+  "reconnect_timeout_wan": "16h"
 }
