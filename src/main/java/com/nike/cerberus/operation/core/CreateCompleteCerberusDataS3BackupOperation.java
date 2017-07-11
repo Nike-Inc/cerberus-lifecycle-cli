@@ -150,7 +150,6 @@ public class CreateCompleteCerberusDataS3BackupOperation implements Operation<Cr
         }
 
         String key = "cerberus-backup-metadata.json";
-        log.info("Saving metadata: {} to {}{}/{}", metadata, ConfigConstants.BACKUP_DATA_PATH, prefix, key);
 
         saveDataToS3(metadata, prefix, key, regionsToStoreBackups);
 

@@ -362,16 +362,6 @@ public class ConfigStore {
     }
 
     /**
-     * Uploads the serialized backup data to the specified backup prefix encrypted.
-     *
-     * @param path The sub path within the backups path to store the back up data
-     * @param serializedObject The serialized data to encrypt and store
-     */
-    public void storeSdbBackup(String path, String serializedObject) {
-        saveEncryptedObject(ConfigConstants.BACKUP_DATA_PATH + path, serializedObject);
-    }
-
-    /**
      * Retrieves the CMS adming group from the config store.
      *
      * @return CMS admin group
