@@ -5,7 +5,6 @@ buildscript {
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'maven'
-    apply plugin: 'nebula.dependency-lock'
     apply plugin: 'application'
     apply plugin: "com.github.johnrengelman.shadow"
 }
@@ -17,7 +16,7 @@ apply from: file('gradle/integration.gradle')
 mainClassName = 'com.nike.cerberus.cli.CerberusRunner'
 
 task wrapper (type: Wrapper) {
-    gradleVersion = '2.14'
+    gradleVersion = '3.4'
 }
 
 /*

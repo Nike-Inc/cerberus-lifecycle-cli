@@ -331,7 +331,6 @@ public class CreateCompleteCerberusDataS3BackupOperation implements Operation<Cr
     private String provisionKmsCmkForBackupRegion(String region) {
         GetCallerIdentityResult identityResult = sts.getCallerIdentity(new GetCallerIdentityRequest());
         String accountId = identityResult.getAccount();
-        String allRolesInAccount = String.format("arn:aws:iam::%s:role/*", accountId);
         String rootArn = String.format("arn:aws:iam::%s:root", accountId);
 
         String adminRoleArn = configStore.getAccountAdminArn().get();

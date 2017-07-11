@@ -16,6 +16,8 @@
 
 package com.nike.cerberus.domain.backup;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.util.Date;
 
 /**
@@ -41,10 +43,12 @@ public class CerberusBackupMetadata {
         return this;
     }
 
+    @SuppressFBWarnings
     public Date getBackupDate() {
         return backupDate;
     }
 
+    @SuppressFBWarnings
     public CerberusBackupMetadata setBackupDate(Date backupDate) {
         this.backupDate = backupDate;
         return this;

@@ -92,7 +92,7 @@ public class MetricsService {
         }
     }
 
-    private class CerberusMetricMessage {
+    private static class CerberusMetricMessage {
         private String metricKey;
         private Integer metricValue;
         private String metricType;
