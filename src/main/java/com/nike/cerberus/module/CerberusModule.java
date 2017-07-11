@@ -43,6 +43,8 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClient;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -110,6 +112,7 @@ public class CerberusModule extends AbstractModule {
         bind(AmazonAutoScaling.class).toInstance(createAmazonClientInstance(AmazonAutoScalingClient.class, region));
         bind(AWSSecurityTokenService.class).toInstance(createAmazonClientInstance(AWSSecurityTokenServiceClient.class, region));
         bind(AWSLambda.class).toInstance(createAmazonClientInstance(AWSLambdaClient.class, region));
+        bind(AmazonSNS.class).toInstance(createAmazonClientInstance(AmazonSNSClient.class, region));
     }
 
     /**
@@ -224,6 +227,10 @@ public class CerberusModule extends AbstractModule {
     }
 
     private static <M extends AmazonWebServiceClient> M createAmazonClientInstance(Class<M> clientClass, Region region) {
+        return region.createClient(clientClass, getAWSCredentialsProviderChain(), new ClientConfiguration());
+    }
+
+    public static AWSCredentialsProviderChain getAWSCredentialsProviderChain() {
         String cerberusRoleToAssume = System.getenv(CERBERUS_ASSUME_ROLE_ARN) != null ?
                 System.getenv(CERBERUS_ASSUME_ROLE_ARN) : "";
         String cerberusRoleToAssumeExternalId = System.getenv(CERBERUS_ASSUME_ROLE_EXTERNAL_ID) != null ?
@@ -241,6 +248,7 @@ public class CerberusModule extends AbstractModule {
                 new ProfileCredentialsProvider(),
                 sTSAssumeRoleSessionCredentialsProvider,
                 new InstanceProfileCredentialsProvider());
-        return region.createClient(clientClass, chain, new ClientConfiguration());
+
+        return chain;
     }
 }

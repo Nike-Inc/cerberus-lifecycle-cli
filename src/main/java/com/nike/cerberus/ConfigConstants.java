@@ -72,6 +72,8 @@ public class ConfigConstants {
 
     public static final String GATEWAY_SITE_CONFIG_FILE = "data/gateway/gateway.conf";
 
+    public static final String BACKUP_DATA_PATH = "backups/";
+
     public static final String GATEWAY_GLOBAL_CONFIG_FILE = "data/gateway/nginx.conf";
 
     public static final String CMS_ENV_CONFIG_PATH = "data/cms/environment.properties";

@@ -21,31 +21,26 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import com.amazonaws.services.s3.model.CryptoConfiguration;
 import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.inject.Inject;
 import com.nike.cerberus.client.CerberusAdminClient;
+import com.nike.cerberus.client.CerberusAdminClientFactory;
 import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.service.S3StoreService;
-import com.nike.cerberus.vault.VaultAdminClientFactory;
-import com.nike.vault.client.StaticVaultUrlResolver;
 import com.nike.vault.client.VaultAdminClient;
 import com.nike.vault.client.VaultClientException;
-import com.nike.vault.client.model.VaultAuthResponse;
 import com.nike.vault.client.model.VaultListResponse;
-import com.nike.vault.client.model.VaultTokenAuthRequest;
-import okhttp3.OkHttpClient;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,12 +48,10 @@ import javax.inject.Named;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Operation for restoring Safe Deposit Box Metadata and Vault secret data for SDBs from backups that are in S3 from
@@ -68,8 +61,6 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public static final int DEFAULT_TIMEOUT = 60;
-    public static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
     private static final String CERBERUS_BACKUP_METADATA_JSON_FILE_KEY = "cerberus-backup-metadata.json";
     private static final String CERBERUS_BACKUP_API_URL = "cerberusUrl";
     private static final String CERBERUS_BACKUP_DATE = "backupDate";
@@ -77,19 +68,19 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
     private static final String CERBERUS_BACKUP_LAMBDA_REGION = "lambdaBackupRegion";
     private static final String CERBERUS_BACKUP_SDB_COUNT = "numberOfSdbs";
 
-    private final VaultAdminClientFactory vaultAdminClientFactory;
     private final ObjectMapper objectMapper;
     private final ConsoleService console;
+    private final CerberusAdminClientFactory cerberusAdminClientFactory;
 
     @Inject
-    public RestoreCompleteCerberusDataFromS3BackupOperation(VaultAdminClientFactory vaultAdminClientFactory,
-                                                            @Named(CerberusModule.CONFIG_OBJECT_MAPPER)
+    public RestoreCompleteCerberusDataFromS3BackupOperation(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
                                                                     ObjectMapper objectMapper,
-                                                            ConsoleService console) {
+                                                            ConsoleService console,
+                                                            CerberusAdminClientFactory cerberusAdminClientFactory) {
 
-        this.vaultAdminClientFactory = vaultAdminClientFactory;
         this.objectMapper = objectMapper;
         this.console = console;
+        this.cerberusAdminClientFactory = cerberusAdminClientFactory;
     }
 
     @Override
@@ -102,10 +93,8 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
         logger.info(Chalk.on(
                 String.format("Starting restore with backup located at %s", backup)
         ).green().toString());
-        Region region = Region.getRegion(Regions.fromName(command.getS3Region()));
 
-        AmazonS3 s3 = new AmazonS3Client();
-        s3.setRegion(region);
+        AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(command.getS3Region()).build();
         S3StoreService s3StoreService = new S3StoreService(s3, command.getS3Bucket(), command.getS3Prefix());
 
         Set<String> keys = s3StoreService.getKeysInPartialPath("");
@@ -121,16 +110,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
 
         String kmsCustomerMasterKeyId = getKmsCmkId(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         S3StoreService s3EncryptionStoreService = getS3EncryptionStoreService(kmsCustomerMasterKeyId, command);
-        CerberusAdminClient cerberusAdminClient = new CerberusAdminClient(
-                new StaticVaultUrlResolver(command.getCerberusUrl()),
-                new VaultAdminClientFactory.RootCredentialsProvider(generateAdminToken()),
-                new OkHttpClient.Builder()
-                        .hostnameVerifier(new NoopHostnameVerifier())
-                        .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .readTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .build()
-        );
+        CerberusAdminClient cerberusAdminClient = cerberusAdminClientFactory.getNewCerberusAdminClient(command.getCerberusUrl());
 
         validateRestore(s3EncryptionStoreService, command);
 
@@ -165,11 +145,11 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
             throw new RuntimeException("Failed to deserialize backup metadata", e);
         }
 
-        String backupApiUrl = backupMetadata.containsKey(CERBERUS_BACKUP_API_URL) ? backupMetadata.get(CERBERUS_BACKUP_API_URL) : "unknown";
-        String backupDate = backupMetadata.containsKey(CERBERUS_BACKUP_DATE) ? backupMetadata.get(CERBERUS_BACKUP_DATE) : "unknown";
-        String backupLambdaAccountId = backupMetadata.containsKey(CERBERUS_BACKUP_LAMBDA_ACCOUNT_ID) ? backupMetadata.get(CERBERUS_BACKUP_LAMBDA_ACCOUNT_ID) : "unknown";
-        String backupLambdaRegion = backupMetadata.containsKey(CERBERUS_BACKUP_LAMBDA_REGION) ? backupMetadata.get(CERBERUS_BACKUP_LAMBDA_REGION) : "unknown";
-        String backupSdbCount = backupMetadata.containsKey(CERBERUS_BACKUP_SDB_COUNT) ? backupMetadata.get(CERBERUS_BACKUP_SDB_COUNT) : "unknown";
+        String backupApiUrl = backupMetadata.getOrDefault(CERBERUS_BACKUP_API_URL, "unknown");
+        String backupDate = backupMetadata.getOrDefault(CERBERUS_BACKUP_DATE, "unknown");
+        String backupLambdaAccountId = backupMetadata.getOrDefault(CERBERUS_BACKUP_LAMBDA_ACCOUNT_ID, "unknown");
+        String backupLambdaRegion = backupMetadata.getOrDefault(CERBERUS_BACKUP_LAMBDA_REGION, "unknown");
+        String backupSdbCount = backupMetadata.getOrDefault(CERBERUS_BACKUP_SDB_COUNT, "unknown");
 
         StringBuilder msg = new StringBuilder()
                 .append("\nThe backup you are attempting to restore was created from ").append(Chalk.on(backupApiUrl).green().toString()).append(" on ").append(Chalk.on(backupDate).green().bold().toString())
@@ -324,36 +304,6 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
         }  catch (VaultClientException vce) {
             throw new RuntimeException("Failed to delete secrets from Vault. for path: " + path);
         }
-    }
-
-    /**
-     * Generates and admin token that CMS will reconize as an Admin so we can us the restore endpoint
-     */
-    private String generateAdminToken() {
-        VaultAuthResponse vaultAuthResponse;
-        try {
-            logger.info("Attempting to generate an admin token with the root token");
-            VaultAdminClient adminClient = vaultAdminClientFactory.getClientForLeader().get();
-
-            Map<String, String> metadata = new HashMap<>();
-            metadata.put("is_admin", "true");
-            metadata.put("username", "admin-cli");
-
-            Set<String> policies = new HashSet<>();
-            policies.add("root");
-
-            vaultAuthResponse = adminClient.createOrphanToken(new VaultTokenAuthRequest()
-                    .setDisplayName("admin-cli")
-                    .setPolicies(policies)
-                    .setMeta(metadata)
-                    .setTtl("10m")
-                    .setNoDefaultPolicy(true));
-        } catch (VaultClientException e) {
-            throw new RuntimeException("There was an error while trying to create an admin token, this command " +
-                    "requires proxy access or direct a connect to the vault leader, is your ip white listed?", e);
-        }
-
-        return vaultAuthResponse.getClientToken();
     }
 
     @Override

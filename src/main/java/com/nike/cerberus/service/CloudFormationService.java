@@ -27,6 +27,7 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
+import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
@@ -53,6 +54,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -310,6 +312,33 @@ public class CloudFormationService {
      */
     public String getEnvStackName(final String name) {
         return String.format("%s-%s", environmentMetadata.getName(), name);
+    }
+
+    /**
+     * Since there doesn't appear to be a first class way through the SDK at this time to get a CF export. We can
+     * iterate through the stacks for a given output key and return the value.
+     * @param outputKey The exported CF variable to search and retrieve the value of.
+     * @return The value for the export if found
+     */
+    public Optional<String> searchStacksForOutput(String outputKey) {
+        DescribeStacksResult describeStacksResult = null;
+        do {
+            DescribeStacksRequest request = new DescribeStacksRequest();
+            if (describeStacksResult != null && describeStacksResult.getNextToken() != null) {
+                request.withNextToken(describeStacksResult.getNextToken());
+            }
+            describeStacksResult = cloudFormationClient.describeStacks();
+            for (Stack stack : describeStacksResult.getStacks()) {
+                for (Output output : stack.getOutputs()) {
+                    if (StringUtils.equals(output.getOutputKey(), outputKey)) {
+                        return Optional.of(output.getOutputValue());
+                    }
+                }
+            }
+
+        } while (describeStacksResult.getNextToken() != null);
+
+        return Optional.empty();
     }
 
     /**

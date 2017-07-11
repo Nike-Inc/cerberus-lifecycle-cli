@@ -19,7 +19,7 @@ allprojects {
         jcenter()
     }
 
-    def awsSDKVersion = '1.11.9'
+    def awsSDKVersion = '1.11.155'
 
     //noinspection GroovyAssignabilityCheck
     dependencies {
@@ -34,7 +34,7 @@ allprojects {
         compile group: 'com.amazonaws', name: 'aws-java-sdk-sns', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSDKVersion
 
-        compile 'com.nike:vault-client:1.2.1'
+        compile 'com.nike:vault-client:1.4.0'
         compile 'com.squareup.okhttp3:okhttp:3.3.1'
         compile 'com.beust:jcommander:1.55'
         compile 'com.fasterxml.jackson.core:jackson-core:2.7.+'

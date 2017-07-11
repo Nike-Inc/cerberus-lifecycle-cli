@@ -43,6 +43,7 @@ import com.nike.cerberus.domain.configuration.ConsulConfiguration;
 import com.nike.cerberus.domain.configuration.GatewayConfiguration;
 import com.nike.cerberus.domain.configuration.VaultAclEntry;
 import com.nike.cerberus.domain.configuration.VaultConfiguration;
+import com.nike.cerberus.domain.environment.BackupRegionInfo;
 import com.nike.cerberus.domain.environment.Environment;
 import com.nike.cerberus.domain.environment.Secrets;
 import com.nike.cerberus.domain.environment.StackName;
@@ -88,6 +89,8 @@ public class ConfigStore {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private static final String CERBERUS_METRICS_TOPIC_ARN_STACK_OUTPUT_KEY = "CerberusMetricsTopicArn";
+
     private final CloudFormationService cloudFormationService;
 
     private final ObjectMapper configObjectMapper;
@@ -118,6 +121,7 @@ public class ConfigStore {
                        final EnvironmentMetadata environmentMetadata,
                        @Named(CONFIG_OBJECT_MAPPER) final ObjectMapper configObjectMapper,
                        @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
+
         this.cloudFormationService = cloudFormationService;
         this.iamService = iamService;
         this.configObjectMapper = configObjectMapper;
@@ -358,6 +362,16 @@ public class ConfigStore {
     }
 
     /**
+     * Uploads the serialized backup data to the specified backup prefix encrypted.
+     *
+     * @param path The sub path within the backups path to store the back up data
+     * @param serializedObject The serialized data to encrypt and store
+     */
+    public void storeSdbBackup(String path, String serializedObject) {
+        saveEncryptedObject(ConfigConstants.BACKUP_DATA_PATH + path, serializedObject);
+    }
+
+    /**
      * Retrieves the CMS adming group from the config store.
      *
      * @return CMS admin group
@@ -566,7 +580,6 @@ public class ConfigStore {
 
         final BaseOutputs baseOutputs = getBaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
-        final VaultParameters vaultParameters = getVaultStackParamters();
         final Optional<String> cmsVaultToken = getCmsVaultToken();
         final Optional<String> cmsDatabasePassword = getCmsDatabasePassword();
 
@@ -575,7 +588,7 @@ public class ConfigStore {
         final String rootUserArn = String.format("arn:aws:iam::%s:root", callerIdentity.getAccount());
 
         final Properties properties = new Properties();
-        properties.put(VAULT_ADDR_KEY, String.format("https://%s", cnameToHost(vaultParameters.getCname())));
+        properties.put(VAULT_ADDR_KEY, getCerberusBaseUrl());
         properties.put(VAULT_TOKEN_KEY, cmsVaultToken.get());
         properties.put(ROOT_USER_ARN_KEY, rootUserArn);
         properties.put(ADMIN_ROLE_ARN_KEY, baseParameters.getAccountAdminArn());
@@ -585,6 +598,15 @@ public class ConfigStore {
         properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword.get());
 
         return properties;
+    }
+
+    public Optional<String> getAccountAdminArn() {
+        final BaseParameters baseParameters = getBaseStackParameters();
+        return Optional.ofNullable(baseParameters.getAccountAdminArn());
+    }
+
+    public String getCerberusBaseUrl() {
+        return String.format("https://%s", getGatewayStackParamters().getHostname());
     }
 
     /**
@@ -926,4 +948,42 @@ public class ConfigStore {
     private String cnameToHost(final String cname) {
         return cname.substring(0, cname.length() - 1);
     }
+
+    public Optional<BackupRegionInfo> getBackupInfoForRegion(String region) {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            return Optional.ofNullable(environment.getRegionBackupBucketMap().get(region));
+        }
+    }
+
+    public void storeBackupInfoForRegion(String region, String bucket, String kmsCmkId) {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            environment.getRegionBackupBucketMap().put(region, new BackupRegionInfo(bucket, kmsCmkId));
+            saveEnvironmentData(environment);
+        }
+    }
+
+    public Optional<String> getMetricsTopicArn() {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            if (StringUtils.isNoneBlank(environment.getMetricsTopicArn())) {
+                return Optional.of(environment.getMetricsTopicArn());
+            }
+        }
+
+        Optional<String> metricsTopicArn = cloudFormationService.searchStacksForOutput(CERBERUS_METRICS_TOPIC_ARN_STACK_OUTPUT_KEY);
+        metricsTopicArn.ifPresent(this::storeMetricsTopicArn);
+
+        return metricsTopicArn;
+    }
+
+    private void storeMetricsTopicArn(String arn) {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            environment.setMetricsTopicArn(arn);
+            saveEnvironmentData(environment);
+        }
+    }
+
 }
