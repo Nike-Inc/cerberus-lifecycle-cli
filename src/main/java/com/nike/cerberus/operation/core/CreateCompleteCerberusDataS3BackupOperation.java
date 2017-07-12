@@ -57,6 +57,7 @@ import com.nike.cerberus.service.S3StoreService;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.vault.client.model.VaultListResponse;
 import com.nike.vault.client.model.VaultResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,7 @@ public class CreateCompleteCerberusDataS3BackupOperation implements Operation<Cr
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String AWS_PROVIDER = "AWS";
+    private static final int MAX_BUCKET_NAME_LENGTH = 63;
 
     private final ObjectMapper objectMapper;
     private final ConfigStore configStore;
@@ -319,12 +321,8 @@ public class CreateCompleteCerberusDataS3BackupOperation implements Operation<Cr
 
     private String getBackupBucketName(String region) {
         String name = String.format("%s-%s-backup-%s", environmentMetadata.getName(), region, UUID.randomUUID().toString());
-        if (name.length() > 63) {
-            name = name.substring(0, 62);
-        }
-        if (name.endsWith("-")) {
-            name = name.substring(0, name.length() - 2);
-        }
+        StringUtils.truncate(name, MAX_BUCKET_NAME_LENGTH);
+        StringUtils.strip(name, "-");
         return name;
     }
 
