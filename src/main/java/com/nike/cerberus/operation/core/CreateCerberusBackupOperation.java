@@ -41,11 +41,10 @@ import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.client.CerberusAdminClientFactory;
-import com.nike.cerberus.cms.SafeDepositBox;
-import com.nike.cerberus.command.core.CreateCompleteCerberusDataS3BackupCommand;
+import com.nike.cerberus.domain.cms.SafeDepositBox;
+import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.backup.CerberusBackupMetadata;
 import com.nike.cerberus.domain.backup.CerberusSdbMetadata;
@@ -74,7 +73,7 @@ import java.util.UUID;
 import static com.nike.cerberus.module.CerberusModule.getAWSCredentialsProviderChain;
 
 
-public class CreateCompleteCerberusDataS3BackupOperation implements Operation<CreateCompleteCerberusDataS3BackupCommand> {
+public class CreateCerberusBackupOperation implements Operation<CreateCerberusBackupCommand> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -90,13 +89,13 @@ public class CreateCompleteCerberusDataS3BackupOperation implements Operation<Cr
     private final Map<String, S3StoreService> regionToEncryptedStoreServiceMap = new HashMap<>();
 
     @Inject
-    public CreateCompleteCerberusDataS3BackupOperation(CerberusAdminClientFactory cerberusAdminClientFactory,
-                                                       @Named(CerberusModule.CONFIG_OBJECT_MAPPER)
+    public CreateCerberusBackupOperation(CerberusAdminClientFactory cerberusAdminClientFactory,
+                                         @Named(CerberusModule.CONFIG_OBJECT_MAPPER)
                                                                ObjectMapper objectMapper,
-                                                       ConfigStore configStore,
-                                                       MetricsService metricsService,
-                                                       EnvironmentMetadata environmentMetadata,
-                                                       AWSSecurityTokenService sts) {
+                                         ConfigStore configStore,
+                                         MetricsService metricsService,
+                                         EnvironmentMetadata environmentMetadata,
+                                         AWSSecurityTokenService sts) {
 
         this.objectMapper = objectMapper;
         this.configStore = configStore;
@@ -104,12 +103,12 @@ public class CreateCompleteCerberusDataS3BackupOperation implements Operation<Cr
         this.environmentMetadata = environmentMetadata;
         this.sts = sts;
 
-        cerberusAdminClient = cerberusAdminClientFactory.getNewCerberusAdminClient(
+        cerberusAdminClient = cerberusAdminClientFactory.createCerberusAdminClient(
                 configStore.getCerberusBaseUrl());
     }
 
     @Override
-    public void run(CreateCompleteCerberusDataS3BackupCommand command) {
+    public void run(CreateCerberusBackupCommand command) {
         log.info("Starting Cerberus Backup");
 
         List<String> regionsToStoreBackups = command.getBackupRegions();
@@ -269,7 +268,7 @@ public class CreateCompleteCerberusDataS3BackupOperation implements Operation<Cr
         try {
             json = objectMapper.writeValueAsString(object);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialized SDB data");
+            throw new RuntimeException(String.format("Failed to serialized SDB data, Prefix: %s, Key: %s", prefix, key), e);
         }
 
         for (String region : regions) {
@@ -381,7 +380,7 @@ public class CreateCompleteCerberusDataS3BackupOperation implements Operation<Cr
     }
 
     @Override
-    public boolean isRunnable(CreateCompleteCerberusDataS3BackupCommand command) {
+    public boolean isRunnable(CreateCerberusBackupCommand command) {
         Optional<String> adminIamPrincipalArn = configStore.getAccountAdminArn();
         if (! adminIamPrincipalArn.isPresent()) {
             log.error("The admin IAM principal must be set for this environment");

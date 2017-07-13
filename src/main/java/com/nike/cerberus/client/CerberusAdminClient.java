@@ -17,8 +17,8 @@
 package com.nike.cerberus.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.cms.SafeDepositBox;
-import com.nike.cerberus.cms.SdbMetadataResult;
+import com.nike.cerberus.domain.cms.SafeDepositBox;
+import com.nike.cerberus.domain.cms.SdbMetadataResult;
 import com.nike.vault.client.UrlResolver;
 import com.nike.vault.client.VaultAdminClient;
 import com.nike.vault.client.VaultClientException;

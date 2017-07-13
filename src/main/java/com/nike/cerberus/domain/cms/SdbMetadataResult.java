@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.cms;
+package com.nike.cerberus.domain.cms;
 
 import java.util.List;
 
+/**
+ * pojo for CMS metadata endpoint wrapper result
+ */
 public class SdbMetadataResult {
 
     private boolean hasNext = false;

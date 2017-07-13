@@ -20,12 +20,12 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateCompleteCerberusDataS3BackupOperation;
+import com.nike.cerberus.operation.core.CreateCerberusBackupOperation;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.nike.cerberus.command.core.CreateCompleteCerberusDataS3BackupCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.CreateCerberusBackupCommand.COMMAND_NAME;
 
 
 /**
@@ -33,9 +33,9 @@ import static com.nike.cerberus.command.core.CreateCompleteCerberusDataS3BackupC
  */
 @Parameters(
         commandNames = COMMAND_NAME,
-        commandDescription = "Allows Cerberus operators to create a complete backup in S3 encrypted with KMS."
+        commandDescription = "Allows Cerberus operators to create a complete backup in S3 encrypted with KMS. that can be restored with the restore command"
 )
-public class CreateCompleteCerberusDataS3BackupCommand implements Command {
+public class CreateCerberusBackupCommand implements Command {
 
     public static final String COMMAND_NAME = "create-backup";
 
@@ -62,6 +62,6 @@ public class CreateCompleteCerberusDataS3BackupCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return CreateCompleteCerberusDataS3BackupOperation.class;
+        return CreateCerberusBackupOperation.class;
     }
 }

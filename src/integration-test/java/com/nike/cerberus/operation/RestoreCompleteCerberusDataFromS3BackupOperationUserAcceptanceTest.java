@@ -16,9 +16,9 @@
 
 package com.nike.cerberus.operation;
 
-import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
+import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.module.CerberusModule;
-import com.nike.cerberus.operation.core.RestoreCompleteCerberusDataFromS3BackupOperation;
+import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
 import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.utils.TestUtils;
 import com.nike.cerberus.vault.VaultAdminClientFactory;
@@ -33,8 +33,8 @@ import org.mockito.Mock;
 import java.io.IOException;
 import java.util.Optional;
 
-import static com.nike.cerberus.operation.core.RestoreCompleteCerberusDataFromS3BackupOperation.DEFAULT_TIMEOUT;
-import static com.nike.cerberus.operation.core.RestoreCompleteCerberusDataFromS3BackupOperation.DEFAULT_TIMEOUT_UNIT;
+import static com.nike.cerberus.operation.core.RestoreCerberusBackupOperation.DEFAULT_TIMEOUT;
+import static com.nike.cerberus.operation.core.RestoreCerberusBackupOperation.DEFAULT_TIMEOUT_UNIT;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -51,9 +51,9 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
     private ConsoleService consoleService;
 
     @Mock
-    private RestoreCompleteCerberusDataFromS3BackupCommand command;
+    private RestoreCerberusBackupCommand command;
 
-    private RestoreCompleteCerberusDataFromS3BackupOperation operation;
+    private RestoreCerberusBackupOperation operation;
 
     private String rootToken;
 
@@ -61,7 +61,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
     public void before() {
         initMocks(this);
 
-        operation = new RestoreCompleteCerberusDataFromS3BackupOperation(
+        operation = new RestoreCerberusBackupOperation(
                 vaultAdminClientFactory,
                 CerberusModule.configObjectMapper(),
                 consoleService);

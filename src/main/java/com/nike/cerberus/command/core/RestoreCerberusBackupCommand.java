@@ -20,7 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.RestoreCompleteCerberusDataFromS3BackupOperation;
+import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
 
 import static com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand.COMMAND_NAME;
 
@@ -30,9 +30,9 @@ import static com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand.CO
  */
 @Parameters(
         commandNames = COMMAND_NAME,
-        commandDescription = "Allows Cerberus operators to restore a complete backup from S3 that was created using the cross region backup lambda."
+        commandDescription = "Allows Cerberus operators to restore a complete backup from S3 that was created using the the backup command."
 )
-public class RestoreCompleteCerberusDataFromS3BackupCommand implements Command {
+public class RestoreCerberusBackupCommand implements Command {
 
     public static final String COMMAND_NAME = "restore-complete";
 
@@ -83,6 +83,6 @@ public class RestoreCompleteCerberusDataFromS3BackupCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return RestoreCompleteCerberusDataFromS3BackupOperation.class;
+        return RestoreCerberusBackupOperation.class;
     }
 }

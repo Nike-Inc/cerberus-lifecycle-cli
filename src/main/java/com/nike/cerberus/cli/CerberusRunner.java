@@ -30,7 +30,7 @@ import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.core.CreateCompleteCerberusDataS3BackupCommand;
+import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
 import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
@@ -39,7 +39,7 @@ import com.nike.cerberus.command.consul.CreateVaultAclCommand;
 import com.nike.cerberus.command.consul.UpdateConsulConfigCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
-import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
+import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
@@ -197,11 +197,11 @@ public class CerberusRunner {
         registerCommand(new CreateCloudFrontLogProcessingLambdaConfigCommand());
         registerCommand(new CreateCloudFrontSecurityGroupUpdaterLambdaCommand());
         registerCommand(new WhitelistCidrForVpcAccessCommand());
-        registerCommand(new RestoreCompleteCerberusDataFromS3BackupCommand());
+        registerCommand(new RestoreCerberusBackupCommand());
         registerCommand(new ViewConfigCommand());
         registerCommand(new UpdateCmsConfigCommand());
         registerCommand(new RollingRebootWithHealthCheckCommand());
-        registerCommand(new CreateCompleteCerberusDataS3BackupCommand());
+        registerCommand(new CreateCerberusBackupCommand());
     }
 
     /**

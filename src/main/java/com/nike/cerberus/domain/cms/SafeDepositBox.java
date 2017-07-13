@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.cms;
+package com.nike.cerberus.domain.cms;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * pojo for sdb object from CMS metadata endpoint
+ */
 public class SafeDepositBox {
 
     private String name;

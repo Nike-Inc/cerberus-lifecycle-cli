@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class CerberusAdminClientFactory {
 
@@ -55,7 +56,9 @@ public class CerberusAdminClientFactory {
         this.objectMapper = objectMapper;
     }
 
-    public CerberusAdminClient getNewCerberusAdminClient(String url) {
+    public CerberusAdminClient createCerberusAdminClient(String url) {
+        java.util.logging.Logger.getLogger(OkHttpClient.class.getName()).setLevel(Level.FINE);
+
         return new CerberusAdminClient(
                 new StaticVaultUrlResolver(url),
                 new VaultAdminClientFactory.RootCredentialsProvider(generateAdminToken()),
@@ -73,7 +76,6 @@ public class CerberusAdminClientFactory {
      * Generates and admin token that CMS will recognize as an Admin so we can us the restore endpoint
      */
     private String generateAdminToken() {
-        VaultAuthResponse vaultAuthResponse;
         try {
             logger.info("Attempting to generate an admin token with the root token");
             VaultAdminClient adminClient = vaultAdminClientFactory.getClientForLeader().get();
@@ -85,17 +87,17 @@ public class CerberusAdminClientFactory {
             Set<String> policies = new HashSet<>();
             policies.add("root");
 
-            vaultAuthResponse = adminClient.createOrphanToken(new VaultTokenAuthRequest()
+            VaultAuthResponse vaultAuthResponse = adminClient.createOrphanToken(new VaultTokenAuthRequest()
                     .setDisplayName("admin-cli")
                     .setPolicies(policies)
                     .setMeta(metadata)
                     .setTtl("30m")
                     .setNoDefaultPolicy(true));
+
+            return vaultAuthResponse.getClientToken();
         } catch (VaultClientException e) {
             throw new RuntimeException("There was an error while trying to create an admin token, this command " +
                     "requires proxy access or direct a connect to the vault leader, is your ip white listed?", e);
         }
-
-        return vaultAuthResponse.getClientToken();
     }
 }

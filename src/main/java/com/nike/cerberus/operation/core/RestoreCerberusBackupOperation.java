@@ -20,7 +20,6 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import com.amazonaws.services.s3.model.CryptoConfiguration;
@@ -32,7 +31,7 @@ import com.github.tomaslanger.chalk.Chalk;
 import com.google.inject.Inject;
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.client.CerberusAdminClientFactory;
-import com.nike.cerberus.command.core.RestoreCompleteCerberusDataFromS3BackupCommand;
+import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.ConsoleService;
@@ -57,7 +56,7 @@ import java.util.Set;
  * Operation for restoring Safe Deposit Box Metadata and Vault secret data for SDBs from backups that are in S3 from
  * the cross region backup lambda.
  */
-public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operation<RestoreCompleteCerberusDataFromS3BackupCommand> {
+public class RestoreCerberusBackupOperation implements Operation<RestoreCerberusBackupCommand> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -73,10 +72,10 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
     private final CerberusAdminClientFactory cerberusAdminClientFactory;
 
     @Inject
-    public RestoreCompleteCerberusDataFromS3BackupOperation(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
+    public RestoreCerberusBackupOperation(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
                                                                     ObjectMapper objectMapper,
-                                                            ConsoleService console,
-                                                            CerberusAdminClientFactory cerberusAdminClientFactory) {
+                                          ConsoleService console,
+                                          CerberusAdminClientFactory cerberusAdminClientFactory) {
 
         this.objectMapper = objectMapper;
         this.console = console;
@@ -84,7 +83,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
     }
 
     @Override
-    public void run(RestoreCompleteCerberusDataFromS3BackupCommand command) {
+    public void run(RestoreCerberusBackupCommand command) {
         String backup = Chalk.on(String.format("s3://%s/%s",
                 command.getS3Bucket(),
                 command.getS3Prefix())
@@ -110,7 +109,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
 
         String kmsCustomerMasterKeyId = getKmsCmkId(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         S3StoreService s3EncryptionStoreService = getS3EncryptionStoreService(kmsCustomerMasterKeyId, command);
-        CerberusAdminClient cerberusAdminClient = cerberusAdminClientFactory.getNewCerberusAdminClient(command.getCerberusUrl());
+        CerberusAdminClient cerberusAdminClient = cerberusAdminClientFactory.createCerberusAdminClient(command.getCerberusUrl());
 
         validateRestore(s3EncryptionStoreService, command);
 
@@ -136,7 +135,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
      * Use the metadata from the backup and ensure that the user wants to proceed
      * @param s3StoreService - The encrypted S3 store service
      */
-    private void validateRestore(S3StoreService s3StoreService, RestoreCompleteCerberusDataFromS3BackupCommand command) {
+    private void validateRestore(S3StoreService s3StoreService, RestoreCerberusBackupCommand command) {
         String backupMetadataJsonString = getDecryptedJson(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         Map<String, String> backupMetadata;
         try {
@@ -194,7 +193,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
     }
 
     private S3StoreService getS3EncryptionStoreService(String cmkId,
-                                                       RestoreCompleteCerberusDataFromS3BackupCommand command) {
+                                                       RestoreCerberusBackupCommand command) {
 
         Region region = Region.getRegion(Regions.fromName(command.getS3Region()));
         KMSEncryptionMaterialsProvider materialProvider = new KMSEncryptionMaterialsProvider(cmkId);
@@ -307,7 +306,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperation implements Operati
     }
 
     @Override
-    public boolean isRunnable(RestoreCompleteCerberusDataFromS3BackupCommand command) {
+    public boolean isRunnable(RestoreCerberusBackupCommand command) {
         return true;
     }
 
