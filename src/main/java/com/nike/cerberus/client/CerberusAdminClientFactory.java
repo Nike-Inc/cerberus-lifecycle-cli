@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
 public class CerberusAdminClientFactory {
 
@@ -57,8 +56,6 @@ public class CerberusAdminClientFactory {
     }
 
     public CerberusAdminClient createCerberusAdminClient(String url) {
-        java.util.logging.Logger.getLogger(OkHttpClient.class.getName()).setLevel(Level.FINE);
-
         return new CerberusAdminClient(
                 new StaticVaultUrlResolver(url),
                 new VaultAdminClientFactory.RootCredentialsProvider(generateAdminToken()),

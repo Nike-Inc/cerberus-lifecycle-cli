@@ -155,6 +155,11 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         saveDataToS3(metadata, prefix, key, regionsToStoreBackups);
 
         trackMetadataMetrics(metadata);
+
+        regionsToStoreBackups.forEach(region -> {
+            String bucket = configStore.getBackupInfoForRegion(region).get().getS3Bucket();
+            log.info("Backup for region: {} complete, bucket: {}, prefix: {}", region, bucket, prefix);
+        });
     }
 
     /**
