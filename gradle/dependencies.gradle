@@ -37,10 +37,13 @@ allprojects {
         compile 'com.nike:vault-client:1.4.1'
         compile 'com.squareup.okhttp3:okhttp:3.3.1'
         compile 'com.beust:jcommander:1.55'
+
         compile 'com.fasterxml.jackson.core:jackson-core:2.7.+'
         compile 'com.fasterxml.jackson.core:jackson-databind:2.7.+'
         compile 'com.fasterxml.jackson.core:jackson-annotations:2.7.+'
+        compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7+'
         compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.8.5'
+
         compile 'org.slf4j:slf4j-api:1.7.+'
         compile 'ch.qos.logback:logback-classic:1.1.+'
         compile 'commons-cli:commons-cli:1.3.1'

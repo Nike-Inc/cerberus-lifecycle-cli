@@ -16,6 +16,8 @@
 
 package com.nike.cerberus.operation;
 
+import com.nike.cerberus.client.CerberusAdminClient;
+import com.nike.cerberus.client.CerberusAdminClientFactory;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
@@ -23,18 +25,17 @@ import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.utils.TestUtils;
 import com.nike.cerberus.vault.VaultAdminClientFactory;
 import com.nike.vault.client.StaticVaultUrlResolver;
-import com.nike.vault.client.VaultAdminClient;
 import okhttp3.OkHttpClient;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import java.io.IOException;
-import java.util.Optional;
 
-import static com.nike.cerberus.operation.core.RestoreCerberusBackupOperation.DEFAULT_TIMEOUT;
-import static com.nike.cerberus.operation.core.RestoreCerberusBackupOperation.DEFAULT_TIMEOUT_UNIT;
+import static com.nike.cerberus.client.CerberusAdminClientFactory.DEFAULT_TIMEOUT;
+import static com.nike.cerberus.client.CerberusAdminClientFactory.DEFAULT_TIMEOUT_UNIT;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -44,8 +45,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
  */
 public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest {
 
-    @Mock
-    private VaultAdminClientFactory vaultAdminClientFactory;
+    @Spy
+    private CerberusAdminClientFactory vaultAdminClientFactory;
 
     @Mock
     private ConsoleService consoleService;
@@ -62,9 +63,9 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
         initMocks(this);
 
         operation = new RestoreCerberusBackupOperation(
-                vaultAdminClientFactory,
                 CerberusModule.configObjectMapper(),
-                consoleService);
+                consoleService,
+                vaultAdminClientFactory);
 
         when(command.getCerberusUrl()).thenReturn(TestUtils.getRequiredEnvVar("CERBERUS_URL",
                 "The Cerberus API to restore against"));
@@ -82,7 +83,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
     run_restore_complete() throws IOException {
         when(consoleService.readLine(anyString())).thenReturn("proceed");
 
-        VaultAdminClient adminClient = new VaultAdminClient(
+        CerberusAdminClient adminClient = new CerberusAdminClient(
                 new StaticVaultUrlResolver("http://127.0.0.1:8200"),
                 new VaultAdminClientFactory.RootCredentialsProvider(rootToken),
                 new OkHttpClient.Builder()
@@ -90,12 +91,11 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
                         .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                         .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                         .readTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .build()
+                        .build(),
+                CerberusModule.configObjectMapper()
         );
 
-        Optional<VaultAdminClient> clientOptional = Optional.of(adminClient);
-
-        when(vaultAdminClientFactory.getClientForLeader()).thenReturn(clientOptional);
+        when(vaultAdminClientFactory.createCerberusAdminClient(anyString())).thenReturn(adminClient);
 
         operation.run(command);
     }

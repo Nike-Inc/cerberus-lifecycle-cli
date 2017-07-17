@@ -47,7 +47,8 @@ public class CreateCerberusBackupCommand implements Command {
                     BACKUP_REGIONS_LONG_ARG,
                     BACKUP_REGIONS_SHORT_ARG
             },
-            description = "One or more regions to store backup data in."
+            description = "One or more regions to store backup data in.",
+            required = true
     )
     private List<String> backupRegions = new ArrayList<>();
 

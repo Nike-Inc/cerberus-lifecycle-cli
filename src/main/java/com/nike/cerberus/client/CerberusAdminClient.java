@@ -74,7 +74,13 @@ public class CerberusAdminClient extends VaultAdminClient {
         HttpUrl url = buildUrl("v1/", "metadata");
         Response response = execute(url, HttpMethod.PUT, jsonPayload);
         if (! response.isSuccessful()) {
-            throw new RuntimeException("Failed to restore metadata with cms body: " + response.message());
+            String body;
+            try {
+                body = response.body().string();
+            } catch (IOException e) {
+                body = e.getMessage();
+            }
+            throw new RuntimeException("Failed to restore metadata with cms body: " + response + '\n' + body);
         }
     }
 

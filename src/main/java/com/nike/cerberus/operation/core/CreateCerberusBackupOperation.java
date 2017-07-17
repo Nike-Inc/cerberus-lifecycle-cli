@@ -39,7 +39,11 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.google.common.collect.ImmutableMap;
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.client.CerberusAdminClientFactory;
@@ -90,14 +94,20 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
 
     @Inject
     public CreateCerberusBackupOperation(CerberusAdminClientFactory cerberusAdminClientFactory,
-                                         @Named(CerberusModule.CONFIG_OBJECT_MAPPER)
-                                                               ObjectMapper objectMapper,
                                          ConfigStore configStore,
                                          MetricsService metricsService,
                                          EnvironmentMetadata environmentMetadata,
                                          AWSSecurityTokenService sts) {
 
-        this.objectMapper = objectMapper;
+        objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        objectMapper.enable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
+        objectMapper.setDateFormat(new ISO8601DateFormat());
+
         this.configStore = configStore;
         this.metricsService = metricsService;
         this.environmentMetadata = environmentMetadata;
@@ -130,7 +140,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
             log.info(String.format("Backing up %s", sdb.getName()));
             Map<String, Map<String, String>> vaultData = recurseVault(sdb.getPath(), new HashMap<>());
             sdb.setData(vaultData);
-            String key = sdb.getName().toLowerCase().replaceAll("/\\W+/", "-");
+            String key = sdb.getName().toLowerCase().replaceAll("\\W+", "-");
             saveDataToS3(sdb, prefix, key, regionsToStoreBackups);
             cerberusSdbMetadata = processMetadata(sdb, cerberusSdbMetadata);
         }

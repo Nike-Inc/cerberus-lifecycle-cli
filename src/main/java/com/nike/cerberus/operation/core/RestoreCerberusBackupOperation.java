@@ -61,11 +61,14 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final String CERBERUS_BACKUP_METADATA_JSON_FILE_KEY = "cerberus-backup-metadata.json";
+
     private static final String CERBERUS_BACKUP_API_URL = "cerberusUrl";
     private static final String CERBERUS_BACKUP_DATE = "backupDate";
-    private static final String CERBERUS_BACKUP_LAMBDA_ACCOUNT_ID = "lambdaBackupAccountId";
-    private static final String CERBERUS_BACKUP_LAMBDA_REGION = "lambdaBackupRegion";
     private static final String CERBERUS_BACKUP_SDB_COUNT = "numberOfSdbs";
+
+    private static final String CERBERUS_BACKUP_API_URL_S = "cerberus_url";
+    private static final String CERBERUS_BACKUP_DATE_S = "backup_date";
+    private static final String CERBERUS_BACKUP_SDB_COUNT_S = "number_of_sdbs";
 
     private final ObjectMapper objectMapper;
     private final ConsoleService console;
@@ -144,18 +147,15 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
             throw new RuntimeException("Failed to deserialize backup metadata", e);
         }
 
-        String backupApiUrl = backupMetadata.getOrDefault(CERBERUS_BACKUP_API_URL, "unknown");
-        String backupDate = backupMetadata.getOrDefault(CERBERUS_BACKUP_DATE, "unknown");
-        String backupLambdaAccountId = backupMetadata.getOrDefault(CERBERUS_BACKUP_LAMBDA_ACCOUNT_ID, "unknown");
-        String backupLambdaRegion = backupMetadata.getOrDefault(CERBERUS_BACKUP_LAMBDA_REGION, "unknown");
-        String backupSdbCount = backupMetadata.getOrDefault(CERBERUS_BACKUP_SDB_COUNT, "unknown");
+        String backupApiUrl = backupMetadata.getOrDefault(CERBERUS_BACKUP_API_URL_S,
+                backupMetadata.getOrDefault(CERBERUS_BACKUP_API_URL, "unknown"));
+        String backupDate = backupMetadata.getOrDefault(CERBERUS_BACKUP_DATE_S,
+                backupMetadata.getOrDefault(CERBERUS_BACKUP_DATE, "unknown"));
+        String backupSdbCount = backupMetadata.getOrDefault(CERBERUS_BACKUP_SDB_COUNT_S,
+                backupMetadata.getOrDefault(CERBERUS_BACKUP_SDB_COUNT, "unknown"));
 
         StringBuilder msg = new StringBuilder()
                 .append("\nThe backup you are attempting to restore was created from ").append(Chalk.on(backupApiUrl).green().toString()).append(" on ").append(Chalk.on(backupDate).green().bold().toString())
-                .append("\nFrom the backup lambda in account ")
-                .append(Chalk.on(backupLambdaAccountId).green().toString())
-                .append(" in region ")
-                .append(Chalk.on(backupLambdaRegion).green().toString())
                 .append("\nThis backup contains ")
                 .append(Chalk.on(backupSdbCount).green().toString())
                 .append(" SDB records. ")
