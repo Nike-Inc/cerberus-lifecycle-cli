@@ -17,9 +17,9 @@
 package com.nike.cerberus.operation.core;
 
 import com.nike.cerberus.client.CerberusAdminClient;
+import com.nike.cerberus.client.CerberusAdminClientFactory;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.service.ConsoleService;
-import com.nike.cerberus.vault.VaultAdminClientFactory;
 import com.nike.vault.client.VaultAdminClient;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -37,10 +37,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class RestoreCompleteCerberusDataFromS3BackupOperationTest {
 
-    private RestoreCompleteCerberusDataFromS3BackupOperation operation;
+    private RestoreCerberusBackupOperation operation;
 
     @Mock
-    private VaultAdminClientFactory vaultAdminClientFactory;
+    private CerberusAdminClientFactory adminClientFactory;
 
     @Mock
     private ConsoleService consoleService;
@@ -48,8 +48,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationTest {
     @Before
     public void before() {
         initMocks(this);
-        operation = new RestoreCompleteCerberusDataFromS3BackupOperation(vaultAdminClientFactory,
-                CerberusModule.configObjectMapper(), consoleService);
+        operation = new RestoreCerberusBackupOperation(CerberusModule.configObjectMapper(), consoleService, adminClientFactory);
     }
 
     @Test
@@ -60,7 +59,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationTest {
         );
 
         CerberusAdminClient client = mock(CerberusAdminClient.class);
-        RestoreCompleteCerberusDataFromS3BackupOperation operationSpy = spy(operation);
+        RestoreCerberusBackupOperation operationSpy = spy(operation);
         doNothing().when(operationSpy).deleteAllSecrets(anyString(), any(VaultAdminClient.class));
         operationSpy.processBackup(serializedDecryptedBackupJson, client);
 

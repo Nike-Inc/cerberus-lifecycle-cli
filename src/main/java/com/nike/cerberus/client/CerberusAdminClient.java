@@ -16,6 +16,9 @@
 
 package com.nike.cerberus.client;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nike.cerberus.domain.cms.SafeDepositBox;
+import com.nike.cerberus.domain.cms.SdbMetadataResult;
 import com.nike.vault.client.UrlResolver;
 import com.nike.vault.client.VaultAdminClient;
 import com.nike.vault.client.VaultClientException;
@@ -28,9 +31,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,6 +48,8 @@ public class CerberusAdminClient extends VaultAdminClient {
 
     protected OkHttpClient httpClient;
     protected VaultCredentialsProvider credentialsProvider;
+    protected UrlResolver vaultUrlResolver;
+    protected ObjectMapper objectMapper;
 
     /**
      * Explicit constructor that allows for full control over construction of the Vault client.
@@ -50,19 +60,66 @@ public class CerberusAdminClient extends VaultAdminClient {
      */
     public CerberusAdminClient(UrlResolver vaultUrlResolver,
                                VaultCredentialsProvider credentialsProvider,
-                               OkHttpClient httpClient) {
+                               OkHttpClient httpClient,
+                               ObjectMapper objectMapper) {
 
         super(vaultUrlResolver, credentialsProvider, httpClient);
         this.httpClient = httpClient;
         this.credentialsProvider = credentialsProvider;
+        this.vaultUrlResolver = vaultUrlResolver;
+        this.objectMapper = objectMapper;
     }
 
     public void restoreMetadata(String jsonPayload) {
         HttpUrl url = buildUrl("v1/", "metadata");
         Response response = execute(url, HttpMethod.PUT, jsonPayload);
         if (! response.isSuccessful()) {
-            throw new RuntimeException("Failed to restore metadata with cms body: " + response.message());
+            String body;
+            try {
+                body = response.body().string();
+            } catch (IOException e) {
+                body = e.getMessage();
+            }
+            throw new RuntimeException("Failed to restore metadata with cms body: " + response + '\n' + body);
         }
+    }
+
+    public SdbMetadataResult getSDBMetaData(String offset, String limit) {
+        URL baseUrl = null;
+        try {
+            baseUrl = new URL(vaultUrlResolver.resolve());
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Failed to process cerberus base url", e);
+        }
+
+        HttpUrl url = new HttpUrl.Builder()
+                .scheme(baseUrl.getProtocol())
+                .host(baseUrl.getHost())
+                .addPathSegments("v1/metadata")
+                .addQueryParameter("limit", limit)
+                .addQueryParameter("offset", offset)
+                .build();
+
+        Response response = execute(url, HttpMethod.GET, null);
+        if (! response.isSuccessful()) {
+            throw new RuntimeException(String.format("Failed to get metadata from Cerberus. Code: %s, Msg: %s",
+                    response.code(), response.message()));
+        }
+
+        return parseCmsResponseBody(response, SdbMetadataResult.class);
+    }
+
+    public List<SafeDepositBox> getAllSdbMetadata() {
+        List<SafeDepositBox> sdbMetadataList = new LinkedList<>();
+        SdbMetadataResult currentResult = null;
+        String offset = "0";
+        String limit = "100";
+        do {
+            currentResult = getSDBMetaData(offset, limit);
+            sdbMetadataList.addAll(currentResult.getSafeDepositBoxMetadata());
+        } while (currentResult.hasNext());
+
+        return sdbMetadataList;
     }
 
     public void writeJson(final String path, final Map<String, Object> data) {
@@ -82,7 +139,7 @@ public class CerberusAdminClient extends VaultAdminClient {
                     .addHeader(HttpHeader.ACCEPT, DEFAULT_MEDIA_TYPE.toString());
 
             requestBuilder.addHeader(HttpHeader.CONTENT_TYPE, DEFAULT_MEDIA_TYPE.toString())
-                    .method(method, RequestBody.create(DEFAULT_MEDIA_TYPE, json));
+                    .method(method, json != null ? RequestBody.create(DEFAULT_MEDIA_TYPE, json) : null );
 
             return httpClient.newCall(requestBuilder.build()).execute();
         } catch (IOException e) {
@@ -95,6 +152,22 @@ public class CerberusAdminClient extends VaultAdminClient {
             } else {
                 throw new VaultClientException("I/O error while communicating with vault.", e);
             }
+        }
+    }
+
+    /**
+     * Convenience method for parsing the HTTP response and mapping it to a class.
+     *
+     * @param response      The HTTP response object
+     * @param responseClass The class to map the response body to
+     * @param <M>           Represents the type to map to
+     * @return Deserialized object from the response body
+     */
+    protected <M> M parseCmsResponseBody(final Response response, final Class<M> responseClass) {
+        try(ResponseBody body = response.body()) {
+            return objectMapper.readValue(body.bytes(), responseClass);
+        } catch (IOException e) {
+            throw new VaultClientException("Error parsing the response body from CMS", e);
         }
     }
 }

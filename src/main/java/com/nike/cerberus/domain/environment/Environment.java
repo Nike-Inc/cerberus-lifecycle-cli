@@ -36,6 +36,10 @@ public class Environment {
 
     private String configKeyId;
 
+    private Map<String, BackupRegionInfo> regionBackupBucketMap;
+
+    private String metricsTopicArn;
+
     /**
      * Is the environment configured for continuous delivery
      */
@@ -115,5 +119,21 @@ public class Environment {
     public Environment setCd(boolean cd) {
         isCd = cd;
         return this;
+    }
+
+    public Map<String, BackupRegionInfo> getRegionBackupBucketMap() {
+        return regionBackupBucketMap == null ? new HashMap<>() : regionBackupBucketMap;
+    }
+
+    public void setRegionBackupBucketMap(Map<String, BackupRegionInfo> regionBackupBucketMap) {
+        this.regionBackupBucketMap = regionBackupBucketMap;
+    }
+
+    public String getMetricsTopicArn() {
+        return metricsTopicArn;
+    }
+
+    public void setMetricsTopicArn(String metricsTopicArn) {
+        this.metricsTopicArn = metricsTopicArn;
     }
 }
