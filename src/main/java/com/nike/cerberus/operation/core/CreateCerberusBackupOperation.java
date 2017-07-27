@@ -53,7 +53,6 @@ import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.backup.CerberusBackupMetadata;
 import com.nike.cerberus.domain.backup.CerberusSdbMetadata;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
-import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.MetricsService;
 import com.nike.cerberus.service.S3StoreService;
@@ -65,7 +64,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
