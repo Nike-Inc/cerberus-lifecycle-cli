@@ -243,7 +243,7 @@ launch_config = template.add_resource(LaunchConfiguration(
 autoscaling_group = template.add_resource(AutoScalingGroup(
         "CmsAutoScalingGroup",
         DesiredCapacity=Ref(desired_instances_param),
-        HealthCheckGracePeriod=360,
+        HealthCheckGracePeriod=900,
         HealthCheckType="ELB",
         LaunchConfigurationName=Ref(launch_config),
         LoadBalancerNames=[
