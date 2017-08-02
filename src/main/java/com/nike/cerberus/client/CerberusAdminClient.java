@@ -121,7 +121,7 @@ public class CerberusAdminClient extends VaultAdminClient {
         do {
             currentResult = getSDBMetaData(offset, limit);
             sdbMetadataList.addAll(currentResult.getSafeDepositBoxMetadata());
-            offset += limit;
+            offset += currentResult.getNextOffset();
             log.info("Retrieved metadata for {} SDBs", currentResult.getSdbCountInResult());
         } while (currentResult.hasNext());
 
