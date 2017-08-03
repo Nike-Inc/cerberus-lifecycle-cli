@@ -32,6 +32,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
@@ -45,6 +47,8 @@ import java.util.Map;
  * A Cerberus admin client with the ability to restore metadata
  */
 public class CerberusAdminClient extends VaultAdminClient {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     protected OkHttpClient httpClient;
     protected VaultCredentialsProvider credentialsProvider;
@@ -84,7 +88,7 @@ public class CerberusAdminClient extends VaultAdminClient {
         }
     }
 
-    public SdbMetadataResult getSDBMetaData(String offset, String limit) {
+    public SdbMetadataResult getSDBMetaData(int offset, int limit) {
         URL baseUrl = null;
         try {
             baseUrl = new URL(vaultUrlResolver.resolve());
@@ -96,8 +100,8 @@ public class CerberusAdminClient extends VaultAdminClient {
                 .scheme(baseUrl.getProtocol())
                 .host(baseUrl.getHost())
                 .addPathSegments("v1/metadata")
-                .addQueryParameter("limit", limit)
-                .addQueryParameter("offset", offset)
+                .addQueryParameter("limit", String.valueOf(limit))
+                .addQueryParameter("offset", String.valueOf(offset))
                 .build();
 
         Response response = execute(url, HttpMethod.GET, null);
@@ -112,11 +116,13 @@ public class CerberusAdminClient extends VaultAdminClient {
     public List<SafeDepositBox> getAllSdbMetadata() {
         List<SafeDepositBox> sdbMetadataList = new LinkedList<>();
         SdbMetadataResult currentResult = null;
-        String offset = "0";
-        String limit = "100";
+        int offset = 0;
+        int limit = 100;
         do {
             currentResult = getSDBMetaData(offset, limit);
             sdbMetadataList.addAll(currentResult.getSafeDepositBoxMetadata());
+            offset = currentResult.getNextOffset();
+            log.info("Retrieved metadata for {} SDBs", currentResult.getSdbCountInResult());
         } while (currentResult.hasNext());
 
         return sdbMetadataList;
