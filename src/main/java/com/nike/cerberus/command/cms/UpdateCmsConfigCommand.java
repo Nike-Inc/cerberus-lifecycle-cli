@@ -40,7 +40,7 @@ public class UpdateCmsConfigCommand implements Command {
     @Parameter(names = CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, description = "Group that has admin privileges in CMS.")
     private String adminGroup;
 
-    @Parameter(names = OVERWRITE_LONG_ARG, description = "Overwrite -P parameters completely.")
+    @Parameter(names = OVERWRITE_LONG_ARG, description = "Overwrite option deletes any existing -P parameters that were not resupplied (this option is not usually needed).")
     private boolean overwrite;
 
     @DynamicParameter(names = CreateCmsConfigCommand.PROPERTY_SHORT_ARG, description = "Dynamic parameters for setting additional properties in the CMS environment configuration.")
