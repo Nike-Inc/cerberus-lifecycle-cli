@@ -51,6 +51,8 @@ public class InitVaultClusterOperation implements Operation<InitVaultClusterComm
 
     @Override
     public void run(final InitVaultClusterCommand command) {
+        logger.info("If you just created the Vault cluster, this command will fail until the Vault cluster has a chance to initialize.  If that happens, just try again in a few minutes.");
+
         logger.info("Getting clients for Vault instances.");
         final List<VaultAdminClient> clients = vaultAdminClientFactory.getClientsForCluster();
 
