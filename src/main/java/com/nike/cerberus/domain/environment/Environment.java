@@ -17,6 +17,8 @@
 package com.nike.cerberus.domain.environment;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,6 +39,8 @@ public class Environment {
     private String configKeyId;
 
     private Map<String, BackupRegionInfo> regionBackupBucketMap;
+
+    private List<String> backupAdminIamPrincipals;
 
     private String metricsTopicArn;
 
@@ -127,6 +131,14 @@ public class Environment {
 
     public void setRegionBackupBucketMap(Map<String, BackupRegionInfo> regionBackupBucketMap) {
         this.regionBackupBucketMap = regionBackupBucketMap;
+    }
+
+    public List<String> getBackupAdminIamPrincipals() {
+        return backupAdminIamPrincipals == null ? new LinkedList<>() : backupAdminIamPrincipals;
+    }
+
+    public void setBackupAdminIamPrincipals(List<String> backupAdminIamPrincipals) {
+        this.backupAdminIamPrincipals = backupAdminIamPrincipals;
     }
 
     public String getMetricsTopicArn() {

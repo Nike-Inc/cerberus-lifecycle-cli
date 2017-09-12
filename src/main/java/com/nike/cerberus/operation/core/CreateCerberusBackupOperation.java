@@ -67,6 +67,7 @@ import javax.inject.Inject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -343,9 +344,16 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         String accountId = identityResult.getAccount();
         String rootArn = String.format("arn:aws:iam::%s:root", accountId);
 
-        String adminRoleArn = configStore.getAccountAdminArn().get();
+        List<String> backupAdminPrincipals = configStore.getBackupAdminIamPrincipals();
+
+        if (backupAdminPrincipals.isEmpty()) {
+            String adminRoleArn = configStore.getAccountAdminArn().get();
+            backupAdminPrincipals.add(adminRoleArn);
+            configStore.storeBackupAdminIamPrincipals(backupAdminPrincipals);
+        }
 
         Policy kmsPolicy = new Policy();
+        final List<Statement> statements = new LinkedList<>();
 
         // allow the root user all permissions
         Statement rootUserStatement = new Statement(Statement.Effect.Allow);
@@ -353,18 +361,18 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         rootUserStatement.withPrincipals(new Principal(AWS_PROVIDER, rootArn, false));
         rootUserStatement.withActions(KMSActions.AllKMSActions);
         rootUserStatement.withResources(new Resource("*"));
+        statements.add(rootUserStatement);
 
-        // allow the configured admin user all permissions
-        Statement adminUserStatement = new Statement(Statement.Effect.Allow);
-        adminUserStatement.withId("Admin Role Has All Actions");
-        adminUserStatement.withPrincipals(new Principal(AWS_PROVIDER, adminRoleArn, false));
-        adminUserStatement.withActions(KMSActions.AllKMSActions);
-        adminUserStatement.withResources(new Resource("*"));
+        // allow the configured admin iam principals all permissions
+        backupAdminPrincipals.forEach(principal -> {
+            statements.add(new Statement(Statement.Effect.Allow)
+                .withId("Admin principal " + principal + " Has All Actions")
+                .withPrincipals(new Principal(AWS_PROVIDER, principal, false))
+                .withActions(KMSActions.AllKMSActions)
+                .withResources(new Resource("*"));
+        });
 
-        kmsPolicy.withStatements(
-            rootUserStatement,
-            adminUserStatement
-        );
+        kmsPolicy.setStatements(statements);
 
         String policyString = kmsPolicy.toJson();
 

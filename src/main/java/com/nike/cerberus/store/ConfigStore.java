@@ -596,6 +596,8 @@ public class ConfigStore {
         return Optional.ofNullable(baseParameters.getAccountAdminArn());
     }
 
+
+
     public String getCerberusBaseUrl() {
         return String.format("https://%s", getGatewayStackParamters().getHostname());
     }
@@ -951,6 +953,21 @@ public class ConfigStore {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
             environment.getRegionBackupBucketMap().put(region, new BackupRegionInfo(bucket, kmsCmkId));
+            saveEnvironmentData(environment);
+        }
+    }
+
+    public List<String> getBackupAdminIamPrincipals() {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            return environment.getBackupAdminIamPrincipals();
+        }
+    }
+
+    public void storeBackupAdminIamPrincipals(List<String> principals) {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            environment.setBackupAdminIamPrincipals(principals);
             saveEnvironmentData(environment);
         }
     }
