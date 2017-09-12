@@ -35,9 +35,6 @@ import com.amazonaws.services.s3.AmazonS3EncryptionClientBuilder;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.CryptoConfiguration;
 import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
-import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,6 +44,7 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.google.common.collect.ImmutableMap;
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.client.CerberusAdminClientFactory;
+import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
 import com.nike.cerberus.domain.cms.SafeDepositBox;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
@@ -67,6 +65,7 @@ import javax.inject.Inject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -87,15 +86,14 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
     private final CerberusAdminClient cerberusAdminClient;
     private final MetricsService metricsService;
     private final EnvironmentMetadata environmentMetadata;
-    private final AWSSecurityTokenService sts;
+
     private final Map<String, S3StoreService> regionToEncryptedStoreServiceMap = new HashMap<>();
 
     @Inject
     public CreateCerberusBackupOperation(CerberusAdminClientFactory cerberusAdminClientFactory,
                                          ConfigStore configStore,
                                          MetricsService metricsService,
-                                         EnvironmentMetadata environmentMetadata,
-                                         AWSSecurityTokenService sts) {
+                                         EnvironmentMetadata environmentMetadata) {
 
         objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
@@ -109,7 +107,6 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         this.configStore = configStore;
         this.metricsService = metricsService;
         this.environmentMetadata = environmentMetadata;
-        this.sts = sts;
 
         cerberusAdminClient = cerberusAdminClientFactory.createCerberusAdminClient(
                 configStore.getCerberusBaseUrl());
@@ -339,32 +336,19 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
     }
 
     private String provisionKmsCmkForBackupRegion(String region) {
-        GetCallerIdentityResult identityResult = sts.getCallerIdentity(new GetCallerIdentityRequest());
-        String accountId = identityResult.getAccount();
-        String rootArn = String.format("arn:aws:iam::%s:root", accountId);
-
-        String adminRoleArn = configStore.getAccountAdminArn().get();
-
         Policy kmsPolicy = new Policy();
+        final List<Statement> statements = new LinkedList<>();
+        // allow the configured admin iam principals all permissions
+        configStore.getBackupAdminIamPrincipals().forEach( principal -> {
+            log.debug("Adding principal: {} to the CMK Policy for region {}", principal, region);
+            statements.add(new Statement(Statement.Effect.Allow)
+                .withId("Principal " + principal + " Has All Actions")
+                .withPrincipals(new Principal(AWS_PROVIDER, principal, false))
+                .withActions(KMSActions.AllKMSActions)
+                .withResources(new Resource("*")));
+        });
 
-        // allow the root user all permissions
-        Statement rootUserStatement = new Statement(Statement.Effect.Allow);
-        rootUserStatement.withId("Root User Has All Actions");
-        rootUserStatement.withPrincipals(new Principal(AWS_PROVIDER, rootArn, false));
-        rootUserStatement.withActions(KMSActions.AllKMSActions);
-        rootUserStatement.withResources(new Resource("*"));
-
-        // allow the configured admin user all permissions
-        Statement adminUserStatement = new Statement(Statement.Effect.Allow);
-        adminUserStatement.withId("Admin Role Has All Actions");
-        adminUserStatement.withPrincipals(new Principal(AWS_PROVIDER, adminRoleArn, false));
-        adminUserStatement.withActions(KMSActions.AllKMSActions);
-        adminUserStatement.withResources(new Resource("*"));
-
-        kmsPolicy.withStatements(
-            rootUserStatement,
-            adminUserStatement
-        );
+        kmsPolicy.setStatements(statements);
 
         String policyString = kmsPolicy.toJson();
 
@@ -394,9 +378,8 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
 
     @Override
     public boolean isRunnable(CreateCerberusBackupCommand command) {
-        Optional<String> adminIamPrincipalArn = configStore.getAccountAdminArn();
-        if (! adminIamPrincipalArn.isPresent()) {
-            log.error("The admin IAM principal must be set for this environment");
+        if (!configStore.getBackupAdminIamPrincipals().isEmpty()) {
+            log.error("Backup Admin Principals have not been set please run " + SetBackupAdminPrincipalsCommand.COMMAND_NAME);
             return false;
         }
         return true;

@@ -42,6 +42,7 @@ import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
+import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
 import com.nike.cerberus.command.gateway.CreateCloudFrontLogProcessingLambdaConfigCommand;
@@ -202,6 +203,7 @@ public class CerberusRunner {
         registerCommand(new UpdateCmsConfigCommand());
         registerCommand(new RollingRebootWithHealthCheckCommand());
         registerCommand(new CreateCerberusBackupCommand());
+        registerCommand(new SetBackupAdminPrincipalsCommand());
     }
 
     /**
