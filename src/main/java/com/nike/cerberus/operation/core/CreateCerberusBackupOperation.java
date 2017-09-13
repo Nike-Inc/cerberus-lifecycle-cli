@@ -378,7 +378,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
 
     @Override
     public boolean isRunnable(CreateCerberusBackupCommand command) {
-        if (!configStore.getBackupAdminIamPrincipals().isEmpty()) {
+        if (configStore.getBackupAdminIamPrincipals().isEmpty()) {
             log.error("Backup Admin Principals have not been set please run " + SetBackupAdminPrincipalsCommand.COMMAND_NAME);
             return false;
         }
