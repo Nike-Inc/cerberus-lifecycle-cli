@@ -947,10 +947,32 @@ public class ConfigStore {
         }
     }
 
+    public  Map<String, BackupRegionInfo> getRegionBackupBucketMap() {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            return environment.getRegionBackupBucketMap();
+        }
+    }
+
     public void storeBackupInfoForRegion(String region, String bucket, String kmsCmkId) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
             environment.getRegionBackupBucketMap().put(region, new BackupRegionInfo(bucket, kmsCmkId));
+            saveEnvironmentData(environment);
+        }
+    }
+
+    public Set<String> getBackupAdminIamPrincipals() {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            return environment.getBackupAdminIamPrincipals();
+        }
+    }
+
+    public void storeBackupAdminIamPrincipals(Set<String> principals) {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+            environment.setBackupAdminIamPrincipals(principals);
             saveEnvironmentData(environment);
         }
     }

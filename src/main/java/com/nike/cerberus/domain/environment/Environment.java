@@ -17,7 +17,9 @@
 package com.nike.cerberus.domain.environment;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * General purpose environment data that isn't sensitive.
@@ -37,6 +39,8 @@ public class Environment {
     private String configKeyId;
 
     private Map<String, BackupRegionInfo> regionBackupBucketMap;
+
+    private Set<String> backupAdminIamPrincipals;
 
     private String metricsTopicArn;
 
@@ -127,6 +131,14 @@ public class Environment {
 
     public void setRegionBackupBucketMap(Map<String, BackupRegionInfo> regionBackupBucketMap) {
         this.regionBackupBucketMap = regionBackupBucketMap;
+    }
+
+    public Set<String> getBackupAdminIamPrincipals() {
+        return backupAdminIamPrincipals == null ? new HashSet<>() : backupAdminIamPrincipals;
+    }
+
+    public void setBackupAdminIamPrincipals(Set<String> backupAdminIamPrincipals) {
+        this.backupAdminIamPrincipals = backupAdminIamPrincipals;
     }
 
     public String getMetricsTopicArn() {
