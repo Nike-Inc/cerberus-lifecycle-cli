@@ -133,7 +133,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         CerberusSdbMetadata cerberusSdbMetadata = new CerberusSdbMetadata();
         for (SafeDepositBox sdb : sdbMetadataList) {
             log.info(String.format("Backing up %s", sdb.getName()));
-            Map<String, Map<String, String>> vaultData = recurseVault(sdb.getPath(), new HashMap<>());
+            Map<String, Map<String, Object>> vaultData = recurseVault(sdb.getPath(), new HashMap<>());
             sdb.setData(vaultData);
             String key = sdb.getName().toLowerCase().replaceAll("\\W+", "-");
             saveDataToS3(sdb, prefix, key, regionsToStoreBackups);
@@ -217,7 +217,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
             newMetadata.getUniqueNonOwnerGroups().add(userGroup);
         });
 
-        Map<String, Map<String, String>> vaultNodes = sdb.getData();
+        Map<String, Map<String, Object>> vaultNodes = sdb.getData();
         newMetadata.setNumberOfDataNodes(newMetadata.getNumberOfDataNodes() + vaultNodes.size());
         vaultNodes.forEach((path, kvPairs) -> {
             newMetadata.setNumberOfKeyValuePairs(newMetadata.getNumberOfKeyValuePairs() + kvPairs.size());
@@ -231,7 +231,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
      * @param path The path to recurse
      * @return Map of Vault path Strings to Maps of String, String containing the secret kv pairs
      */
-    private Map<String, Map<String, String>> recurseVault(String path, Map<String, Map<String, String>> data) {
+    private Map<String, Map<String, Object>> recurseVault(String path, Map<String, Map<String, Object>> data) {
         List<String> keys = getKeys(path);
 
         keys.forEach(key -> {
@@ -263,8 +263,8 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
      * @param path The path of data to download
      * @return The data map
      */
-    private Map<String, String> getData(String path) {
-        VaultResponse response = cerberusAdminClient.read(path);
+    private Map<String, Object> getData(String path) {
+        CerberusAdminClient.GenericVaultResponse response = cerberusAdminClient.readDataGenerically(path);
         return response.getData();
     }
 
