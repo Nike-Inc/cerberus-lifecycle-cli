@@ -36,7 +36,7 @@ public class SafeDepositBox {
     private String lastUpdatedBy;
     private Map<String, String> userGroupPermissions;
     private Map<String, String> iamRolePermissions;
-    private Map<String, Map<String, String>> data = new HashMap<>();
+    private Map<String, Map<String, Object>> data = new HashMap<>();
 
     public String getName() {
         return name;
@@ -134,11 +134,11 @@ public class SafeDepositBox {
         this.iamRolePermissions = iamRolePermissions;
     }
 
-    public Map<String, Map<String, String>> getData() {
+    public Map<String, Map<String, Object>> getData() {
         return data;
     }
 
-    public void setData(Map<String, Map<String, String>> data) {
+    public void setData(Map<String, Map<String, Object>> data) {
         this.data = data;
     }
 }

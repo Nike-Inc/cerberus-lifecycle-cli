@@ -17,11 +17,16 @@
 package com.nike.cerberus.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.nike.cerberus.domain.cms.SafeDepositBox;
 import com.nike.cerberus.domain.cms.SdbMetadataResult;
 import com.nike.vault.client.UrlResolver;
 import com.nike.vault.client.VaultAdminClient;
 import com.nike.vault.client.VaultClientException;
+import com.nike.vault.client.VaultServerException;
 import com.nike.vault.client.auth.VaultCredentialsProvider;
 import com.nike.vault.client.http.HttpHeader;
 import com.nike.vault.client.http.HttpMethod;
@@ -54,6 +59,11 @@ public class CerberusAdminClient extends VaultAdminClient {
     protected VaultCredentialsProvider credentialsProvider;
     protected UrlResolver vaultUrlResolver;
     protected ObjectMapper objectMapper;
+
+    protected final Gson gson = new GsonBuilder()
+            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+            .disableHtmlEscaping()
+            .create();
 
     /**
      * Explicit constructor that allows for full control over construction of the Vault client.
@@ -174,6 +184,52 @@ public class CerberusAdminClient extends VaultAdminClient {
             return objectMapper.readValue(body.bytes(), responseClass);
         } catch (IOException e) {
             throw new VaultClientException("Error parsing the response body from CMS", e);
+        }
+    }
+
+    /**
+     * Read operation for a specified path.  Will return a {@link Map} of the data stored at the specified path.
+     * If Vault returns an unexpected response code, a {@link VaultServerException} will be thrown with the code
+     * and error details.  If an unexpected I/O error is encountered, a {@link VaultClientException} will be thrown
+     * wrapping the underlying exception.
+     *
+     * @param path Path to the data
+     * @return Map of the data
+     */
+    public GenericVaultResponse readDataGenerically(final String path) {
+        final HttpUrl url = buildUrl(SECRET_PATH_PREFIX, path);
+        log.debug("read: requestUrl={}", url);
+
+        final Response response = execute(url, HttpMethod.GET, null);
+
+        if (response.code() != HttpStatus.OK) {
+            parseAndThrowErrorResponse(response);
+        }
+
+        return parseResponseBody(response, GenericVaultResponse.class);
+    }
+
+    public class GenericVaultResponse {
+        private Map<String, Object> data;
+
+        public Map<String, Object> getData() {
+            return data;
+        }
+
+        public GenericVaultResponse setData(Map<String, Object> data) {
+            this.data = data;
+            return this;
+        }
+    }
+
+    protected <M> M parseResponseBody(final Response response, final Class<M> responseClass) {
+        final String responseBodyStr = responseBodyAsString(response);
+        try {
+            return gson.fromJson(responseBodyStr, responseClass);
+        } catch (JsonSyntaxException e) {
+            log.error("parseResponseBody: responseCode={}, requestUrl={}",
+                    response.code(), response.request().url());
+            throw new VaultClientException("Error parsing the response body from vault, response code: " + response.code(), e);
         }
     }
 }
