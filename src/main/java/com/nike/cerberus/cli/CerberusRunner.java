@@ -121,6 +121,8 @@ public class CerberusRunner {
 
                 if (operation.isRunnable(command)) {
                     operation.run(command);
+                } else {
+                    throw new RuntimeException("Command not runnable");
                 }
             }
         } catch (Throwable e) {
