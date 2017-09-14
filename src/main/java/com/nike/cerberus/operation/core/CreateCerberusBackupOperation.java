@@ -185,7 +185,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
     private void trackMetadataMetrics(CerberusBackupMetadata metadata) {
         Map<String, String> dimensions = ImmutableMap.of(
                 "cerberusUrl", metadata.getCerberusUrl(),
-                "env", environmentMetadata.getName(),
+                "env", "cerberus-" + environmentMetadata.getName(),
                 "region", environmentMetadata.getRegionName()
         );
 
