@@ -192,9 +192,9 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         metricsService.trackGauge("numberOfSdbs", metadata.getNumberOfSdbs(), dimensions);
         metricsService.trackGauge("numberOfDataNodes", metadata.getNumberOfDataNodes(), dimensions);
         metricsService.trackGauge("numberOfKeyValuePairs", metadata.getNumberOfKeyValuePairs(), dimensions);
-        metricsService.trackGauge("numberOfUniqueOwnerGroups", metadata.getNumberOfUniqueIamRoles(), dimensions);
+        metricsService.trackGauge("numberOfUniqueOwnerGroups", metadata.getNumberOfUniqueOwnerGroups(), dimensions);
         metricsService.trackGauge("numberOfUniqueIamRoles", metadata.getNumberOfUniqueIamRoles(), dimensions);
-        metricsService.trackGauge("numberOfUniqueNonOwnerGroups", metadata.getNumberOfUniqueIamRoles(), dimensions);
+        metricsService.trackGauge("numberOfUniqueNonOwnerGroups", metadata.getNumberOfUniqueNonOwnerGroups(), dimensions);
     }
 
     /**
