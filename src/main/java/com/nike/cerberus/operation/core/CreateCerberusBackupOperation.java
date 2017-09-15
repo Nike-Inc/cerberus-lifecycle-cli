@@ -209,6 +209,8 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
                 currentMetadata.getUniqueNonOwnerGroups()
         );
 
+        newMetadata.getUniqueOwnerGroups().add(sdb.getOwner());
+
         newMetadata.getUniqueIamRoles().add(sdb.getOwner());
         sdb.getIamRolePermissions().forEach((iamRole, permission) -> {
             newMetadata.getUniqueIamRoles().add(iamRole);
