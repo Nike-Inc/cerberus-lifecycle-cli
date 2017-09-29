@@ -44,10 +44,10 @@ import com.nike.cerberus.domain.configuration.GatewayConfiguration;
 import com.nike.cerberus.domain.configuration.VaultAclEntry;
 import com.nike.cerberus.domain.configuration.VaultConfiguration;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
+import com.nike.cerberus.domain.environment.CloudFrontLogProcessingLambdaConfig;
 import com.nike.cerberus.domain.environment.Environment;
 import com.nike.cerberus.domain.environment.Secrets;
 import com.nike.cerberus.domain.environment.StackName;
-import com.nike.cerberus.domain.environment.CloudFrontLogProcessingLambdaConfig;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.IdentityManagementService;
 import com.nike.cerberus.service.S3StoreService;
@@ -70,6 +70,7 @@ import static com.nike.cerberus.ConfigConstants.ADMIN_ROLE_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CA;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CERT;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_KEY;
+import static com.nike.cerberus.ConfigConstants.CERT_PART_PKCS8_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
 import static com.nike.cerberus.ConfigConstants.CMS_ROLE_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.JDBC_PASSWORD_KEY;
@@ -160,7 +161,7 @@ public class ConfigStore {
      * Stores the stack ID for a specific component.
      *
      * @param stackName Stack component
-     * @param stackId Stack ID
+     * @param stackId   Stack ID
      */
     public void storeStackId(final StackName stackName, final String stackId) {
         synchronized (envDataLock) {
@@ -501,22 +502,24 @@ public class ConfigStore {
     /**
      * Stores the certificate files encrypted and adds the certificate name to the environment data.
      *
-     * @param stackName Stack that the cert is for
+     * @param stackName       Stack that the cert is for
      * @param certificateName Certificate name in IAM
-     * @param caContents CA chain
-     * @param certContents Certificate body
-     * @param keyContents Certificate key
-     * @param pubKeyContents Certificate public key
+     * @param caContents      CA chain
+     * @param certContents    Certificate body
+     * @param keyContents     Certificate key
+     * @param pubKeyContents  Certificate public key
      */
     public void storeCert(final StackName stackName,
                           final String certificateName,
                           final String caContents,
                           final String certContents,
                           final String keyContents,
+                          final String pkcs8KeyContents,
                           final String pubKeyContents) {
         saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_CA), caContents);
         saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_CERT), certContents);
         saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_KEY), keyContents);
+        saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_PKCS8_KEY), pkcs8KeyContents);
         saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_PUBKEY), pubKeyContents);
 
         synchronized (envDataLock) {
@@ -542,6 +545,7 @@ public class ConfigStore {
 
     /**
      * Get the CMS environment properties
+     *
      * @return CMS properties
      */
     public Properties getAllExistingCmsEnvProperties() {
@@ -564,6 +568,7 @@ public class ConfigStore {
 
     /**
      * Get generated CMS properties that are not set by the user
+     *
      * @return - System configured properties
      */
     public Properties getCmsSystemProperties() {
@@ -602,6 +607,7 @@ public class ConfigStore {
 
     /**
      * Get existing CMS properties configured by the user
+     *
      * @return - User configured properties
      */
     public Properties getExistingCmsUserProperties() {
@@ -610,7 +616,7 @@ public class ConfigStore {
         Properties existingProperties = getAllExistingCmsEnvProperties();
 
         existingProperties.forEach((key, value) -> {
-            if (! SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(key)) {
+            if (!SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(key)) {
                 properties.put(key, value);
             }
         });
@@ -620,6 +626,7 @@ public class ConfigStore {
 
     /**
      * Return configuration file contents
+     *
      * @param path - Path to configuration file (e.g. 'config/environment.properties')
      */
     public Optional<String> getConfigProperties(String path) {
@@ -720,9 +727,9 @@ public class ConfigStore {
     /**
      * Get the stack outputs for a specific stack name.
      *
-     * @param stackName Stack name
+     * @param stackName   Stack name
      * @param outputClass Outputs class
-     * @param <M> Outputs type
+     * @param <M>         Outputs type
      * @return Outputs
      */
     public <M> M getStackOutputs(final StackName stackName, final Class<M> outputClass) {
@@ -742,9 +749,9 @@ public class ConfigStore {
     /**
      * Get the stack parameters for a specific stack name.
      *
-     * @param stackName Stack name
+     * @param stackName      Stack name
      * @param parameterClass Parameters class
-     * @param <M> Parameters type
+     * @param <M>            Parameters type
      * @return Parameters
      */
     public <M> M getStackParameters(final StackName stackName, final Class<M> parameterClass) {
@@ -947,7 +954,7 @@ public class ConfigStore {
         }
     }
 
-    public  Map<String, BackupRegionInfo> getRegionBackupBucketMap() {
+    public Map<String, BackupRegionInfo> getRegionBackupBucketMap() {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
             return environment.getRegionBackupBucketMap();

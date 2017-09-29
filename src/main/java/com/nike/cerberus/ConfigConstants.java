@@ -40,6 +40,8 @@ public class ConfigConstants {
 
     public static final String CERT_PART_CERT = "cert.pem";
 
+    public static final String CERT_PART_PKCS8_KEY = "pkcs8-key.pem";
+
     public static final String CERT_PART_KEY = "key.pem";
 
     public static final String CERT_PART_PUBKEY = "pubkey.pem";

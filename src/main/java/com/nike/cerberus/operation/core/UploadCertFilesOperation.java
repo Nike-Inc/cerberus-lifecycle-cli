@@ -46,6 +46,7 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
     private static final String CA_FILE_NAME = "ca.pem";
     private static final String CERT_FILE_NAME = "cert.pem";
     private static final String KEY_FILE_NAME = "key.pem";
+    private static final String PKCS8_KEY_FILE_NAME = "pkcs8-key.pem";
     private static final String PUB_KEY_FILE_NAME = "pubkey.pem";
     public static final Set<String> EXPECTED_FILE_NAMES = ImmutableSet.of(CA_FILE_NAME, CERT_FILE_NAME, KEY_FILE_NAME, PUB_KEY_FILE_NAME);
 
@@ -77,6 +78,7 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
         final String caContents = getFileContents(certPath, CA_FILE_NAME);
         final String certContents = getFileContents(certPath, CERT_FILE_NAME);
         final String keyContents = getFileContents(certPath, KEY_FILE_NAME);
+        final String pkcs8KeyContents = getFileContents(certPath, PKCS8_KEY_FILE_NAME);
         final String pubKeyContents = getFileContents(certPath, PUB_KEY_FILE_NAME);
         final String certificateName = stackName.getName() + "_" + uuidSupplier.get();
 
@@ -87,7 +89,7 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
         logger.info("Cert ID: {}", id);
 
         logger.info("Uploading certificate parts to the configuration bucket.");
-        configStore.storeCert(stackName, certificateName, caContents, certContents, keyContents, pubKeyContents);
+        configStore.storeCert(stackName, certificateName, caContents, certContents, keyContents, pkcs8KeyContents, pubKeyContents);
 
         logger.info("Uploading certificate completed.");
     }
