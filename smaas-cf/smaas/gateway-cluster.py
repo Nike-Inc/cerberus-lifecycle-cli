@@ -238,7 +238,7 @@ gateway_load_balancer = template.add_resource(LoadBalancer(
             Attributes=[
                 {
                     "Name": "Reference-Security-Policy",
-                    "Value": "ELBSecurityPolicy-2015-05"
+                    "Value": "ELBSecurityPolicy-TLS-1-2-2017-01"
                 }
             ]
         ),
@@ -707,7 +707,7 @@ gateway_distribution = template.add_resource(Distribution(
         PriceClass="PriceClass_100",
         ViewerCertificate=ViewerCertificate(
             IamCertificateId=Ref(ssl_certificate_id_param),
-            MinimumProtocolVersion="TLSv1",
+            MinimumProtocolVersion="TLSv1.1_2016",
             SslSupportMethod="sni-only"
         ),
         WebACLId=Ref(web_acl),
