@@ -206,7 +206,7 @@ load_balancer = template.add_resource(LoadBalancer(
                     Attributes=[
                         {
                             "Name": "Reference-Security-Policy",
-                            "Value": "ELBSecurityPolicy-2015-05"
+                            "Value": "ELBSecurityPolicy-TLS-1-2-2017-01"
                         }
                     ]
             )
