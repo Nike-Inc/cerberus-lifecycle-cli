@@ -707,7 +707,7 @@ gateway_distribution = template.add_resource(Distribution(
         PriceClass="PriceClass_100",
         ViewerCertificate=ViewerCertificate(
             IamCertificateId=Ref(ssl_certificate_id_param),
-            MinimumProtocolVersion="TLSv1.1_2016",
+            MinimumProtocolVersion="TLSv1",
             SslSupportMethod="sni-only"
         ),
         WebACLId=Ref(web_acl),
