@@ -28,6 +28,7 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
+import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
@@ -191,6 +192,7 @@ public class CerberusRunner {
         registerCommand(new CreateCmsVaultTokenCommand());
         registerCommand(new CreateCmsConfigCommand());
         registerCommand(new CreateCmsClusterCommand());
+        registerCommand(new CreateCmsCmkCommand());
         registerCommand(new CreateGatewayConfigCommand());
         registerCommand(new CreateGatewayClusterCommand());
         registerCommand(new UpdateStackCommand());

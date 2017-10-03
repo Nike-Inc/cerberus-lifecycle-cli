@@ -100,6 +100,8 @@ public class ConfigConstants {
 
     public static final String JDBC_PASSWORD_KEY ="JDBC.password";
 
+    public static final String CMK_ARNS_KEY = "cms.encryption.cmk.arns";
+
     public static final ImmutableSet<String> SYSTEM_CONFIGURED_CMS_PROPERTIES = ImmutableSet.of(
             VAULT_ADDR_KEY,
             VAULT_TOKEN_KEY,
@@ -108,7 +110,8 @@ public class ConfigConstants {
             CMS_ROLE_ARN_KEY,
             JDBC_URL_KEY,
             JDBC_USERNAME_KEY,
-            JDBC_PASSWORD_KEY);
+            JDBC_PASSWORD_KEY,
+            CMK_ARNS_KEY);
 
     public static final String CERBERUS_AMI_TAG_NAME = "tag:cerberus_component";
 

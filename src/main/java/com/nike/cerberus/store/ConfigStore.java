@@ -559,19 +559,17 @@ public class ConfigStore {
             } catch (IOException ioe) {
                 throw new IllegalStateException("Failed to read CMS properties");
             }
-        } else {
-            throw new IllegalStateException("Failed to read CMS properties");
         }
 
         return properties;
     }
 
     /**
-     * Get generated CMS properties that are not set by the user
+     * Generate CMS properties that are not set by the user
      *
      * @return - System configured properties
      */
-    public Properties getCmsSystemProperties() {
+    private Properties generateBaseCmsSystemProperties() {
 
         final BaseOutputs baseOutputs = getBaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
@@ -603,6 +601,26 @@ public class ConfigStore {
 
     public String getCerberusBaseUrl() {
         return String.format("https://%s", getGatewayStackParamters().getHostname());
+    }
+
+    /**
+     * System properties not set with -P param
+     */
+    public Properties getCmsSystemProperties() {
+
+        Properties properties = new Properties();
+        Properties existingProperties = getAllExistingCmsEnvProperties();
+
+        // overwrite any of the automatically generated properties that may have changed
+        existingProperties.putAll(generateBaseCmsSystemProperties());
+
+        existingProperties.forEach((key, value) -> {
+            if (SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(key)) {
+                properties.put(key, value);
+            }
+        });
+
+        return properties;
     }
 
     /**
