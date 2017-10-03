@@ -51,6 +51,7 @@ import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.IdentityManagementService;
 import com.nike.cerberus.service.S3StoreService;
+import com.nike.cerberus.service.SaltGenerator;
 import com.nike.cerberus.service.StoreService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -60,6 +61,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
 import java.io.StringReader;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,6 +75,7 @@ import static com.nike.cerberus.ConfigConstants.CERT_PART_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PKCS8_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
 import static com.nike.cerberus.ConfigConstants.CMS_ROLE_ARN_KEY;
+import static com.nike.cerberus.ConfigConstants.HASH_SALT;
 import static com.nike.cerberus.ConfigConstants.JDBC_PASSWORD_KEY;
 import static com.nike.cerberus.ConfigConstants.JDBC_URL_KEY;
 import static com.nike.cerberus.ConfigConstants.JDBC_USERNAME_KEY;
@@ -104,6 +107,8 @@ public class ConfigStore {
 
     private final EnvironmentMetadata environmentMetadata;
 
+    private final SaltGenerator saltGenerator;
+
     private final Object envDataLock = new Object();
 
     private final Object secretsDataLock = new Object();
@@ -120,6 +125,7 @@ public class ConfigStore {
                        final IdentityManagementService iamService,
                        final AWSSecurityTokenService securityTokenService,
                        final EnvironmentMetadata environmentMetadata,
+                       final SaltGenerator saltGenerator,
                        @Named(CONFIG_OBJECT_MAPPER) final ObjectMapper configObjectMapper,
                        @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
 
@@ -129,6 +135,7 @@ public class ConfigStore {
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
         this.s3Client = s3Client;
         this.environmentMetadata = environmentMetadata;
+        this.saltGenerator = saltGenerator;
         this.securityTokenService = securityTokenService;
     }
 
@@ -619,6 +626,10 @@ public class ConfigStore {
                 properties.put(key, value);
             }
         });
+
+        if (!properties.containsKey(HASH_SALT)) {
+            properties.put(HASH_SALT, saltGenerator.generateSalt());
+        }
 
         return properties;
     }
