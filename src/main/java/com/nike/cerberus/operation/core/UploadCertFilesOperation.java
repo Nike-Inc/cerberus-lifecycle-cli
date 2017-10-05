@@ -48,7 +48,7 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
     private static final String KEY_FILE_NAME = "key.pem";
     private static final String PKCS8_KEY_FILE_NAME = "pkcs8-key.pem";
     private static final String PUB_KEY_FILE_NAME = "pubkey.pem";
-    public static final Set<String> EXPECTED_FILE_NAMES = ImmutableSet.of(CA_FILE_NAME, CERT_FILE_NAME, KEY_FILE_NAME, PUB_KEY_FILE_NAME);
+    public static final Set<String> EXPECTED_FILE_NAMES = ImmutableSet.of(CA_FILE_NAME, CERT_FILE_NAME, KEY_FILE_NAME, PKCS8_KEY_FILE_NAME, PUB_KEY_FILE_NAME);
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
