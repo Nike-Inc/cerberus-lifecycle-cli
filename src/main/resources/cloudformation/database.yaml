@@ -46,6 +46,9 @@ Parameters:
   tagName:
     Description: 'Environment name, e.g. "cerberus-{environment}"'
     Type: String
+  vpcId:
+    Description: The VPC in which the EC2 instances will be run
+    Type: String
   vpcSubnetIdForAz1:
     Description: The subnet for the first availability zone
     Type: String
@@ -87,6 +90,7 @@ Resources:
         - Key: costcenter
           Value: !Ref 'tagCostcenter'
       VPCSecurityGroups:
+        - Fn::ImportValue: !Sub "${sgStackName}-whitelistIngressSgId"
         - Fn::ImportValue: !Sub "${sgStackName}-cmsDbSgId"
     Type: AWS::RDS::DBInstance
   CmsDatabaseParamGroup:
