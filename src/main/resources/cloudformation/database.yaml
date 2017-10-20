@@ -46,9 +46,6 @@ Parameters:
   tagName:
     Description: 'Environment name, e.g. "cerberus-{environment}"'
     Type: String
-  vpcId:
-    Description: The VPC in which the EC2 instances will be run
-    Type: String
   vpcSubnetIdForAz1:
     Description: The subnet for the first availability zone
     Type: String
