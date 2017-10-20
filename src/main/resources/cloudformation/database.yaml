@@ -90,7 +90,6 @@ Resources:
         - Key: costcenter
           Value: !Ref 'tagCostcenter'
       VPCSecurityGroups:
-        - Fn::ImportValue: !Sub "${sgStackName}-whitelistIngressSgId"
         - Fn::ImportValue: !Sub "${sgStackName}-cmsDbSgId"
     Type: AWS::RDS::DBInstance
   CmsDatabaseParamGroup:
