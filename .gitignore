@@ -74,8 +74,3 @@ gradle-app.setting
 
 # Python cache
 **/__pycache__/
-
-# Ignore generated CF templates
-src/main/resources/cloudformation/**
-!src/main/resources/cloudformation/.gitkeep
-/smaas-cf/.idea/

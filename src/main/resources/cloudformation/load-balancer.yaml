@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+Description: Creates the application Load Balancer for the Cerberus environment
+Outputs:
+  albAccessLogBucket:
+    Value: !Ref 'ALBLogBucket'
+  appLoadBalancerLogicalId:
+    Value: !Ref 'ApplicationLoadBalancer'
+    Export:
+      Name: !Sub "${AWS::StackName}-appLoadBalancerLogicalId"
+  albDnsName:
+    Value: !GetAtt 'ApplicationLoadBalancer.DNSName'
+    Export:
+      Name: !Sub "${AWS::StackName}-appLoadBalancerDnsName"
+  cmsTargetGroup:
+    Value: !Ref 'CmsTargetGroup'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsTargetGroupArn"
+Parameters:
+  sgStackName:
+    Description: The name of the stack containing Cerberus IAM roles and SGs stack
+    Type: String
+  sslCertificateArn:
+    Description: TLS certificate ARN for CMS
+    Type: String
+  tagClassification:
+    Default: Gold
+    Description: Denotes which category of Data Classification the instance is grouped
+      under.
+    Type: String
+  tagCostcenter:
+    Description: Represents the Cost Center associated with the team/project.
+    Type: String
+  tagEmail:
+    Description: E-mail address for group or person responsible for the stack.
+    Type: String
+  tagName:
+    Description: 'Environment name, e.g. "cerberus-{environment}"'
+    Type: String
+  vpcId:
+    Description: The VPC in which the EC2 instances will be run
+    Type: String
+  vpcSubnetIdForAz1:
+    Description: The subnet for the first availability zone
+    Type: String
+  vpcSubnetIdForAz2:
+    Description: The subnet for the second availability zone
+    Type: String
+  vpcSubnetIdForAz3:
+    Description: The subnet for the third availability zone
+    Type: String
+Resources:
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates:
+          - CertificateArn: !Ref sslCertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref 'CmsTargetGroup'
+      LoadBalancerArn: !Ref 'ApplicationLoadBalancer'
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-TLS-1-2-2017-01
+  ALBLogBucket:
+    Properties:
+      AccessControl: BucketOwnerFullControl
+
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+        - Key: email
+          Value: !Ref 'tagEmail'
+    Type: AWS::S3::Bucket
+  ALBLogBucketPolicy:
+    Properties:
+      Bucket: !Ref 'ALBLogBucket'
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Principal:
+              AWS:
+                - 797873946194  # the AWS-owned ElasticLoadBalancing account for us-west-2 (required)
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'ALBLogBucket', /*]]
+            Sid: Allow-ALB-Log-Access
+        Version: '2012-10-17'
+    Type: AWS::S3::BucketPolicy
+  ApplicationLoadBalancer:
+    Properties:
+      LoadBalancerAttributes:
+        - Key: access_logs.s3.enabled
+          Value: true
+        - Key: access_logs.s3.bucket
+          Value: !Ref 'ALBLogBucket'
+        - Key: access_logs.s3.prefix
+          Value: environment
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${sgStackName}-appLoadBalancerSgId"
+      Subnets:
+        - Ref: 'vpcSubnetIdForAz1'
+        - Ref: 'vpcSubnetIdForAz2'
+        - Ref: 'vpcSubnetIdForAz3'
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  CmsTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 5
+      HealthCheckPath: /healthcheck
+      HealthCheckPort: 8443
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 2
+      Port: 8443
+      Protocol: HTTPS
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 10
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Ref: 'vpcId'

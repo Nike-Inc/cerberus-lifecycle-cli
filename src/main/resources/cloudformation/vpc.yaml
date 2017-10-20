@@ -1,0 +1,212 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+Description: Creates the Cerberus VPC and foundational resources
+Outputs:
+  subnetCidrBlockForAz1:
+    Description: Cidr block for subnet in AZ '1'
+    Value: 172.20.0.0/24
+  subnetCidrBlockForAz2:
+    Description: Cidr block for subnet in AZ '2'
+    Value: 172.20.4.0/24
+  subnetCidrBlockForAz3:
+    Description: Cidr block for subnet in AZ '3'
+    Value: 172.20.8.0/24
+Parameters:
+  internetGatewayCidrBlock:
+    AllowedPattern: '[0-9./]*'
+    Default: 0.0.0.0/0
+    Description: The application load balancer CIDR block for where traffic is allowed from
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  az1:
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: An availability zone identifier for zone '1'
+    Type: String
+  az2:
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: An availability zone identifier for zone '2'
+    Type: String
+  az3:
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: An availability zone identifier for zone '3'
+    Type: String
+  subnetCidrBlockForAz1:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.0.0/24
+    Description: Cidr block for subnet in AZ '1'
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  subnetCidrBlockForAz2:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.4.0/24
+    Description: Cidr block for subnet in AZ '2'
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  subnetCidrBlockForAz3:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.8.0/24
+    Description: Cidr block for subnet in AZ '3'
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  tagClassification:
+    Default: Gold
+    Description: Denotes which category of Data Classification the instance is grouped
+      under.
+    Type: String
+  tagCostcenter:
+    Description: Represents the Cost Center associated with the team/project.
+    Type: String
+  tagEmail:
+    Description: E-mail address for group or person responsible for the stack.
+    Type: String
+  tagName:
+    Description: 'Environment name, e.g. "cerberus-{environment}"'
+    Type: String
+  vpcCidrBlock:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.0.0/20
+    Description: The VPC's CIDR block for internal IPv4 addressing
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+Resources:
+  CerberusDhcpOptions:
+    Properties:
+      DomainName: !If [RegionEqualsEastOne, ec2.internal, !Join [., [!Ref 'AWS::Region',
+            compute.internal]]]
+      DomainNameServers:
+        - AmazonProvidedDNS
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+    Type: AWS::EC2::DHCPOptions
+  CerberusInternetGateway:
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+    Type: AWS::EC2::InternetGateway
+  CerberusRouteInternetGateway:
+    Properties:
+      DestinationCidrBlock: !Ref 'internetGatewayCidrBlock'
+      GatewayId: !Ref 'CerberusInternetGateway'
+      RouteTableId: !Ref 'CerberusRouteTable'
+    Type: AWS::EC2::Route
+  CerberusRouteTable:
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::RouteTable
+  CerberusSubnetForAz1:
+    Properties:
+      AvailabilityZone: !Ref 'az1'
+      CidrBlock: !Ref 'subnetCidrBlockForAz1'
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::Subnet
+  CerberusSubnetForAz2:
+    Properties:
+      AvailabilityZone: !Ref 'az2'
+      CidrBlock: !Ref 'subnetCidrBlockForAz2'
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::Subnet
+  CerberusSubnetForAz3:
+    Properties:
+      AvailabilityZone: !Ref 'az3'
+      CidrBlock: !Ref 'subnetCidrBlockForAz3'
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::Subnet
+  CerberusSubnetRouteTableAssociationForAz1:
+    Properties:
+      RouteTableId: !Ref 'CerberusRouteTable'
+      SubnetId: !Ref 'CerberusSubnetForAz1'
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  CerberusSubnetRouteTableAssociationForAz2:
+    Properties:
+      RouteTableId: !Ref 'CerberusRouteTable'
+      SubnetId: !Ref 'CerberusSubnetForAz2'
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  CerberusSubnetRouteTableAssociationForAz3:
+    Properties:
+      RouteTableId: !Ref 'CerberusRouteTable'
+      SubnetId: !Ref 'CerberusSubnetForAz3'
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  CerberusVpc:
+    Properties:
+      CidrBlock: !Ref 'vpcCidrBlock'
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+    Type: AWS::EC2::VPC
+  CerberusVpcDhcpOptionsAssociation:
+    Properties:
+      DhcpOptionsId: !Ref 'CerberusDhcpOptions'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+  CerberusVpcGatewayAttachment:
+    Properties:
+      InternetGatewayId: !Ref 'CerberusInternetGateway'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::VPCGatewayAttachment
