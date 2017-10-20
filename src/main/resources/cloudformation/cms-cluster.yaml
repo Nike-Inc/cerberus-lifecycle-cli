@@ -114,7 +114,7 @@ Resources:
     Properties:
       Path: /
       Roles:
-        - Fn::ImportValue: !Sub "${baseS}-cmsIamRoleArn"
+        - Fn::ImportValue: !Sub "${baseStackName}-cmsIamRoleName"
     Type: AWS::IAM::InstanceProfile
   CmsLaunchConfiguration:
     Properties:
