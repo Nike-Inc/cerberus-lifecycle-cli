@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Launches the Security Groups required for Cerberus
+Outputs:
+  appLoadBalancerSgId:
+    Value: !GetAtt 'AlbSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-appLoadBalancerSgId"
+  cmsDbPort:
+    Value: !Ref 'cmsDbPort'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsDbPort"
+  cmsSgId:
+    Value: !GetAtt 'CmsSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsSgId"
+  cmsDbSgId:
+    Value: !GetAtt 'CmsDbSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsDbSgId"
+  whitelistIngressSgId:
+    Value: !GetAtt 'WhitelistIngressSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-whitelistIngressSgId"
+Parameters:
+  appLoadBalancerCidrBlock:
+    AllowedPattern: '[0-9./]*'
+    Default: 0.0.0.0/0
+    Description: The application load balancer CIDR block for where traffic is allowed from
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  cmsDbPort:
+    Default: '3306'
+    Description: Port for the cms DB instance
+    Type: Number
+  vpcId:
+    Description: ID of the VPC to associate with the security groups
+    Type: String
+  tagClassification:
+    Default: Gold
+    Description: Denotes which category of Data Classification the instance is grouped
+      under.
+    Type: String
+  tagCostcenter:
+    Description: Represents the Cost Center associated with the team/project.
+    Type: String
+  tagEmail:
+    Description: E-mail address for group or person responsible for the stack.
+    Type: String
+  tagName:
+    Description: 'Environment name, e.g. "cerberus-{environment}"'
+    Type: String
+Resources:
+  AlbSg:
+    Properties:
+      GroupDescription: ALB Security Group
+      Tags:
+        - Key: AutoUpdate
+          Value: 'true'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VpcId:
+        Ref: 'vpcId'
+    Type: AWS::EC2::SecurityGroup
+  AlbIngressFromInternetSg443:
+    Properties:
+      CidrIp: !Ref 'appLoadBalancerCidrBlock'
+      FromPort: 443
+      GroupId: !Ref 'AlbSg'
+      IpProtocol: tcp
+      ToPort: 443
+    Type: AWS::EC2::SecurityGroupIngress
+  CmsDbFromCms:
+    Properties:
+      FromPort: !Ref 'cmsDbPort'
+      GroupId: !Ref 'CmsDbSg'
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref 'CmsSg'
+      ToPort: !Ref 'cmsDbPort'
+    Type: AWS::EC2::SecurityGroupIngress
+  CmsDbSg:
+    Properties:
+      GroupDescription: Management Server Database Security Group
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VpcId:
+        Ref: 'vpcId'
+    Type: AWS::EC2::SecurityGroup
+  CmsIngressFromAlb8077:
+    Properties:
+      FromPort: 8077
+      GroupId: !Ref 'CmsSg'
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref 'AlbSg'
+      ToPort: 8077
+    Type: AWS::EC2::SecurityGroupIngress
+  CmsIngressFromCmsElb8443:
+    Properties:
+      FromPort: 8443
+      GroupId: !Ref 'CmsSg'
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref 'AlbSg'
+      ToPort: 8443
+    Type: AWS::EC2::SecurityGroupIngress
+  CmsSg:
+    Properties:
+      GroupDescription: Management Server Instance Security Group
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VpcId:
+        Ref: 'vpcId'
+    Type: AWS::EC2::SecurityGroup
+  WhitelistIngressSg:
+    Properties:
+      GroupDescription: Administration ingress from tools NAT boxes
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VpcId:
+        Ref: 'vpcId'
+    Type: AWS::EC2::SecurityGroup

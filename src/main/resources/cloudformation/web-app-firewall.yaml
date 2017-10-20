@@ -1,0 +1,179 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+Description: Creates the Web Application Firewall (WAF) for the Cerberus ALB
+Outputs:
+  autoBlockIPSetID:
+    Value: !Ref 'WAFAutoBlockSet'
+  manualBlockIPSetID:
+    Value: !Ref 'WAFManualBlockSet'
+  whiteListIPSetID:
+    Value: !Ref 'WAFWhiteListSet'
+Parameters:
+  appLoadBalancerStackName:
+    Description: The name of the Cerberus load balancer CloudFormation stack
+    Type: String
+  tagClassification:
+    Default: Gold
+    Description: Denotes which category of Data Classification the instance is grouped
+      under.
+    Type: String
+  tagCostcenter:
+    Description: Represents the Cost Center associated with the team/project.
+    Type: String
+  tagEmail:
+    Description: E-mail address for group or person responsible for the stack.
+    Type: String
+  tagName:
+    Description: 'Environment name, e.g. "cerberus-{environment}"'
+    Type: String
+Resources:
+  CerberusWAFWebAcl:
+    DependsOn:
+      - WAFManualBlockRule
+      - WAFAutoBlockRule
+    Properties:
+      DefaultAction:
+        Type: ALLOW
+      MetricName: CerberusWAF
+      Name: !Join [-, [waf, !Ref 'tagName']]
+      Rules:
+        - Action:
+            Type: BLOCK
+          Priority: 1
+          RuleId: !Ref 'CerberusWafSizeConstraintRule'
+        - Action:
+            Type: BLOCK
+          Priority: 2
+          RuleId: !Ref 'CerberusWafSqlInjectionRule'
+        - Action:
+            Type: BLOCK
+          Priority: 3
+          RuleId: !Ref 'CerberusWafXssRule'
+        - Action:
+            Type: ALLOW
+          Priority: 4
+          RuleId: !Ref 'WAFWhiteListRule'
+        - Action:
+            Type: BLOCK
+          Priority: 5
+          RuleId: !Ref 'WAFManualBlockRule'
+        - Action:
+            Type: BLOCK
+          Priority: 6
+          RuleId: !Ref 'WAFAutoBlockRule'
+    Type: AWS::WAFRegional::WebACL
+  CerberusWebACLAssociation:
+    Type: "AWS::WAFRegional::WebACLAssociation"
+    Properties:
+      ResourceArn:
+        Fn::ImportValue: !Sub "${appLoadBalancerStackName}-appLoadBalancerLogicalId"
+      WebACLId:
+        !Ref 'CerberusWAFWebAcl'
+  CerberusWafSizeConstraintRule:
+    Properties:
+      MetricName: CerberusWafSizeConstraint
+      Name: CerberusWafSizeConstraintRule
+      Predicates:
+        - DataId: !Ref 'CerberusWafSizeConstraintSet'
+          Negated: 'false'
+          Type: SizeConstraint
+    Type: AWS::WAFRegional::Rule
+  CerberusWafSizeConstraintSet:
+    Properties:
+      Name: CerberusWafSizeConstraintSet
+      SizeConstraints:
+        - ComparisonOperator: GE
+          FieldToMatch:
+            Type: BODY
+          Size: 256000
+          TextTransformation: NONE
+    Type: AWS::WAFRegional::SizeConstraintSet
+  CerberusWafSqlInjectionMatchSet:
+    Properties:
+      Name: CerberusWafSqlInjectionMatchSet
+      SqlInjectionMatchTuples:
+        - FieldToMatch:
+            Type: URI
+          TextTransformation: NONE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          TextTransformation: NONE
+        - FieldToMatch:
+            Type: BODY
+          TextTransformation: NONE
+    Type: AWS::WAFRegional::SqlInjectionMatchSet
+  CerberusWafSqlInjectionRule:
+    Properties:
+      MetricName: CerberusWafSqlInjection
+      Name: CerberusWafSqlInjectionRule
+      Predicates:
+        - DataId: !Ref 'CerberusWafSqlInjectionMatchSet'
+          Negated: 'false'
+          Type: SqlInjectionMatch
+    Type: AWS::WAFRegional::Rule
+  CerberusWafXssMatchSet:
+    Properties:
+      Name: CerberusWafXssMatchSet
+      XssMatchTuples:
+        - FieldToMatch:
+            Type: URI
+          TextTransformation: NONE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          TextTransformation: NONE
+        - FieldToMatch:
+            Type: BODY
+          TextTransformation: NONE
+    Type: AWS::WAFRegional::XssMatchSet
+  CerberusWafXssRule:
+    Properties:
+      MetricName: CerberusWafXss
+      Name: CerberusWafXssRule
+      Predicates:
+        - DataId: !Ref 'CerberusWafXssMatchSet'
+          Negated: 'false'
+          Type: XssMatch
+    Type: AWS::WAFRegional::Rule
+  WAFAutoBlockRule:
+    DependsOn: WAFAutoBlockSet
+    Properties:
+      MetricName: AutoBlockRule
+      Name: Auto Block Rule
+      Predicates:
+        - DataId: !Ref 'WAFAutoBlockSet'
+          Negated: 'false'
+          Type: IPMatch
+    Type: AWS::WAFRegional::Rule
+  WAFAutoBlockSet:
+    Properties:
+      Name: Auto Block Set
+    Type: AWS::WAFRegional::IPSet
+  WAFManualBlockRule:
+    DependsOn: WAFManualBlockSet
+    Properties:
+      MetricName: ManualBlockRule
+      Name: Manual Block Rule
+      Predicates:
+        - DataId: !Ref 'WAFManualBlockSet'
+          Negated: 'false'
+          Type: IPMatch
+    Type: AWS::WAFRegional::Rule
+  WAFManualBlockSet:
+    Properties:
+      Name: Manual Block Set
+    Type: AWS::WAFRegional::IPSet
+  WAFWhiteListRule:
+    DependsOn: WAFWhiteListSet
+    Properties:
+      MetricName: WhiteListRule
+      Name: White List Rule
+      Predicates:
+        - DataId: !Ref 'WAFWhiteListSet'
+          Negated: 'false'
+          Type: IPMatch
+    Type: AWS::WAFRegional::Rule
+  WAFWhiteListSet:
+    Properties:
+      Name: White List Set
+    Type: AWS::WAFRegional::IPSet

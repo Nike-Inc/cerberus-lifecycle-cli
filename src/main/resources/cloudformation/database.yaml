@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+Description: Creates the database for use by the Cerberus Management Service (CMS)
+Outputs:
+  cmsDbAddress:
+    Value: !GetAtt 'CmsDatabase.Endpoint.Address'
+  cmsDbId:
+    Value: !Ref 'CmsDatabase'
+  cmsDbJdbcConnectionString:
+    Description: JDBC connection string for cms database
+    Value: !Join ['', ['jdbc:mysql://', !GetAtt 'CmsDatabase.Endpoint.Address', ':',
+        !GetAtt 'CmsDatabase.Endpoint.Port', /, !Ref 'cmsDbName', '?useUnicode=true&characterEncoding=utf8&useLegacyDatetimeCode=false&serverTimezone=UTC']]
+Parameters:
+  cmsDbAllocatedStorage:
+    Default: '100'
+    Description: The allocated storage for the RDS instance.
+    Type: String
+  cmsDbInstanceSize:
+    Default: db.r3.large
+    Description: MySQL DB instance class
+    Type: String
+  cmsDbMasterPassword:
+    Description: Master password for the cms RDS instance
+    Type: String
+  cmsDbMasterUsername:
+    Description: Master username for the cms RDS instance
+    Type: String
+  cmsDbName:
+    Description: The name of the database initially create on the RDS instance
+    Type: String
+  sgStackName:
+    Description: The name of the Cerberus Security Groups CloudFormation stack
+    Type: String
+  tagClassification:
+    Default: Gold
+    Description: Denotes which category of Data Classification the instance is grouped
+      under.
+    Type: String
+  tagCostcenter:
+    Description: Represents the Cost Center associated with the team/project.aaa
+    Type: String
+  tagEmail:
+    Description: E-mail address for group or person responsible for the stack.
+    Type: String
+  tagName:
+    Description: 'Environment name, e.g. "cerberus-{environment}"'
+    Type: String
+  vpcId:
+    Description: The VPC in which the EC2 instances will be run
+    Type: String
+  vpcSubnetIdForAz1:
+    Description: The subnet for the first availability zone
+    Type: String
+  vpcSubnetIdForAz2:
+    Description: The subnet for the second availability zone
+    Type: String
+  vpcSubnetIdForAz3:
+    Description: The subnet for the third availability zone
+    Type: String
+Resources:
+  CmsDatabase:
+    Properties:
+      AllocatedStorage: !Ref 'cmsDbAllocatedStorage'
+      AllowMajorVersionUpgrade: 'true'
+      AutoMinorVersionUpgrade: 'true'
+      BackupRetentionPeriod: 14
+      DBInstanceClass: !Ref 'cmsDbInstanceSize'
+      DBName: !Ref 'cmsDbName'
+      DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
+      DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
+      Engine: MySQL
+      MasterUserPassword: !Ref 'cmsDbMasterPassword'
+      MasterUsername: !Ref 'cmsDbMasterUsername'
+      MultiAZ: 'true'
+      Port:
+        Fn::ImportValue: !Sub "${sgStackName}-cmsDbPort"
+      PreferredBackupWindow: 13:14-13:44
+      PreferredMaintenanceWindow: tue:06:48-tue:07:18
+      PubliclyAccessible: 'false'
+      StorageEncrypted: 'true'
+      StorageType: gp2
+      Tags:
+        - Key: Name
+          Value: !Ref 'tagName'
+        - Key: email
+          Value: !Ref 'tagEmail'
+        - Key: classification
+          Value: !Ref 'tagClassification'
+        - Key: costcenter
+          Value: !Ref 'tagCostcenter'
+      VPCSecurityGroups:
+        - Fn::ImportValue: !Sub "${sgStackName}-whitelistIngressSgId"
+        - Fn::ImportValue: !Sub "${sgStackName}-cmsDbSgId"
+    Type: AWS::RDS::DBInstance
+  CmsDatabaseParamGroup:
+    Properties:
+      Description: Default parameters for the cms DB
+      Family: mysql5.6
+      Parameters:
+        log_output: TABLE
+        slow_query_log: 1
+    Type: AWS::RDS::DBParameterGroup
+  CmsDatabaseSubnetGroup:
+    Properties:
+      DBSubnetGroupDescription: DB Subnet Group for management DB
+      SubnetIds:
+        - Ref: 'vpcSubnetIdForAz1'
+        - Ref: 'vpcSubnetIdForAz2'
+        - Ref: 'vpcSubnetIdForAz3'
+    Type: AWS::RDS::DBSubnetGroup
+  

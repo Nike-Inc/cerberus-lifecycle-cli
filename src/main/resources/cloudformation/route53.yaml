@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+Description: Creates the Route53 record for Cerberus
+Outputs:
+  recordSet:
+    Value: !Ref 'CerberusPublicRecordSet'
+Parameters:
+  appLoadBalancerStackName:
+    Description: The name of the Cerberus load balancer CloudFormation stack
+    Type: String
+  hostname:
+    Description: The base hostname for the public facing ALB
+    Type: String
+  hostedZoneId:
+    Description: The base hosted zone to add the ALB CNAME to
+    Type: String
+Resources:
+  CerberusPublicRecordSet:
+    Properties:
+      HostedZoneId:
+        Ref: hostedZoneId
+      Name: !Join [., [!Ref 'hostname', '']]
+      ResourceRecords:
+        - Fn::ImportValue: !Sub "${appLoadBalancerStackName}-appLoadBalancerDnsName"
+      TTL: 30
+      Type: CNAME
+    Type: AWS::Route53::RecordSet
