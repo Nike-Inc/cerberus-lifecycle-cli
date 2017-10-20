@@ -3,43 +3,27 @@ Description: Launches the CMS cluster in the Cerberus VPC
 Outputs:
   autoscalingGroupLogicalId:
     Value: !Ref 'CmsAutoScalingGroup'
-  autoBlockIPSetID:
-    Value: !Ref 'WAFAutoBlockSet'
-  albAccessLogBucket:
-    Value: !Ref 'AlbLogBucket'
-  albDnsName:
-    Value: !GetAtt 'ApplicationLoadBalancer.DNSName'
-  albLogicalId:
-    Value: !Ref 'ApplicationLoadBalancer'
   launchConfigurationLogicalId:
     Value: !Ref 'CmsLaunchConfiguration'
-  manualBlockIPSetID:
-    Value: !Ref 'WAFManualBlockSet'
-  whiteListIPSetID:
-    Value: !Ref 'WAFWhiteListSet'
+  cmsInstanceProfileName:
+    Value: !Ref 'CmsInstanceProfile'
 Parameters:
+  albStackName:
+    Description: The name of the Cerberus ALB CloudFormation stack
+    Type: String
   baseStackName:
     Description: The name of the Cerberus base CloudFormation stack
     Type: String
   cmsAmiId:
     Description: The AMI ID for the CMS instances
     Type: String
-  certPublicKey:
-    Description: TLS certificate public key to be used for backend authentication
+  cmsStackName:
+    Description: The name of the Cerberus CMS CloudFormation stack
     Type: String
   desiredInstances:
     Default: '3'
     Description: Desired Number of Auto Scaling Instances
     Type: Number
-  hostname:
-    Description: The base hostname for the public facing ALB
-    Type: String
-  hostedZoneId:
-    Description: The base hosted zone to add the ALB CNAME to
-    Type: String
-  instanceProfileName:
-    Description: The name for the CMS instance profile
-    Type: String
   instanceSize:
     Description: The instance size for the CMS instances
     Type: String
@@ -58,13 +42,12 @@ Parameters:
     Default: PT15M
     Description: Pause time for AutoScalingRollingUpdate e.g PT15M
     Type: String
-  sslCertificateArn:
-    Description: TLS certificate ARN for the CMS ELB
+  sgStackName:
+    Description: The name of the Cerberus Security Groups CloudFormation stack
     Type: String
   tagClassification:
     Default: Gold
-    Description: Denotes which category of Data Classification the instance is grouped
-      under.
+    Description: Denotes which category of Data Classification the instance is grouped under.
     Type: String
   tagCostcenter:
     Description: Represents the Cost Center associated with the team/project.
@@ -73,16 +56,19 @@ Parameters:
     Description: E-mail address for group or person responsible for the stack.
     Type: String
   tagName:
-    Description: 'Name assigned to the stack. Format: {appGroup}-{appName}'
+    Description: 'Name assigned to the stack. Format: "cerberus-{environment}"'
     Type: String
   userData:
     Description: CMS user data
     Type: String
-  wafLambdaBucket:
-    Description: S3 Bucket for waf lambda function artifact
+  vpcSubnetIdForAz1:
+    Description: The subnet for the first availability zone
     Type: String
-  wafLambdaKey:
-    Description: Key for waf lambda function artifact
+  vpcSubnetIdForAz2:
+    Description: The subnet for the second availability zone
+    Type: String
+  vpcSubnetIdForAz3:
+    Description: The subnet for the third availability zone
     Type: String
   waitOnResourceSignals:
     Default: 'True'
@@ -90,45 +76,6 @@ Parameters:
       you have received a success signal before performing the next scaling action.
     Type: String
 Resources:
-  AlbLogBucket:
-    Properties:
-      AccessControl: BucketOwnerFullControl
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: s3:ObjectCreated:*
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: gz
-            Function: !GetAtt 'LambdaWAFBlacklistingFunction.Arn'
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
-        - Key: email
-          Value: !Ref 'tagEmail'
-    Type: AWS::S3::Bucket
-  AlbLogBucketPolicy:
-    Properties:
-      Bucket: !Ref 'AlbLogBucket'
-      PolicyDocument:
-        Statement:
-          - Action:
-              - s3:*
-            Effect: Allow
-            Principal:
-              AWS:
-                - Fn::ImportValue: !Sub "${baseStackName}-albLogProcessorLambdaIamRoleArn"
-                - 797873946194  # the ElasticLoadBalancing AWS account for us-west-2
-            Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'AlbLogBucket', /*]]
-            Sid: Allow-ALB-Log-Access
-        Version: '2012-10-17'
-    Type: AWS::S3::BucketPolicy
   CmsAutoScalingGroup:
     Properties:
       DesiredCapacity: !Ref 'desiredInstances'
@@ -136,7 +83,7 @@ Resources:
       HealthCheckType: ELB
       LaunchConfigurationName: !Ref 'CmsLaunchConfiguration'
       TargetGroupARNs:
-        - Ref: 'CmsTargetGroup'
+        - Fn::ImportValue: !Sub "${albStackName}-cmsTargetGroupArn"
       MaxSize: !Ref 'maximumInstances'
       MinSize: !Ref 'minimumInstances'
       Tags:
@@ -153,9 +100,9 @@ Resources:
           PropagateAtLaunch: true
           Value: !Ref 'tagCostcenter'
       VPCZoneIdentifier:
-        - Fn::ImportValue: !Sub "${baseStackName}-vpcSubnetIdForAz1"
-        - Fn::ImportValue: !Sub "${baseStackName}-vpcSubnetIdForAz2"
-        - Fn::ImportValue: !Sub "${baseStackName}-vpcSubnetIdForAz3"
+        - Ref: 'vpcSubnetIdForAz1'
+        - Ref: 'vpcSubnetIdForAz2'
+        - Ref: 'vpcSubnetIdForAz3'
     Type: AWS::AutoScaling::AutoScalingGroup
     UpdatePolicy:
       AutoScalingRollingUpdate:
@@ -163,262 +110,22 @@ Resources:
         MinInstancesInService: !Ref 'minimumInstances'
         PauseTime: !Ref 'pauseTime'
         WaitOnResourceSignals: !Ref 'waitOnResourceSignals'
-  CmsTargetGroup:
-    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+  CmsInstanceProfile:
     Properties:
-      HealthCheckIntervalSeconds: 5
-      HealthCheckPath: /healthcheck
-      HealthCheckPort: 8443
-      HealthCheckProtocol: HTTPS
-      HealthCheckTimeoutSeconds: 2
-      HealthyThresholdCount: 2
-      Port: 8443
-      Protocol: HTTPS
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
-      TargetGroupAttributes:
-        - Key: deregistration_delay.timeout_seconds
-          Value: 10
-      UnhealthyThresholdCount: 2
-      VpcId:
-        Fn::ImportValue: !Sub "${baseStackName}-vpcId"
-  ALBListener:
-    Type: AWS::ElasticLoadBalancingV2::Listener
-    Properties:
-      Certificates:
-          - CertificateArn: !Ref sslCertificateArn
-      DefaultActions:
-        - Type: forward
-          TargetGroupArn:
-            Ref: CmsTargetGroup
-      LoadBalancerArn:
-        Ref: ApplicationLoadBalancer
-      Port: 443
-      Protocol: HTTPS
-      SslPolicy: ELBSecurityPolicy-TLS-1-2-2017-01
-  ApplicationLoadBalancer:
-    Properties:
-      LoadBalancerAttributes:
-        - Key: access_logs.s3.enabled
-          Value: true
-        - Key: access_logs.s3.bucket
-          Value: !Ref 'AlbLogBucket'
-        - Key: access_logs.s3.prefix
-          Value: perf2
-      Scheme: internet-facing
-      SecurityGroups:
-        - Fn::ImportValue: !Sub "${baseStackName}-albSgId"
-      Subnets:
-        - Fn::ImportValue: !Sub "${baseStackName}-vpcSubnetIdForAz1"
-        - Fn::ImportValue: !Sub "${baseStackName}-vpcSubnetIdForAz2"
-        - Fn::ImportValue: !Sub "${baseStackName}-vpcSubnetIdForAz3"
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+      Path: /
+      Roles:
+        - Fn::ImportValue: !Sub "${baseS}-cmsIamRoleArn"
+    Type: AWS::IAM::InstanceProfile
   CmsLaunchConfiguration:
     Properties:
       AssociatePublicIpAddress: 'true'
-      IamInstanceProfile: !Ref 'instanceProfileName'
+      IamInstanceProfile: !Ref 'CmsInstanceProfile'
       ImageId: !Ref 'cmsAmiId'
       InstanceMonitoring: 'true'
       InstanceType: !Ref 'instanceSize'
       KeyName: !Ref 'keyPairName'
       SecurityGroups:
-        - Fn::ImportValue: !Sub "${baseStackName}-cmsSgId"
-        - Fn::ImportValue: !Sub "${baseStackName}-toolsIngressSgId"
+        - Fn::ImportValue: !Sub "${sgStackName}-whitelistIngressSgId"
+        - Fn::ImportValue: !Sub "${sgStackName}-cmsSgId"
       UserData: !Ref 'userData'
     Type: AWS::AutoScaling::LaunchConfiguration
-  CerberusPublicRecordSet:
-    Properties:
-      HostedZoneId:
-        Ref: hostedZoneId
-      Name: !Join [., [!Ref 'hostname', '']]
-      ResourceRecords:
-        - !GetAtt 'ApplicationLoadBalancer.DNSName'
-      TTL: 30
-      Type: CNAME
-    Type: AWS::Route53::RecordSet
-  CerberusWAFWebAcl:
-    DependsOn:
-      - WAFManualBlockRule
-      - WAFAutoBlockRule
-    Properties:
-      DefaultAction:
-        Type: ALLOW
-      MetricName: CerberusWAF
-      Name: !Join [., [waf, !Ref 'hostname']]
-      Rules:
-        - Action:
-            Type: BLOCK
-          Priority: 1
-          RuleId: !Ref 'CerberusWafSizeConstraintRule'
-        - Action:
-            Type: BLOCK
-          Priority: 2
-          RuleId: !Ref 'CerberusWafSqlInjectionRule'
-        - Action:
-            Type: BLOCK
-          Priority: 3
-          RuleId: !Ref 'CerberusWafXssRule'
-        - Action:
-            Type: ALLOW
-          Priority: 4
-          RuleId: !Ref 'WAFWhiteListRule'
-        - Action:
-            Type: BLOCK
-          Priority: 5
-          RuleId: !Ref 'WAFManualBlockRule'
-        - Action:
-            Type: BLOCK
-          Priority: 6
-          RuleId: !Ref 'WAFAutoBlockRule'
-    Type: AWS::WAFRegional::WebACL
-  CerberusWebACLAssociation:
-    Type: "AWS::WAFRegional::WebACLAssociation"
-    Properties:
-      ResourceArn:
-        !Ref 'ApplicationLoadBalancer'
-      WebACLId:
-        !Ref 'CerberusWAFWebAcl'
-  CerberusWafSizeConstraintRule:
-    Properties:
-      MetricName: CerberusWafSizeConstraint
-      Name: CerberusWafSizeConstraintRule
-      Predicates:
-        - DataId: !Ref 'CerberusWafSizeConstraintSet'
-          Negated: 'false'
-          Type: SizeConstraint
-    Type: AWS::WAFRegional::Rule
-  CerberusWafSizeConstraintSet:
-    Properties:
-      Name: CerberusWafSizeConstraintSet
-      SizeConstraints:
-        - ComparisonOperator: GE
-          FieldToMatch:
-            Type: BODY
-          Size: 256000
-          TextTransformation: NONE
-    Type: AWS::WAFRegional::SizeConstraintSet
-  CerberusWafSqlInjectionMatchSet:
-    Properties:
-      Name: CerberusWafSqlInjectionMatchSet
-      SqlInjectionMatchTuples:
-        - FieldToMatch:
-            Type: URI
-          TextTransformation: NONE
-        - FieldToMatch:
-            Type: QUERY_STRING
-          TextTransformation: NONE
-        - FieldToMatch:
-            Type: BODY
-          TextTransformation: NONE
-    Type: AWS::WAFRegional::SqlInjectionMatchSet
-  CerberusWafSqlInjectionRule:
-    Properties:
-      MetricName: CerberusWafSqlInjection
-      Name: CerberusWafSqlInjectionRule
-      Predicates:
-        - DataId: !Ref 'CerberusWafSqlInjectionMatchSet'
-          Negated: 'false'
-          Type: SqlInjectionMatch
-    Type: AWS::WAFRegional::Rule
-  CerberusWafXssMatchSet:
-    Properties:
-      Name: CerberusWafXssMatchSet
-      XssMatchTuples:
-        - FieldToMatch:
-            Type: URI
-          TextTransformation: NONE
-        - FieldToMatch:
-            Type: QUERY_STRING
-          TextTransformation: NONE
-        - FieldToMatch:
-            Type: BODY
-          TextTransformation: NONE
-    Type: AWS::WAFRegional::XssMatchSet
-  CerberusWafXssRule:
-    Properties:
-      MetricName: CerberusWafXss
-      Name: CerberusWafXssRule
-      Predicates:
-        - DataId: !Ref 'CerberusWafXssMatchSet'
-          Negated: 'false'
-          Type: XssMatch
-    Type: AWS::WAFRegional::Rule
-  LambdaInvokePermission:
-    DependsOn: LambdaWAFBlacklistingFunction
-    Properties:
-      Action: lambda:*
-      FunctionName: !GetAtt 'LambdaWAFBlacklistingFunction.Arn'
-      Principal: s3.amazonaws.com
-      SourceAccount: !Ref 'AWS::AccountId'
-    Type: AWS::Lambda::Permission
-  LambdaWAFBlacklistingFunction:
-    Properties:
-      Code:
-        S3Bucket: !Ref 'wafLambdaBucket'
-        S3Key: !Ref 'wafLambdaKey'
-      Description: Function for auto black listing ips that are misbehaving
-      Handler: com.nike.cerberus.lambda.waf.handler.CloudFrontLogEventHandler::handleNewS3Event
-      MemorySize: 512
-      Role:
-          Fn::ImportValue: !Sub "${baseStackName}-albLogProcessorLambdaIamRoleArn"
-      Runtime: java8
-      Timeout: '60'
-    Type: AWS::Lambda::Function
-  WAFAutoBlockRule:
-    DependsOn: WAFAutoBlockSet
-    Properties:
-      MetricName: AutoBlockRule
-      Name: Auto Block Rule
-      Predicates:
-        - DataId: !Ref 'WAFAutoBlockSet'
-          Negated: 'false'
-          Type: IPMatch
-    Type: AWS::WAFRegional::Rule
-  WAFAutoBlockSet:
-    Properties:
-      Name: Auto Block Set
-    Type: AWS::WAFRegional::IPSet
-  WAFManualBlockRule:
-    DependsOn: WAFManualBlockSet
-    Properties:
-      MetricName: ManualBlockRule
-      Name: Manual Block Rule
-      Predicates:
-        - DataId: !Ref 'WAFManualBlockSet'
-          Negated: 'false'
-          Type: IPMatch
-    Type: AWS::WAFRegional::Rule
-  WAFManualBlockSet:
-    Properties:
-      Name: Manual Block Set
-    Type: AWS::WAFRegional::IPSet
-  WAFWhiteListRule:
-    DependsOn: WAFWhiteListSet
-    Properties:
-      MetricName: WhiteListRule
-      Name: White List Rule
-      Predicates:
-        - DataId: !Ref 'WAFWhiteListSet'
-          Negated: 'false'
-          Type: IPMatch
-    Type: AWS::WAFRegional::Rule
-  WAFWhiteListSet:
-    Properties:
-      Name: White List Set
-    Type: AWS::WAFRegional::IPSet

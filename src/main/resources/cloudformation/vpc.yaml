@@ -13,7 +13,7 @@ Outputs:
     Description: Cidr block for subnet in AZ '3'
     Value: 172.20.8.0/24
 Parameters:
-  internetGatewayCirdBloack:
+  internetGatewayCirdBlock:
     AllowedPattern: '[0-9./]*'
     Default: 0.0.0.0/0
     Description: The application load balancer CIDR block for where traffic is allowed from
