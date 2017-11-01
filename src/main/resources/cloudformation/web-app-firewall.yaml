@@ -10,7 +10,7 @@ Outputs:
   whiteListIPSetID:
     Value: !Ref 'WAFWhiteListSet'
 Parameters:
-  appLoadBalancerStackName:
+  loadBalancerStackName:
     Description: The name of the Cerberus load balancer CloudFormation stack
     Type: String
   tagClassification:
@@ -67,7 +67,7 @@ Resources:
     Type: "AWS::WAFRegional::WebACLAssociation"
     Properties:
       ResourceArn:
-        Fn::ImportValue: !Sub "${appLoadBalancerStackName}-appLoadBalancerLogicalId"
+        Fn::ImportValue: !Sub "${loadBalancerStackName}-appLoadBalancerLogicalId"
       WebACLId:
         !Ref 'CerberusWAFWebAcl'
   CerberusWafSizeConstraintRule:
