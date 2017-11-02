@@ -48,13 +48,11 @@ public class ConfigConstants {
 
     public static final String BASE_STACK_TEMPLATE_PATH = "/cloudformation/vpc-and-base.json";
 
-    public static final String CONSUL_DATACENTER = "cerberus";
+    public static final String VAULT_DATACENTER = "cerberus";
 
     public static final String CONSUL_SERVER_CONFIG_FILE = "data/consul/consul-server-config.json";
 
     public static final String CONSUL_CLIENT_CONFIG_FILE = "data/consul/consul-client-config.json";
-
-    public static final String CONSUL_STACK_TEMPLATE_PATH = "/cloudformation/consul-cluster.json";
 
     public static final String VAULT_ACL_ENTRY_FILE = "data/consul/vault-acl.json";
 
@@ -109,8 +107,6 @@ public class ConfigConstants {
     public static final String CERBERUS_AMI_TAG_NAME = "tag:cerberus_component";
 
     public static final String CMS_AMI_TAG_VALUE = "cms";
-
-    public static final String CONSUL_AMI_TAG_VALUE = "consul";
 
     public static final String VAULT_AMI_TAG_VALUE = "vault";
 

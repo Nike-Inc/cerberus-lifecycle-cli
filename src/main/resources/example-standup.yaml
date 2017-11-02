@@ -44,25 +44,6 @@ vpc-access-whitelist:
   cidrs:
     - 50.39.106.150/32
 
-# Consul-specific parameters
-consul:
-  cert-path: /path/to/example/certs/  # directory containing pubkey.pem, key.pem, cert.pem, and ca.pem
-  ami-id: ami-1111
-  instance-size: m3.medium
-  key-pair-name: example-key
-  # optional: desired, min, and max instance values
-  desired-instances: 3
-  max-instances: 4
-  min-instances: 3
-
-# Vault-specific parameters
-vault:
-  cert-path: /path/to/example/certs/
-  ami-id: ami-2222
-  instance-size: m3.medium
-  key-pair-name: example-key
-  # optional: desired, min, and max instance values
-
 # Cerberus Management Service-specific parameters
 management-service:
   cert-path: /path/to/example/certs/

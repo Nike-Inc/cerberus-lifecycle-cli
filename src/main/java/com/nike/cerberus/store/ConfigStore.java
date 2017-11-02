@@ -33,13 +33,7 @@ import com.nike.cerberus.domain.cloudformation.BaseOutputs;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
 import com.nike.cerberus.domain.cloudformation.CmsOutputs;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
-import com.nike.cerberus.domain.cloudformation.ConsulOutputs;
-import com.nike.cerberus.domain.cloudformation.ConsulParameters;
 import com.nike.cerberus.domain.cloudformation.VaultOutputs;
-import com.nike.cerberus.domain.cloudformation.VaultParameters;
-import com.nike.cerberus.domain.configuration.ConsulConfiguration;
-import com.nike.cerberus.domain.configuration.VaultAclEntry;
-import com.nike.cerberus.domain.configuration.VaultConfiguration;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
 import com.nike.cerberus.domain.environment.Environment;
 import com.nike.cerberus.domain.environment.Secrets;
@@ -234,116 +228,6 @@ public class ConfigStore {
     }
 
     /**
-     * Checks if the consul configuration is present in the config store.
-     *
-     * @return If present
-     */
-    public boolean hasConsulConfig() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-
-            return StringUtils.isNotBlank(secrets.getConsul().getAclMasterToken())
-                    && StringUtils.isNotBlank(secrets.getConsul().getGossipEncryptionToken());
-        }
-    }
-
-    /**
-     * Uploads the configuration files and saves the secrets to the config store.
-     *
-     * @param consulConfiguration Consul configuration to upload
-     */
-    public void storeConsulConfig(final ConsulConfiguration consulConfiguration) {
-        saveEncryptedObject(ConfigConstants.CONSUL_SERVER_CONFIG_FILE, consulConfiguration.getServerConfiguration());
-        saveEncryptedObject(ConfigConstants.CONSUL_CLIENT_CONFIG_FILE, consulConfiguration.getClientConfiguration());
-
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            secrets.getConsul().setAclMasterToken(consulConfiguration.getInput().getAclMasterToken());
-            secrets.getConsul().setGossipEncryptionToken(consulConfiguration.getInput().getGossipEncryptionToken());
-            saveSecretsData(secrets);
-        }
-    }
-
-    /**
-     * Retrieves the AclMasterToken for Consul from the config store.
-     */
-    public String getAclMasterToken() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            return secrets.getConsul().getAclMasterToken();
-        }
-    }
-
-    /**
-     * Retrieves the GossipEncryptionToken for Consul from the config store.
-     */
-    public String getGossipEncryptionToken() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            return secrets.getConsul().getGossipEncryptionToken();
-        }
-    }
-
-    /**
-     * Checks if the Vault ACL entry JSON is present in the config store.
-     *
-     * @return If present
-     */
-    public boolean hasVaultAclEntry() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-
-            return StringUtils.isNotBlank(secrets.getConsul().getVaultAclToken());
-        }
-    }
-
-    /**
-     * Uploads the Vault ACL entry JSON and saves the secrets to the config store.
-     *
-     * @param vaultAclEntry Vaul ACL entry to upload
-     */
-    public void storeVaultAclEntry(final VaultAclEntry vaultAclEntry) {
-        saveEncryptedObject(ConfigConstants.VAULT_ACL_ENTRY_FILE, vaultAclEntry.getEntry());
-
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            secrets.getConsul().setVaultAclToken(vaultAclEntry.getAclToken());
-            saveSecretsData(secrets);
-        }
-    }
-
-    /**
-     * Retrieves the Vault ACL token for accessing Consul from the config store.
-     *
-     * @return Vault ACL token
-     */
-    public String getVaultAclToken() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            return secrets.getConsul().getVaultAclToken();
-        }
-    }
-
-    /**
-     * Checks if the Vault configuration file has already been uploaded to the config store.
-     *
-     * @return If present
-     */
-    public boolean hasVaultConfig() {
-        final Optional<String> vaultConfig = getEncryptedObject(ConfigConstants.VAULT_CONFIG_FILE);
-        return vaultConfig.isPresent();
-    }
-
-    /**
-     * Uploads the Vault configuration to the config store.
-     *
-     * @param vaultConfiguration Vault configuration to upload.
-     */
-    public void storeVaultConfig(VaultConfiguration vaultConfiguration) {
-        saveEncryptedObject(ConfigConstants.VAULT_CONFIG_FILE, vaultConfiguration.getConfig());
-    }
-
-    /**
      * Retrieves the CMS adming group from the config store.
      *
      * @return CMS admin group
@@ -414,44 +298,6 @@ public class ConfigStore {
         synchronized (secretsDataLock) {
             final Secrets secrets = getSecretsData();
             secrets.getCms().setVaultToken(cmsVaultToken);
-            saveSecretsData(secrets);
-        }
-    }
-
-    /**
-     * Store just the Vault unseal keys.
-     *
-     * @param vaultKeys Vault unseal keys
-     */
-    public void storeVaultKeys(final List<String> vaultKeys) {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            secrets.getVault().setKeys(vaultKeys);
-            saveSecretsData(secrets);
-        }
-    }
-
-    /**
-     * Gets the Vault keys from the config store.
-     *
-     * @return List of Vault keys
-     */
-    public List<String> getVaultKeys() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            return secrets.getVault().getKeys();
-        }
-    }
-
-    /**
-     * Store just the Vault root token.
-     *
-     * @param vaultRootToken Vault root token
-     */
-    public void storeVaultRootToken(final String vaultRootToken) {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            secrets.getVault().setRootToken(vaultRootToken);
             saveSecretsData(secrets);
         }
     }
@@ -554,7 +400,6 @@ public class ConfigStore {
 
         final BaseOutputs baseOutputs = getBaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
-        final VaultParameters vaultParameters = getVaultStackParamters();
         final Optional<String> cmsVaultToken = getCmsVaultToken();
         final Optional<String> cmsDatabasePassword = getCmsDatabasePassword();
 
@@ -563,7 +408,6 @@ public class ConfigStore {
         final String rootUserArn = String.format("arn:aws:iam::%s:root", callerIdentity.getAccount());
 
         final Properties properties = new Properties();
-        properties.put(VAULT_ADDR_KEY, String.format("https://%s", cnameToHost(vaultParameters.getCname())));
         properties.put(VAULT_TOKEN_KEY, cmsVaultToken.get());
         properties.put(ROOT_USER_ARN_KEY, rootUserArn);
         properties.put(ADMIN_ROLE_ARN_KEY, baseParameters.getAccountAdminArn());
@@ -653,33 +497,6 @@ public class ConfigStore {
      */
     public BaseOutputs getBaseStackOutputs() {
         return getStackOutputs(StackName.BASE, BaseOutputs.class);
-    }
-
-    /**
-     * Get the Consul stack parameters.
-     *
-     * @return Consul parameters
-     */
-    public ConsulParameters getConsulStackParameters() {
-        return getStackParameters(StackName.CONSUL, ConsulParameters.class);
-    }
-
-    /**
-     * Get the Consul stack outputs.
-     *
-     * @return Consul outputs
-     */
-    public ConsulOutputs getConsulStackOutputs() {
-        return getStackOutputs(StackName.CONSUL, ConsulOutputs.class);
-    }
-
-    /**
-     * Get the Vault stack parameters.
-     *
-     * @return Vault parameters
-     */
-    public VaultParameters getVaultStackParamters() {
-        return getStackParameters(StackName.VAULT, VaultParameters.class);
     }
 
     /**

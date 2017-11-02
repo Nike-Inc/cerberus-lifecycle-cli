@@ -42,8 +42,6 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
     private final static ImmutableMap<String, String> HEALTH_CHECK_MAP = ImmutableMap.of(
             StackName.CMS.getName(),     "http://%s:8080/healthcheck",
             StackName.VAULT.getName(),   "https://%s:8200/v1/sys/health?standbyok"
-            // TODO: upgrade Consul and use new healthcheck
-//            StackName.CONSUL.getName(),  "http://%s:8580/v1/status/peers"
     );
 
     private final static int DEFAULT_HTTP_TIMEOUT = 15;

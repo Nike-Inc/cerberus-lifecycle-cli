@@ -43,24 +43,6 @@ vpc-access-whitelist:
   cidrs:
     - 50.39.106.150/32
 
-consul:
-  cert-path: /home/fieldju/development/cerberus_environments/demo/certs/
-  ami-id: ami-1111
-  instance-size: m3.medium
-  key-pair-name: cerberus-test
-  desired-instances: 2
-  max-instances: 4
-  min-instances: 2
-
-vault:
-  cert-path: /home/fieldju/development/cerberus_environments/demo/certs/
-  ami-id: ami-2222
-  instance-size: m3.medium
-  key-pair-name: cerberus-test
-  desired-instances: 2
-  max-instances: 4
-  min-instances: 2
-
 management-service:
   cert-path: /home/fieldju/development/cerberus_environments/demo/certs/
   ami-id: ami-3333

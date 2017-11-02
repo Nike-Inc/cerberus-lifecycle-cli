@@ -34,7 +34,6 @@ public class EnvironmentConfig {
     private String hostname;
     private String hostedZoneId;
     private VpcAccessWhitelist vpcAccessWhitelist;
-    private Consul consul;
     private Vault vault;
     private ManagementService managementService;
     private Dashboard dashboard;
@@ -134,14 +133,6 @@ public class EnvironmentConfig {
 
     public void setVpcAccessWhitelist(VpcAccessWhitelist vpcAccessWhitelist) {
         this.vpcAccessWhitelist = vpcAccessWhitelist;
-    }
-
-    public Consul getConsul() {
-        return consul;
-    }
-
-    public void setConsul(Consul consul) {
-        this.consul = consul;
     }
 
     public Vault getVault() {

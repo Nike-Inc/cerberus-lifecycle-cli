@@ -22,13 +22,11 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
-import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
-import com.nike.cerberus.command.vault.CreateVaultClusterCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -127,64 +125,14 @@ public class EnvironmentConfigToArgsMapperTest {
     public void test_upload_cert_with_overwrite() {
         String commandName = UploadCertFilesCommand.COMMAND_NAME;
 
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, "--stack-name", "consul", "--overwrite"};
+        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, "--stack-name", "cms", "--overwrite"};
 
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
-                "--stack-name", "consul",
+                "--stack-name", "cms",
                 "--cert-path", "/home/fieldju/development/cerberus_environments/demo/certs/",
                 "--overwrite"
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
-    public void test_create_consul_cluster() {
-        String commandName = CreateConsulClusterCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                StackDelegate.AMI_ID_LONG_ARG, "ami-1111",
-                StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
-                StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
-                StackDelegate.COST_CENTER_LONG_ARG, "11111",
-                StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-                StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
-                StackDelegate.DESIRED_INSTANCES_LONG_ARG, "2",
-                StackDelegate.MAX_INSTANCES_LONG_ARG, "4",
-                StackDelegate.MIN_INSTANCES_LONG_ARG, "2"
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
-    public void test_create_vault_cluster() {
-        String commandName = CreateVaultClusterCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                StackDelegate.AMI_ID_LONG_ARG, "ami-2222",
-                StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
-                StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
-                StackDelegate.COST_CENTER_LONG_ARG, "11111",
-                StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-                StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
-                StackDelegate.DESIRED_INSTANCES_LONG_ARG, "2",
-                StackDelegate.MAX_INSTANCES_LONG_ARG, "4",
-                StackDelegate.MIN_INSTANCES_LONG_ARG, "2"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);

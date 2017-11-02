@@ -20,15 +20,12 @@ import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
-import com.nike.cerberus.command.vault.CreateVaultClusterCommand;
 import com.nike.cerberus.domain.input.CerberusStack;
-import com.nike.cerberus.domain.input.Consul;
 import com.nike.cerberus.domain.input.Dashboard;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementService;
@@ -84,10 +81,6 @@ public class EnvironmentConfigToArgsMapper {
                 return getCreateBaseCommandArgs(environmentConfig);
             case UploadCertFilesCommand.COMMAND_NAME:
                 return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
-            case CreateConsulClusterCommand.COMMAND_NAME:
-                return getCreateConsulClusterCommandArgs(environmentConfig);
-            case CreateVaultClusterCommand.COMMAND_NAME:
-                return getCreateVaultClusterCommandArgs(environmentConfig);
             case CreateCmsClusterCommand.COMMAND_NAME:
                 return getCreateCmsClusterCommandArgs(environmentConfig);
             case PublishDashboardCommand.COMMAND_NAME:
@@ -155,15 +148,6 @@ public class EnvironmentConfigToArgsMapper {
         return args;
     }
 
-    private static List<String> getCreateConsulClusterCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        Consul component = environmentConfig.getConsul();
-        addCommonStackArgs(environmentConfig, args, component);
-
-        return args;
-    }
-
     private static List<String> getCreateVaultClusterCommandArgs(EnvironmentConfig environmentConfig) {
         List<String> args = new LinkedList<>();
 
@@ -224,9 +208,6 @@ public class EnvironmentConfigToArgsMapper {
 
         args.add(UploadCertFilesCommand.CERT_PATH_LONG_ARG);
         switch (stackName) {
-            case "consul":
-                args.add(environmentConfig.getConsul().getCertPath());
-                break;
             case "vault":
                 args.add(environmentConfig.getVault().getCertPath());
                 break;
@@ -274,9 +255,6 @@ public class EnvironmentConfigToArgsMapper {
 
         CerberusStack cerberusStack;
         switch (stackName) {
-            case "consul":
-                cerberusStack = environmentConfig.getConsul();
-                break;
             case "vault":
                 cerberusStack = environmentConfig.getVault();
                 break;

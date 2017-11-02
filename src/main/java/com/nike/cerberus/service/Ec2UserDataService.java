@@ -52,8 +52,7 @@ public class Ec2UserDataService {
             case CMS:
                 return getCmsUserData(ownerGroup);
             case VAULT:
-            case CONSUL:
-                return getConsulAndVaultUserData(stackName, ownerGroup);
+                return getVaultUserData(stackName, ownerGroup);
             default:
                 throw new IllegalArgumentException("The stack specified does not support user data. stack: "
                         + stackName.getName());
@@ -67,11 +66,11 @@ public class Ec2UserDataService {
         return encodeUserData(writeExportEnvVars(userDataMap));
     }
 
-    private String getConsulAndVaultUserData(final StackName stackName, final String ownerGroup) {
+    private String getVaultUserData(final StackName stackName, final String ownerGroup) {
         final Map<String, String> userDataMap = Maps.newHashMap();
         addStandardEnvironmentVariables(userDataMap, stackName.getName(), ownerGroup);
 
-        userDataMap.put("CONSUL_DC", ConfigConstants.CONSUL_DATACENTER);
+        userDataMap.put("CONSUL_DC", ConfigConstants.VAULT_DATACENTER);
 
         return encodeUserData(writeExportEnvVars(userDataMap));
     }

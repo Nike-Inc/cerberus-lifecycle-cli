@@ -21,7 +21,6 @@ package com.nike.cerberus.domain.environment;
  */
 public enum StackName {
     BASE("base"),
-    CONSUL("consul"),
     VAULT("vault"),
     CMS("cms"),
     @Deprecated

@@ -58,7 +58,6 @@ public class Environment {
         serverCertificateIdMap = new HashMap<>();
         serverCertificateIdMap.put(StackName.CMS, "");
         serverCertificateIdMap.put(StackName.VAULT, "");
-        serverCertificateIdMap.put(StackName.CONSUL, "");
     }
 
     public String getAz1() {
