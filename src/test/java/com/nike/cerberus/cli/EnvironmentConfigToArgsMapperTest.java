@@ -283,13 +283,13 @@ public class EnvironmentConfigToArgsMapperTest {
     public void test_update_stack_with_no_overwrite_flag_or_dyn_props() {
         String commandName = UpdateStackCommand.COMMAND_NAME;
 
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "gateway"};
+        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "cms"};
 
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
-                EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "gateway",
-                StackDelegate.AMI_ID_LONG_ARG, "ami-4444",
+                EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "cms",
+                StackDelegate.AMI_ID_LONG_ARG, "ami-3333",
                 StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
                 StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",
@@ -306,13 +306,13 @@ public class EnvironmentConfigToArgsMapperTest {
     public void test_update_stack_with_overwrite_flag_and_dyn_props() {
         String commandName = UpdateStackCommand.COMMAND_NAME;
 
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "gateway", "--overwrite-template", "-P", "k=v"};
+        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "cms", "--overwrite-template", "-P", "k=v"};
 
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
-                EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "gateway",
-                StackDelegate.AMI_ID_LONG_ARG, "ami-4444",
+                EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "cms",
+                StackDelegate.AMI_ID_LONG_ARG, "ami-3333",
                 StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
                 StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",

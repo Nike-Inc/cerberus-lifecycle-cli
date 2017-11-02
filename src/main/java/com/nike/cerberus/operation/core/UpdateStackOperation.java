@@ -27,7 +27,6 @@ import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.ConsulParameters;
-import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.LaunchConfigParameters;
 import com.nike.cerberus.domain.cloudformation.SslConfigParametersDelegate;
 import com.nike.cerberus.domain.cloudformation.TagParameters;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.amazonaws.services.cloudformation.model.StackStatus.*;
@@ -90,14 +88,12 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         stackParameterMap.put(StackName.CONSUL, ConsulParameters.class);
         stackParameterMap.put(StackName.VAULT, VaultParameters.class);
         stackParameterMap.put(StackName.CMS, CmsParameters.class);
-        stackParameterMap.put(StackName.GATEWAY, GatewayParameters.class);
 
         stackTemplatePathMap = new HashMap<>();
         stackTemplatePathMap.put(StackName.BASE, ConfigConstants.BASE_STACK_TEMPLATE_PATH);
         stackTemplatePathMap.put(StackName.CONSUL, ConfigConstants.CONSUL_STACK_TEMPLATE_PATH);
         stackTemplatePathMap.put(StackName.VAULT, ConfigConstants.VAULT_STACK_TEMPLATE_PATH);
         stackTemplatePathMap.put(StackName.CMS, ConfigConstants.CMS_STACK_TEMPLATE_PATH);
-        stackTemplatePathMap.put(StackName.GATEWAY, ConfigConstants.GATEWAY_STACK_TEMPLATE_PATH);
     }
 
     @Override

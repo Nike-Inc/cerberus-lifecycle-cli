@@ -233,9 +233,6 @@ public class EnvironmentConfigToArgsMapper {
             case "cms":
                 args.add(environmentConfig.getManagementService().getCertPath());
                 break;
-            case "gateway":
-                args.add(environmentConfig.getGateway().getCertPath());
-                break;
             default:
                 args.add("");
         }
@@ -285,9 +282,6 @@ public class EnvironmentConfigToArgsMapper {
                 break;
             case "cms":
                 cerberusStack = environmentConfig.getManagementService();
-                break;
-            case "gateway":
-                cerberusStack = environmentConfig.getGateway();
                 break;
             default:
                 cerberusStack = null;

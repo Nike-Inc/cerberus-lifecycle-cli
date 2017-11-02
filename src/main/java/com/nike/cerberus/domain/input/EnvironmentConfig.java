@@ -37,7 +37,6 @@ public class EnvironmentConfig {
     private Consul consul;
     private Vault vault;
     private ManagementService managementService;
-    private Gateway gateway;
     private Dashboard dashboard;
     private EdgeSecurity edgeSecurity;
 
@@ -159,14 +158,6 @@ public class EnvironmentConfig {
 
     public void setManagementService(ManagementService managementService) {
         this.managementService = managementService;
-    }
-
-    public Gateway getGateway() {
-        return gateway;
-    }
-
-    public void setGateway(Gateway gateway) {
-        this.gateway = gateway;
     }
 
     public Dashboard getDashboard() {

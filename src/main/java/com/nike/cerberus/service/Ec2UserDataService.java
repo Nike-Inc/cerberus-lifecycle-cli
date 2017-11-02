@@ -51,8 +51,6 @@ public class Ec2UserDataService {
         switch (stackName) {
             case CMS:
                 return getCmsUserData(ownerGroup);
-            case GATEWAY:
-                return getGatewayUserData(ownerGroup);
             case VAULT:
             case CONSUL:
                 return getConsulAndVaultUserData(stackName, ownerGroup);
@@ -60,16 +58,6 @@ public class Ec2UserDataService {
                 throw new IllegalArgumentException("The stack specified does not support user data. stack: "
                         + stackName.getName());
         }
-    }
-
-    private String getGatewayUserData(final String ownerGroup) {
-        final Map<String, String> userDataMap = Maps.newHashMap();
-        addStandardEnvironmentVariables(userDataMap, StackName.GATEWAY.getName(), ownerGroup);
-
-        final StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(writeExportEnvVars(userDataMap));
-        stringBuilder.append(getFileContentsFromClasspath(nginxWriteResolverConfPath));
-        return encodeUserData(stringBuilder.toString());
     }
 
     private String getCmsUserData(final String ownerGroup) {

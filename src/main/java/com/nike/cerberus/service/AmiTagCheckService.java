@@ -48,8 +48,6 @@ public class AmiTagCheckService {
         stackAmiTagValueMap.put(StackName.CONSUL, ConfigConstants.CONSUL_AMI_TAG_VALUE);
         stackAmiTagValueMap.put(StackName.VAULT, ConfigConstants.VAULT_AMI_TAG_VALUE);
         stackAmiTagValueMap.put(StackName.CMS, ConfigConstants.CMS_AMI_TAG_VALUE);
-        stackAmiTagValueMap.put(StackName.GATEWAY, ConfigConstants.GATEWAY_AMI_TAG_VALUE);
-
     }
 
     /**

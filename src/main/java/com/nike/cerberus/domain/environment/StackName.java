@@ -24,12 +24,8 @@ public enum StackName {
     CONSUL("consul"),
     VAULT("vault"),
     CMS("cms"),
-    GATEWAY("gateway"),
     @Deprecated
-    LAMBDA("lambda"),
-    @Deprecated
-    RDSBACKUP("rdsbackup"), // TODO: need to remove but casually deleting will cause JSON parse error
-    CLOUD_FRONT_IP_SYNCHRONIZER("cloud-front-ip-synchronizer");
+    RDSBACKUP("rdsbackup"); // TODO: need to remove but casually deleting will cause JSON parse error
 
     private final String name;
 

@@ -56,7 +56,6 @@ public class Environment {
         }
 
         serverCertificateIdMap = new HashMap<>();
-        serverCertificateIdMap.put(StackName.GATEWAY, "");
         serverCertificateIdMap.put(StackName.CMS, "");
         serverCertificateIdMap.put(StackName.VAULT, "");
         serverCertificateIdMap.put(StackName.CONSUL, "");

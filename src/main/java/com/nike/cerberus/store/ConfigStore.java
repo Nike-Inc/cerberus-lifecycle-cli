@@ -35,12 +35,9 @@ import com.nike.cerberus.domain.cloudformation.CmsOutputs;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.ConsulOutputs;
 import com.nike.cerberus.domain.cloudformation.ConsulParameters;
-import com.nike.cerberus.domain.cloudformation.GatewayOutputs;
-import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.VaultOutputs;
 import com.nike.cerberus.domain.cloudformation.VaultParameters;
 import com.nike.cerberus.domain.configuration.ConsulConfiguration;
-import com.nike.cerberus.domain.configuration.GatewayConfiguration;
 import com.nike.cerberus.domain.configuration.VaultAclEntry;
 import com.nike.cerberus.domain.configuration.VaultConfiguration;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
@@ -347,27 +344,6 @@ public class ConfigStore {
     }
 
     /**
-     * Checks if the Gateway configuration file has already been uploaded to the config store.
-     *
-     * @return If present
-     */
-    public boolean hasGatewayConfig() {
-        final Optional<String> gatewaySiteConfig = getEncryptedObject(ConfigConstants.GATEWAY_SITE_CONFIG_FILE);
-        final Optional<String> gatewayGlobalConfig = getEncryptedObject(ConfigConstants.GATEWAY_GLOBAL_CONFIG_FILE);
-        return gatewaySiteConfig.isPresent() && gatewayGlobalConfig.isPresent();
-    }
-
-    /**
-     * Uploads the Gateway configuration to the config store.
-     *
-     * @param gatewayConfiguration Gateway configuration to upload.
-     */
-    public void storeGatewayConfig(GatewayConfiguration gatewayConfiguration) {
-        saveEncryptedObject(ConfigConstants.GATEWAY_SITE_CONFIG_FILE, gatewayConfiguration.getSiteConfig());
-        saveEncryptedObject(ConfigConstants.GATEWAY_GLOBAL_CONFIG_FILE, gatewayConfiguration.getGlobalConfig());
-    }
-
-    /**
      * Retrieves the CMS adming group from the config store.
      *
      * @return CMS admin group
@@ -605,7 +581,7 @@ public class ConfigStore {
     }
 
     public String getCerberusBaseUrl() {
-        return String.format("https://%s", getGatewayStackParamters().getHostname());
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -732,25 +708,6 @@ public class ConfigStore {
     public CmsOutputs getCmsStackOutputs() {
         return getStackOutputs(StackName.CMS, CmsOutputs.class);
     }
-
-    /**
-     * Get the Gateway stack parameters.
-     *
-     * @return Gateway parameters
-     */
-    public GatewayParameters getGatewayStackParamters() {
-        return getStackParameters(StackName.GATEWAY, GatewayParameters.class);
-    }
-
-    /**
-     * Get the Gateway stack outputs.
-     *
-     * @return Gateway outputs
-     */
-    public GatewayOutputs getGatewayStackOutputs() {
-        return getStackOutputs(StackName.GATEWAY, GatewayOutputs.class);
-    }
-
     /**
      * Get the stack outputs for a specific stack name.
      *
