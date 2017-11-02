@@ -57,9 +57,3 @@ management-service:
     - auth.connector.onelogin.client_id=123
     - auth.connector.onelogin.client_secret=312
     - auth.connector.onelogin.subdomain=nike
-
-dashboard:
-  # The url of the dashboard artifact, probably the newest release on the dashboard Github release page
-  artifact-url: https://github.com/Nike-Inc/cerberus-management-dashboard/releases/download/v0.8.0/cerberus-dashboard.tar.gz
-  # The secondary artifact that will get merged into the above artifact before getting uploaded to s3, we use this for custom help page.
-  override-artifact-url: https://someplace.com/where/you/want/to/store/this.tar.gz

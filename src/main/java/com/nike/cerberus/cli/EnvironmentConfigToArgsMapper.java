@@ -24,12 +24,9 @@ import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
 import com.nike.cerberus.domain.input.CerberusStack;
-import com.nike.cerberus.domain.input.Dashboard;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementService;
-import com.nike.cerberus.domain.input.Vault;
 import com.nike.cerberus.domain.input.VpcAccessWhitelist;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,8 +80,6 @@ public class EnvironmentConfigToArgsMapper {
                 return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
             case CreateCmsClusterCommand.COMMAND_NAME:
                 return getCreateCmsClusterCommandArgs(environmentConfig);
-            case PublishDashboardCommand.COMMAND_NAME:
-                return getPublishDashboardCommandArgs(environmentConfig);
             case WhitelistCidrForVpcAccessCommand.COMMAND_NAME:
                 return getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
             case CreateCmsConfigCommand.COMMAND_NAME:
@@ -128,31 +123,6 @@ public class EnvironmentConfigToArgsMapper {
             args.add(WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG);
             args.add(port);
         });
-
-        return args;
-    }
-
-    private static List<String> getPublishDashboardCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        Dashboard dashboard = environmentConfig.getDashboard();
-
-        args.add(PublishDashboardCommand.ARTIFACT_URL_LONG_ARG);
-        args.add(dashboard.getArtifactUrl());
-
-        if ( StringUtils.isNotBlank(dashboard.getOverrideArtifactUrl()) ) {
-            args.add(PublishDashboardCommand.OVERRIDE_ARTIFACT_URL_LONG_ARG);
-            args.add(dashboard.getOverrideArtifactUrl());
-        }
-
-        return args;
-    }
-
-    private static List<String> getCreateVaultClusterCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        Vault component = environmentConfig.getVault();
-        addCommonStackArgs(environmentConfig, args, component);
 
         return args;
     }

@@ -26,7 +26,6 @@ import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -155,26 +154,6 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",
                 StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
                 StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering"
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
-    public void test_publish_dashboard() {
-        String commandName = PublishDashboardCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                PublishDashboardCommand.ARTIFACT_URL_LONG_ARG,
-                "https://github.com/Nike-Inc/cerberus-management-dashboard/releases/download/v0.8.0/cerberus-dashboard.tar.gz",
-                PublishDashboardCommand.OVERRIDE_ARTIFACT_URL_LONG_ARG,
-                "https://someplace.com/where/you/want/to/store/this.tar.gz"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);

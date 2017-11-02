@@ -41,7 +41,6 @@ import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
@@ -159,7 +158,6 @@ public class CerberusRunner {
     private void registerAllCommands() {
         registerCommand(new CreateBaseCommand());
         registerCommand(new UploadCertFilesCommand());
-        registerCommand(new PublishDashboardCommand());
         registerCommand(new CreateCmsConfigCommand());
         registerCommand(new CreateCmsClusterCommand());
         registerCommand(new CreateCmsCmkCommand());

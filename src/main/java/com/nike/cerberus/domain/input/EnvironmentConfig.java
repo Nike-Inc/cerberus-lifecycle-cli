@@ -36,8 +36,6 @@ public class EnvironmentConfig {
     private VpcAccessWhitelist vpcAccessWhitelist;
     private Vault vault;
     private ManagementService managementService;
-    private Dashboard dashboard;
-    private EdgeSecurity edgeSecurity;
 
     public String getVersion() {
         return version;
@@ -149,21 +147,5 @@ public class EnvironmentConfig {
 
     public void setManagementService(ManagementService managementService) {
         this.managementService = managementService;
-    }
-
-    public Dashboard getDashboard() {
-        return dashboard;
-    }
-
-    public void setDashboard(Dashboard dashboard) {
-        this.dashboard = dashboard;
-    }
-
-    public EdgeSecurity getEdgeSecurity() {
-        return edgeSecurity;
-    }
-
-    public void setEdgeSecurity(EdgeSecurity edgeSecurity) {
-        this.edgeSecurity = edgeSecurity;
     }
 }
