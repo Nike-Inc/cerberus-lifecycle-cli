@@ -22,7 +22,7 @@ Parameters:
     Description: Desired Number of Auto Scaling Instances
     Type: Number
   instanceSize:
-  Default: 'm3.'
+  Default: 'm3.medium'
     Description: The instance size for the CMS instances
     Type: String
   keyPairName:
