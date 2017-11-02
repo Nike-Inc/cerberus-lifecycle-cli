@@ -33,9 +33,6 @@ import java.util.Map;
  * Service for generating EC2 user data for Cerberus instances.
  */
 public class Ec2UserDataService {
-
-    private static final String nginxWriteResolverConfPath = "/write-nginx-resolver-conf";
-
     private final EnvironmentMetadata environmentMetadata;
 
     private final ConfigStore configStore;
@@ -51,8 +48,6 @@ public class Ec2UserDataService {
         switch (stackName) {
             case CMS:
                 return getCmsUserData(ownerGroup);
-            case VAULT:
-                return getVaultUserData(stackName, ownerGroup);
             default:
                 throw new IllegalArgumentException("The stack specified does not support user data. stack: "
                         + stackName.getName());
@@ -62,15 +57,6 @@ public class Ec2UserDataService {
     private String getCmsUserData(final String ownerGroup) {
         final Map<String, String> userDataMap = Maps.newHashMap();
         addStandardEnvironmentVariables(userDataMap, StackName.CMS.getName(), ownerGroup);
-
-        return encodeUserData(writeExportEnvVars(userDataMap));
-    }
-
-    private String getVaultUserData(final StackName stackName, final String ownerGroup) {
-        final Map<String, String> userDataMap = Maps.newHashMap();
-        addStandardEnvironmentVariables(userDataMap, stackName.getName(), ownerGroup);
-
-        userDataMap.put("CONSUL_DC", ConfigConstants.VAULT_DATACENTER);
 
         return encodeUserData(writeExportEnvVars(userDataMap));
     }
@@ -103,29 +89,5 @@ public class Ec2UserDataService {
 
     private String encodeUserData(String userData) {
         return Base64.getEncoder().encodeToString(userData.getBytes(Charset.forName("UTF-8")));
-    }
-
-    /**
-     * Removes the final '.' from the CNAME.
-     *
-     * @param cname The cname to convert
-     * @return The host derived from the CNAME
-     */
-    private String cnameToHost(final String cname) {
-        return cname.substring(0, cname.length() - 1);
-    }
-
-    /**
-     * Reads the contents of a file on the classpath.
-     *
-     * @param path Path to the resource
-     * @return Contents of resource
-     */
-    private String getFileContentsFromClasspath(final String path) {
-        try {
-            return IOUtils.toString(getClass().getResourceAsStream(path), ConfigConstants.DEFAULT_ENCODING);
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to read file that should be in classpath!", e);
-        }
     }
 }
