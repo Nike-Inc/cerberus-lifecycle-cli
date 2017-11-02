@@ -148,6 +148,4 @@ public class EnvironmentConfig {
     public void setManagementService(ManagementService managementService) {
         this.managementService = managementService;
     }
-
-    }
 }
