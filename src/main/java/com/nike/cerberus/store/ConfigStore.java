@@ -33,7 +33,6 @@ import com.nike.cerberus.domain.cloudformation.BaseOutputs;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
 import com.nike.cerberus.domain.cloudformation.CmsOutputs;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
-import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.VaultOutputs;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
 import com.nike.cerberus.domain.environment.Environment;
@@ -422,7 +421,7 @@ public class ConfigStore {
     }
 
     public String getCerberusBaseUrl() {
-        return String.format("https://%s", getGatewayStackParamters().getHostname());
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -522,16 +521,6 @@ public class ConfigStore {
     public CmsOutputs getCmsStackOutputs() {
         return getStackOutputs(StackName.CMS, CmsOutputs.class);
     }
-
-    /**
-     * Get the Gateway stack parameters.
-     *
-     * @return Gateway parameters
-     */
-    public GatewayParameters getGatewayStackParamters() {
-        return getStackParameters(StackName.GATEWAY, GatewayParameters.class);
-    }
-
     /**
      * Get the stack outputs for a specific stack name.
      *

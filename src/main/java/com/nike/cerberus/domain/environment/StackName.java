@@ -23,7 +23,6 @@ public enum StackName {
     BASE("base"),
     VAULT("vault"),
     CMS("cms"),
-    GATEWAY("gateway"),
     @Deprecated
     RDSBACKUP("rdsbackup"); // TODO: need to remove but casually deleting will cause JSON parse error
 
