@@ -28,9 +28,6 @@ import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
-import com.nike.cerberus.command.gateway.CreateCloudFrontLogProcessingLambdaConfigCommand;
-import com.nike.cerberus.command.gateway.CreateGatewayClusterCommand;
-import com.nike.cerberus.command.gateway.PublishLambdaCommand;
 import com.nike.cerberus.command.vault.CreateVaultClusterCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -218,30 +215,6 @@ public class EnvironmentConfigToArgsMapperTest {
     }
 
     @Test
-    public void test_create_gateway_cluster() {
-        String commandName = CreateGatewayClusterCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                StackDelegate.AMI_ID_LONG_ARG, "ami-4444",
-                StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
-                StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
-                StackDelegate.COST_CENTER_LONG_ARG, "11111",
-                StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-                StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
-                CreateGatewayClusterCommand.HOSTNAME_LONG_ARG, "demo.cerberis-oss.io",
-                CreateGatewayClusterCommand.HOSTED_ZONE_ID_LONG_ARG, "X5CT6JROG9F2DR"
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
     public void test_publish_dashboard() {
         String commandName = PublishDashboardCommand.COMMAND_NAME;
 
@@ -347,63 +320,6 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
                 UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG,
                 UpdateStackCommand.PARAMETER_SHORT_ARG, "k=v",
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
-    public void test_publish_lambda_cf_sg_ip() {
-        String commandName = PublishLambdaCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", PublishLambdaCommand.COMMAND_NAME, PublishLambdaCommand.LAMBDA_NAME_LONG_ARG, "CLOUD_FRONT_SG_GROUP_IP_SYNC"};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                PublishLambdaCommand.LAMBDA_NAME_LONG_ARG, "CLOUD_FRONT_SG_GROUP_IP_SYNC",
-                PublishLambdaCommand.ARTIFACT_URL_LONG_ARG, "https://github.com/Nike-Inc/cerberus-lifecycle-cli/raw/master/update_security_groups.zip"
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
-    public void test_create_cloud_front_log_processor_lambda_config() {
-        String commandName = CreateCloudFrontLogProcessingLambdaConfigCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                CreateCloudFrontLogProcessingLambdaConfigCommand.RATE_LIMIT_PER_MINUTE_LONG_ARG, "100",
-                CreateCloudFrontLogProcessingLambdaConfigCommand.RATE_LIMIT_VIOLATION_BLOCK_PERIOD_IN_MINUTES_LONG_ARG, "60",
-                CreateCloudFrontLogProcessingLambdaConfigCommand.SLACK_WEB_HOOK_URL_LONG_ARG, "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
-                CreateCloudFrontLogProcessingLambdaConfigCommand.SLACK_ICON_LONG_ARG, "https://raw.githubusercontent.com/Nike-Inc/cerberus/master/images/cerberus-github-logo-black-filled-circle%40500px.png",
-                CreateCloudFrontLogProcessingLambdaConfigCommand.GOOGLE_ANALYTICS_TRACKING_ID_LONG_ARG, "abc123"
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
-    public void test_publish_lambda_waf() {
-        String commandName = PublishLambdaCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", PublishLambdaCommand.COMMAND_NAME, PublishLambdaCommand.LAMBDA_NAME_LONG_ARG, "WAF"};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                PublishLambdaCommand.LAMBDA_NAME_LONG_ARG, "WAF",
-                PublishLambdaCommand.ARTIFACT_URL_LONG_ARG, "https://github.com/Nike-Inc/cerberus-cloudfront-lambda/releases/download/v1.1.0/cerberus-cloudfront-lambda.jar"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);

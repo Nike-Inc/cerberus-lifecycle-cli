@@ -44,7 +44,6 @@ import com.nike.cerberus.domain.configuration.GatewayConfiguration;
 import com.nike.cerberus.domain.configuration.VaultAclEntry;
 import com.nike.cerberus.domain.configuration.VaultConfiguration;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
-import com.nike.cerberus.domain.environment.CloudFrontLogProcessingLambdaConfig;
 import com.nike.cerberus.domain.environment.Environment;
 import com.nike.cerberus.domain.environment.Secrets;
 import com.nike.cerberus.domain.environment.StackName;
@@ -61,7 +60,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
 import java.io.StringReader;
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -892,15 +890,6 @@ public class ConfigStore {
             saveObject(ConfigConstants.ENV_DATA_FILE, envData);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Unable to convert the environment data to JSON.  Aborting save...", e);
-        }
-    }
-
-    public void saveCFLogProcessorLambdaConfig(final CloudFrontLogProcessingLambdaConfig config) {
-        try {
-            final String configData = configObjectMapper.writeValueAsString(config);
-            saveObject(ConfigConstants.CF_LOG_PROCESSOR_LAMBDA_CONFIG_FILE, configData);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Unable to convert the config data to JSON.  Aborting save...", e);
         }
     }
 
