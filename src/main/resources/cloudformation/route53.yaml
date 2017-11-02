@@ -6,7 +6,7 @@ Outputs:
   recordSet:
     Value: !Ref 'CerberusPublicRecordSet'
 Parameters:
-  appLoadBalancerStackName:
+  loadBalancerStackName:
     Description: The name of the Cerberus load balancer CloudFormation stack
     Type: String
   hostname:
@@ -22,7 +22,7 @@ Resources:
         Ref: hostedZoneId
       Name: !Join [., [!Ref 'hostname', '']]
       ResourceRecords:
-        - Fn::ImportValue: !Sub "${appLoadBalancerStackName}-appLoadBalancerDnsName"
+        - Fn::ImportValue: !Sub "${loadBalancerStackName}-appLoadBalancerDnsName"
       TTL: 30
       Type: CNAME
     Type: AWS::Route53::RecordSet

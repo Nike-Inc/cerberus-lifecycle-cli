@@ -5,13 +5,22 @@ Description: Creates the Cerberus VPC and foundational resources
 Outputs:
   subnetCidrBlockForAz1:
     Description: Cidr block for subnet in AZ '1'
-    Value: 172.20.0.0/24
+    Value: !Ref 'subnetCidrBlockForAz1'
   subnetCidrBlockForAz2:
     Description: Cidr block for subnet in AZ '2'
-    Value: 172.20.4.0/24
+    Value: !Ref 'subnetCidrBlockForAz2'
   subnetCidrBlockForAz3:
     Description: Cidr block for subnet in AZ '3'
-    Value: 172.20.8.0/24
+    Value: !Ref 'subnetCidrBlockForAz3'
+  vpcSubnetForAz1:
+    Description: The VPC subnet in AZ '1'
+    Value: !Ref 'CerberusSubnetForAz1'
+  vpcSubnetForAz2:
+    Description: The VPC subnet in AZ '2'
+    Value: !Ref 'CerberusSubnetForAz2'
+  vpcSubnetForAz3:
+    Description: The VPC subnet in AZ '3'
+    Value: !Ref 'CerberusSubnetForAz3'
 Parameters:
   internetGatewayCidrBlock:
     AllowedPattern: '[0-9./]*'
