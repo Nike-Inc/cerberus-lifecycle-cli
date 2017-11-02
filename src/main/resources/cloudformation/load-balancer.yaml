@@ -100,11 +100,9 @@ Resources:
           Value: true
         - Key: access_logs.s3.bucket
           Value: !Ref 'ALBLogBucket'
-        - Key: access_logs.s3.prefix
-          Value: environment
       Scheme: internet-facing
       SecurityGroups:
-        - Fn::ImportValue: !Sub "${sgStackName}-appLoadBalancerSgId"
+        - Fn::ImportValue: !Sub "${sgStackName}-loadBalancerSgId"
       Subnets:
         - Ref: 'vpcSubnetIdForAz1'
         - Ref: 'vpcSubnetIdForAz2'

@@ -8,7 +8,7 @@ Outputs:
   cmsInstanceProfileName:
     Value: !Ref 'CmsInstanceProfile'
 Parameters:
-  albStackName:
+  loadBalancerStackName:
     Description: The name of the Cerberus ALB CloudFormation stack
     Type: String
   baseStackName:
@@ -17,14 +17,12 @@ Parameters:
   cmsAmiId:
     Description: The AMI ID for the CMS instances
     Type: String
-  cmsStackName:
-    Description: The name of the Cerberus CMS CloudFormation stack
-    Type: String
   desiredInstances:
     Default: '3'
     Description: Desired Number of Auto Scaling Instances
     Type: Number
   instanceSize:
+  Default: 'm3.medium'
     Description: The instance size for the CMS instances
     Type: String
   keyPairName:
@@ -83,7 +81,7 @@ Resources:
       HealthCheckType: ELB
       LaunchConfigurationName: !Ref 'CmsLaunchConfiguration'
       TargetGroupARNs:
-        - Fn::ImportValue: !Sub "${albStackName}-cmsTargetGroupArn"
+        - Fn::ImportValue: !Sub "${loadBalancerStackName}-cmsTargetGroupArn"
       MaxSize: !Ref 'maximumInstances'
       MinSize: !Ref 'minimumInstances'
       Tags:
