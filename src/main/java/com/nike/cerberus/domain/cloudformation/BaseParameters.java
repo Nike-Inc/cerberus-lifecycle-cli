@@ -29,6 +29,8 @@ public class BaseParameters implements TagParameters {
 
     private String az3;
 
+    private String accountAdminArn;
+
     @JsonUnwrapped
     private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
@@ -56,6 +58,15 @@ public class BaseParameters implements TagParameters {
 
     public BaseParameters setAz3(String az3) {
         this.az3 = az3;
+        return this;
+    }
+
+    public String getAccountAdminArn() {
+        return accountAdminArn;
+    }
+
+    public BaseParameters setAccountAdminArn(String accountAdminArn) {
+        this.accountAdminArn = accountAdminArn;
         return this;
     }
 

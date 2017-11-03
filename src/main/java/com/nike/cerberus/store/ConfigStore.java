@@ -373,7 +373,7 @@ public class ConfigStore {
     private Properties generateBaseCmsSystemProperties() {
 
         final BaseOutputs baseOutputs = getBaseStackOutputs();
-//        final BaseParameters baseParameters = getBaseStackParameters();
+        final BaseParameters baseParameters = getBaseStackParameters();
         final Optional<String> cmsDatabasePassword = getCmsDatabasePassword();
 
         final GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
@@ -382,7 +382,7 @@ public class ConfigStore {
 
         final Properties properties = new Properties();
         properties.put(ROOT_USER_ARN_KEY, rootUserArn);
-//        properties.put(ADMIN_ROLE_ARN_KEY, baseParameters.getAccountAdminArn());
+        properties.put(ADMIN_ROLE_ARN_KEY, baseParameters.getAccountAdminArn());
         properties.put(CMS_ROLE_ARN_KEY, baseOutputs.getCmsIamRoleArn());
         properties.put(JDBC_URL_KEY, baseOutputs.getCmsDbJdbcConnectionString());
         properties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
@@ -392,7 +392,8 @@ public class ConfigStore {
     }
 
     public Optional<String> getAccountAdminArn() {
-        throw new UnsupportedOperationException();
+        final BaseParameters baseParameters = getBaseStackParameters();
+        return Optional.ofNullable(baseParameters.getAccountAdminArn());
     }
 
     public String getCerberusBaseUrl() {

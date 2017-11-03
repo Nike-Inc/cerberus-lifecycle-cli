@@ -25,13 +25,11 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
-import com.nike.cerberus.domain.cloudformation.VpcParameters;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2Service;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-
 import java.util.List;
 import java.util.Map;
 
@@ -44,11 +42,11 @@ import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the VPC in which Cerberus components live")
-public class CreateVpcCommand implements Command {
+public class CreateBaseCommand implements Command {
 
-    public static final String COMMAND_NAME = "create-vpc";
+    public static final String COMMAND_NAME = "create-base";
 
-    public static final String STACK_NAME = "cerberus-vpc";
+    public static final String STACK_NAME = "cerberus-base";
 
     public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
 
@@ -73,10 +71,10 @@ public class CreateVpcCommand implements Command {
     private ObjectMapper cloudFormationObjectMapper;
 
     @Inject
-    public CreateVpcCommand(final EnvironmentMetadata environmentMetadata,
-                            final CloudFormationService cloudFormationService,
-                            final Ec2Service ec2Service,
-                            @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
+    public CreateBaseCommand(final EnvironmentMetadata environmentMetadata,
+                             final CloudFormationService cloudFormationService,
+                             final Ec2Service ec2Service,
+                             @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.ec2Service = ec2Service;
@@ -94,17 +92,17 @@ public class CreateVpcCommand implements Command {
         final String stackName = String.format("%s-%s", environmentMetadata.getName(), STACK_NAME);
         final Map<Integer, String> azByIdentifier = mapAvailabilityZones();
 
-        final VpcParameters vpcParameters = new VpcParameters();
-        vpcParameters.setAz1(azByIdentifier.get(1))
+        final BaseParameters baseParameters = new BaseParameters();
+        baseParameters.setAz1(azByIdentifier.get(1))
                 .setAz2(azByIdentifier.get(2))
                 .setAz3(azByIdentifier.get(3));
 
-        vpcParameters.getTagParameters().setTagEmail(ownerEmail);
-        vpcParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        vpcParameters.getTagParameters().setTagCostcenter(costcenter);
+        baseParameters.getTagParameters().setTagEmail(ownerEmail);
+        baseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
+        baseParameters.getTagParameters().setTagCostcenter(costcenter);
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
         cloudFormationService.createStack(cloudFormationService.getEnvStackName(stackName),
                 parameters, ConfigConstants.VPC_STACK_TEMPLATE_PATH, true);
