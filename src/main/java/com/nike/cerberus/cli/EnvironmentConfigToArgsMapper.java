@@ -20,7 +20,7 @@ import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
@@ -74,8 +74,8 @@ public class EnvironmentConfigToArgsMapper {
 
     private static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
         switch (commandName) {
-            case CreateBaseCommand.COMMAND_NAME:
-                return getCreateBaseCommandArgs(environmentConfig);
+            case CreateVpcCommand.COMMAND_NAME:
+                return getCreateVpcCommandArgs(environmentConfig);
             case UploadCertFilesCommand.COMMAND_NAME:
                 return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
             case CreateCmsClusterCommand.COMMAND_NAME:
@@ -144,19 +144,6 @@ public class EnvironmentConfigToArgsMapper {
         args.add(StackDelegate.KEY_PAIR_NAME_LONG_ARG);
         args.add(stack.getKeyPairName());
 
-        if (stack.getDesiredInstances() != null) {
-            args.add(StackDelegate.DESIRED_INSTANCES_LONG_ARG);
-            args.add(stack.getDesiredInstances());
-        }
-        if (stack.getMinInstances() != null) {
-            args.add(StackDelegate.MIN_INSTANCES_LONG_ARG);
-            args.add(stack.getMinInstances());
-        }
-        if (stack.getMaxInstances() != null) {
-            args.add(StackDelegate.MAX_INSTANCES_LONG_ARG);
-            args.add(stack.getMaxInstances());
-        }
-
         args.add(StackDelegate.COST_CENTER_LONG_ARG);
         args.add(environmentConfig.getCostCenter());
         args.add(StackDelegate.OWNER_EMAIL_LONG_ARG);
@@ -197,17 +184,13 @@ public class EnvironmentConfigToArgsMapper {
         return args;
     }
 
-    private static List<String> getCreateBaseCommandArgs(EnvironmentConfig config) {
+    private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config) {
         List<String> args = new LinkedList<>();
 
-        args.add(CreateBaseCommand.OWNER_EMAIL_LONG_ARG);
+        args.add(CreateVpcCommand.OWNER_EMAIL_LONG_ARG);
         args.add(config.getOwnerEmail());
-        args.add(CreateBaseCommand.COST_CENTER_LONG_ARG);
+        args.add(CreateVpcCommand.COST_CENTER_LONG_ARG);
         args.add(config.getCostCenter());
-        args.add(CreateBaseCommand.ADMIN_ROLE_ARN_LONG_ARG);
-        args.add(config.getAdminRoleArn());
-        args.add(CreateBaseCommand.VPC_HOSTED_ZONE_NAME_LONG_ARG);
-        args.add(config.getVpcHostedZoneName());
 
         return args;
     }

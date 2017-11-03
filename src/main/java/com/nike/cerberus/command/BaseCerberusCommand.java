@@ -32,13 +32,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.nike.cerberus.command.CerberusCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.BaseCerberusCommand.COMMAND_NAME;
 
 /**
  * Global command parameters.
  */
 @Parameters(commandNames = COMMAND_NAME, commandDescription = "Cerberus Admin and Lifecycle CLI.")
-public class CerberusCommand {
+public class BaseCerberusCommand {
 
     public static final String COMMAND_NAME = "cerberus";
 

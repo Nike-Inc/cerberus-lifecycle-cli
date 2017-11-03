@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import static com.nike.cerberus.operation.core.UploadCertFilesOperation.EXPECTED_FILE_NAMES;
+import static com.nike.cerberus.command.core.UploadCertFilesCommand.EXPECTED_FILE_NAMES;
 
 /**
  * Validates that the specified directory contains all the correct files for cert upload.

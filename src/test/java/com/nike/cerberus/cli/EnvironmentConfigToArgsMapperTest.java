@@ -22,7 +22,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
@@ -84,15 +84,13 @@ public class EnvironmentConfigToArgsMapperTest {
 
     @Test
     public void test_create_base() {
-        String commandName = CreateBaseCommand.COMMAND_NAME;
+        String commandName = CreateVpcCommand.COMMAND_NAME;
 
         String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
 
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
-                "--admin-role-arn", "arn:aws:iam::111111111:role/onelogin-roles-OneLoginAdminRole-2222222222",
-                "--vpc-hosted-zone-name", "demo.internal.cerberus-oss.io",
                 "--owner-email", "obvisouly.fake@nike.com",
                 "--costcenter", "11111"
         };

@@ -21,8 +21,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 /**
  * Represents the base stack inputs.
  */
-public class BaseParameters implements TagParameters {
-
+public class VpcParameters implements TagParameters {
     private String az1;
 
     private String az2;
@@ -36,7 +35,7 @@ public class BaseParameters implements TagParameters {
         return az1;
     }
 
-    public BaseParameters setAz1(String az1) {
+    public VpcParameters setAz1(String az1) {
         this.az1 = az1;
         return this;
     }
@@ -45,7 +44,7 @@ public class BaseParameters implements TagParameters {
         return az2;
     }
 
-    public BaseParameters setAz2(String az2) {
+    public VpcParameters setAz2(String az2) {
         this.az2 = az2;
         return this;
     }
@@ -54,7 +53,7 @@ public class BaseParameters implements TagParameters {
         return az3;
     }
 
-    public BaseParameters setAz3(String az3) {
+    public VpcParameters setAz3(String az3) {
         this.az3 = az3;
         return this;
     }
@@ -64,7 +63,7 @@ public class BaseParameters implements TagParameters {
         return tagParameters;
     }
 
-    public BaseParameters setTagParameters(TagParametersDelegate tagParameters) {
+    public VpcParameters setTagParameters(TagParametersDelegate tagParameters) {
         this.tagParameters = tagParameters;
         return this;
     }

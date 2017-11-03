@@ -27,7 +27,7 @@ import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 
-public class CerberusCommandTest {
+public class BaseCerberusCommandTest {
 
     @Test
     public void test_that_command_line_poxy_args_are_honored() {
@@ -39,13 +39,13 @@ public class CerberusCommandTest {
                 "--some-opt", "some-value"
         };
 
-        CerberusCommand cerberusCommand = new CerberusCommand();
-        JCommander commander = new JCommander(cerberusCommand);
+        BaseCerberusCommand baseCerberusCommand = new BaseCerberusCommand();
+        JCommander commander = new JCommander(baseCerberusCommand);
         commander.setProgramName("cerberus");
         commander.setAcceptUnknownOptions(true);
         commander.parseWithoutValidation(userInput);
 
-        ProxyDelegate proxyDelegate = cerberusCommand.getProxyDelegate();
+        ProxyDelegate proxyDelegate = baseCerberusCommand.getProxyDelegate();
 
         assertEquals("localhost", proxyDelegate.getProxyHost());
         assertEquals((Integer) 9000, proxyDelegate.getProxyPort());
@@ -63,13 +63,13 @@ public class CerberusCommandTest {
                 "--some-opt", "some-value"
         };
 
-        CerberusCommand cerberusCommand = new CerberusCommand();
-        JCommander commander = new JCommander(cerberusCommand);
+        BaseCerberusCommand baseCerberusCommand = new BaseCerberusCommand();
+        JCommander commander = new JCommander(baseCerberusCommand);
         commander.setProgramName("cerberus");
         commander.setAcceptUnknownOptions(true);
         commander.parseWithoutValidation(userInput);
 
-        ProxyDelegate proxyDelegate = cerberusCommand.getProxyDelegate();
+        ProxyDelegate proxyDelegate = baseCerberusCommand.getProxyDelegate();
 
         assertEquals("localhost", proxyDelegate.getProxyHost());
         assertEquals((Integer) 9000, proxyDelegate.getProxyPort());
@@ -88,13 +88,13 @@ public class CerberusCommandTest {
                 "--some-opt", "some-value"
         };
 
-        CerberusCommand cerberusCommand = new CerberusCommand();
-        JCommander commander = new JCommander(cerberusCommand);
+        BaseCerberusCommand baseCerberusCommand = new BaseCerberusCommand();
+        JCommander commander = new JCommander(baseCerberusCommand);
         commander.setProgramName("cerberus");
         commander.setAcceptUnknownOptions(true);
         commander.parseWithoutValidation(userInput);
 
-        ProxyDelegate proxyDelegate = cerberusCommand.getProxyDelegate();
+        ProxyDelegate proxyDelegate = baseCerberusCommand.getProxyDelegate();
 
         assertEquals("10.1.1.1", proxyDelegate.getProxyHost());
         assertEquals((Integer) 9000, proxyDelegate.getProxyPort());

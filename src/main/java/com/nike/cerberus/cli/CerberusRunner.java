@@ -18,23 +18,24 @@ package com.nike.cerberus.cli;
 
 import ch.qos.logback.classic.Level;
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameters;
 import com.github.tomaslanger.chalk.Chalk;
-import com.google.common.collect.Maps;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.name.Names;
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.command.CerberusCommand;
+import com.nike.cerberus.command.BaseCerberusCommand;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.command.ProxyDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
+import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
@@ -45,9 +46,10 @@ import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
-import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.util.LocalEnvironmentValidator;
 
+import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -55,18 +57,76 @@ import java.util.Map;
  */
 public class CerberusRunner {
 
-    private final Map<String, Command> commandMap;
-    private CerberusCommand cerberusCommand;
+    private BaseCerberusCommand baseCerberusCommand;
+
     private final JCommander commander;
+
     private final CerberusHelp cerberusHelp;
 
-    private CerberusRunner() {
-        commandMap = Maps.newHashMap();
-        cerberusCommand = new CerberusCommand();
-        commander = new JCommander(cerberusCommand);
+    private final Map<String, Command> commandMap = new HashMap<>();
+
+    public CerberusRunner() {
+        baseCerberusCommand = new BaseCerberusCommand();
+        commander = new JCommander(baseCerberusCommand);
         commander.setProgramName("cerberus");
+        commander.setColumnSize(120);
         commander.setAcceptUnknownOptions(true);
         cerberusHelp = new CerberusHelp(commander);
+    }
+
+    @Inject
+    public CerberusRunner(JCommander commander,
+                          CerberusHelp cerberusHelp,
+                          BaseCerberusCommand baseCerberusCommand,
+                          CreateVpcCommand createVpcCommand,
+                          UploadCertFilesCommand uploadCertFilesCommand,
+                          CreateCmsConfigCommand createCmsConfigCommand,
+                          CreateCmsClusterCommand createCmsClusterCommand,
+                          CreateCmsCmkCommand createCmsCmkCommand,
+                          UpdateStackCommand updateStackCommand,
+                          PrintStackInfoCommand printStackInfoCommand,
+                          WhitelistCidrForVpcAccessCommand whitelistCidrForVpcAccessCommand,
+                          RestoreCerberusBackupCommand restoreCerberusBackupCommand,
+                          ViewConfigCommand viewConfigCommand,
+                          UpdateCmsConfigCommand updateCmsConfigCommand,
+                          RollingRebootWithHealthCheckCommand rollingRebootWithHealthCheckCommand,
+                          CreateCerberusBackupCommand createCerberusBackupCommand,
+                          SetBackupAdminPrincipalsCommand setBackupAdminPrincipalsCommand) {
+
+        this.baseCerberusCommand = baseCerberusCommand;
+        this.commander = commander;
+        this.cerberusHelp = cerberusHelp;
+
+        registerCommand(createVpcCommand);
+        registerCommand(uploadCertFilesCommand);
+        registerCommand(createCmsConfigCommand);
+        registerCommand(createCmsClusterCommand);
+        registerCommand(createCmsCmkCommand);
+        registerCommand(updateStackCommand);
+        registerCommand(printStackInfoCommand);
+        registerCommand(whitelistCidrForVpcAccessCommand);
+        registerCommand(restoreCerberusBackupCommand);
+        registerCommand(viewConfigCommand);
+        registerCommand(updateCmsConfigCommand);
+        registerCommand(rollingRebootWithHealthCheckCommand);
+        registerCommand(createCerberusBackupCommand);
+        registerCommand(setBackupAdminPrincipalsCommand);
+    }
+
+    /**
+     * Commands are Runnable's with JCommander annotations
+     */
+    public void registerCommand(Command command) {
+        Parameters p = command.getClass().getAnnotation(Parameters.class);
+        if (p != null && p.commandNames().length > 0) {
+            for (String commandName : p.commandNames()) {
+                commander.addCommand(commandName, command);
+                commandMap.put(commandName, command);
+            }
+        } else {
+            throw new RuntimeException("Trying to add command " + command.getClass().getName()
+                    + " without specifying its names in @Parameters");
+        }
     }
 
     /**
@@ -76,39 +136,35 @@ public class CerberusRunner {
      */
     @SuppressWarnings("unchecked")
     public void run(String[] args) {
-        registerAllCommands();
-
         try {
             args = getEnvironmentalConfigArgs(args);
 
             commander.parse(args);
 
-            configureLogging(cerberusCommand.isDebug());
+            configureLogging(baseCerberusCommand.isDebug());
             String commandName = commander.getParsedCommand();
             Command command = commandMap.get(commandName);
 
-            if(cerberusCommand.isVersion()) {
+            if(baseCerberusCommand.isVersion()) {
                 printCliVersion();
-            } else if (cerberusCommand.isHelp() || commandName == null) {
+            } else if (baseCerberusCommand.isHelp() || commandName == null) {
                 cerberusHelp.print();
             } else {
-                Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
-                        cerberusCommand.getEnvironment(), cerberusCommand.getRegion()), new PropsModule());
+                Injector injector = Guice.createInjector(new CerberusModule(baseCerberusCommand.getProxyDelegate(),
+                        baseCerberusCommand.getEnvironment(), baseCerberusCommand.getRegion()), new PropsModule());
 
                 // fail early if there is any problem in local environment
                 LocalEnvironmentValidator validator = injector.getInstance(LocalEnvironmentValidator.class);
                 validator.validate();
 
-                Operation operation = injector.getInstance(command.getOperationClass());
-
-                if (operation.isRunnable(command)) {
-                    operation.run(command);
+                if (command.isRunnable()) {
+                    command.execute();
                 } else {
                     throw new RuntimeException("Command not runnable");
                 }
             }
         } catch (Throwable e) {
-            if (cerberusCommand.isHelp()) {
+            if (baseCerberusCommand.isHelp()) {
                 cerberusHelp.print();
             }
             else {
@@ -130,13 +186,13 @@ public class CerberusRunner {
      * @return merged arg array containing file params merged with user params
      */
     private String[] getEnvironmentalConfigArgs(String[] args) {
-        CerberusCommand cerberusCommand = new CerberusCommand();
-        JCommander commander = new JCommander(cerberusCommand);
+        BaseCerberusCommand baseCerberusCommand = new BaseCerberusCommand();
+        JCommander commander = new JCommander(baseCerberusCommand);
         commander.setProgramName("cerberus");
         commander.setAcceptUnknownOptions(true);
         commander.parseWithoutValidation(args);
 
-        EnvironmentConfig environmentConfig = cerberusCommand.getEnvironmentConfig();
+        EnvironmentConfig environmentConfig = baseCerberusCommand.getEnvironmentConfig();
 
         if (environmentConfig != null) {
             return EnvironmentConfigToArgsMapper.getArgs(environmentConfig, args);
@@ -149,37 +205,6 @@ public class CerberusRunner {
         String version = propsInjector.getInstance(Key.get(String.class, Names.named(ConfigConstants.VERSION_PROPERTY)));
         String versionMessage = Chalk.on(String.format("Cerberus Lifecycle CLI version: %s", version)).green().bold().toString();
         System.out.println(versionMessage);
-    }
-
-
-    /**
-     * Convenience method for registering all top level commands.
-     */
-    private void registerAllCommands() {
-        registerCommand(new CreateBaseCommand());
-        registerCommand(new UploadCertFilesCommand());
-        registerCommand(new CreateCmsConfigCommand());
-        registerCommand(new CreateCmsClusterCommand());
-        registerCommand(new CreateCmsCmkCommand());
-        registerCommand(new UpdateStackCommand());
-        registerCommand(new PrintStackInfoCommand());
-        registerCommand(new WhitelistCidrForVpcAccessCommand());
-        registerCommand(new RestoreCerberusBackupCommand());
-        registerCommand(new ViewConfigCommand());
-        registerCommand(new UpdateCmsConfigCommand());
-        registerCommand(new RollingRebootWithHealthCheckCommand());
-        registerCommand(new CreateCerberusBackupCommand());
-        registerCommand(new SetBackupAdminPrincipalsCommand());
-    }
-
-    /**
-     * Registers a command with the command map and commander.
-     *
-     * @param command Command to be registered
-     */
-    private void registerCommand(Command command) {
-        commandMap.put(command.getCommandName(), command);
-        commander.addCommand(command.getCommandName(), command);
     }
 
     /**

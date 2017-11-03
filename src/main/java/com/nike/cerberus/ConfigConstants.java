@@ -46,7 +46,7 @@ public class ConfigConstants {
 
     public static final String BASE_STACK_NAME = "base";
 
-    public static final String BASE_STACK_TEMPLATE_PATH = "/cloudformation/vpc-and-base.json";
+    public static final String VPC_STACK_TEMPLATE_PATH = "/cloudformation/vpc.yaml";
 
     public static final String CMS_STACK_TEMPLATE_PATH = "/cloudformation/cms-cluster.json";
 

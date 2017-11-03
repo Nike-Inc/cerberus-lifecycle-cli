@@ -16,14 +16,29 @@
 
 package com.nike.cerberus.command.cms;
 
+import com.amazonaws.regions.Regions;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
+import com.google.common.collect.Lists;
+import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.cms.CreateCmsCmkOperation;
+import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.service.KmsPolicyGenerator;
+import com.nike.cerberus.service.KmsService;
+import com.nike.cerberus.store.ConfigStore;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
+import static com.nike.cerberus.ConfigConstants.CMK_ARNS_KEY;
 import static com.nike.cerberus.command.cms.UpdateCmsConfigCommand.COMMAND_NAME;
 
 /**
@@ -32,8 +47,12 @@ import static com.nike.cerberus.command.cms.UpdateCmsConfigCommand.COMMAND_NAME;
 @Parameters(commandNames = COMMAND_NAME, commandDescription = "Updates the CMS config.")
 public class CreateCmsCmkCommand implements Command {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     public static final String COMMAND_NAME = "create-cms-cmk";
+
     public static final String ADDITIONAL_REGIONS_ARG = "--additional-regions";
+
     public static final String ROTATE_ARG = "--rotate";
 
     @Parameter(names = ADDITIONAL_REGIONS_ARG,
@@ -49,12 +68,59 @@ public class CreateCmsCmkCommand implements Command {
     )
     private boolean rotate = false;
 
-    public List<String> getAdditionalRegions() {
-        return additionalRegions;
+    private final ConfigStore configStore;
+
+    private final EnvironmentMetadata environmentMetadata;
+
+    private final KmsService kmsService;
+
+    @Inject
+    public CreateCmsCmkCommand(final ConfigStore configStore,
+                               final EnvironmentMetadata environmentMetadata,
+                               final KmsService kmsService) {
+        this.configStore = configStore;
+        this.environmentMetadata = environmentMetadata;
+        this.kmsService = kmsService;
     }
 
-    public boolean isRotate() {
-        return rotate;
+    @Override
+    public void execute() {
+        // load the existing configuration
+        logger.info("Retrieving configuration data from the configuration bucket.");
+        final Properties cmsConfigProperties = configStore.getAllExistingCmsEnvProperties();
+
+        // additional argument validation
+        validateRegionsArg();
+        validateRotateArg(cmsConfigProperties);
+
+        String envName = environmentMetadata.getName();
+        String primaryRegion = environmentMetadata.getRegionName();
+
+        String alias = generateAliasName(envName, primaryRegion);
+
+        String description = "Generated for the Cerberus " + envName + " environment running in " + primaryRegion;
+        String policyAsJson = generateKeyPolicy(cmsConfigProperties, description);
+        logger.info("Generated the following policy:\n" + policyAsJson);
+
+        List<Regions> cmkRegions = getTargetRegions();
+        List<String> cmkArns = kmsService.createKeysAndAliases(cmkRegions, alias, policyAsJson, description);
+
+        // store the new configuration
+        cmsConfigProperties.put(CMK_ARNS_KEY, StringUtils.join(cmkArns, ","));
+        logger.info("Uploading the CMS configuration to the configuration bucket.");
+        configStore.storeCmsEnvConfig(cmsConfigProperties);
+        logger.info("Uploading complete.");
+    }
+
+    @Override
+    public boolean isRunnable() {
+        boolean isRunnable = configStore.getCmsEnvConfig().isPresent();
+
+        if (!isRunnable) {
+            logger.warn("CMS config does not exist, please use 'create-cms-config' command first.");
+        }
+
+        return isRunnable;
     }
 
     @Override
@@ -62,8 +128,61 @@ public class CreateCmsCmkCommand implements Command {
         return COMMAND_NAME;
     }
 
-    @Override
-    public Class<? extends Operation<?>> getOperationClass() {
-        return CreateCmsCmkOperation.class;
+    private void validateRotateArg(Properties cmsConfigProperties) {
+        if (rotate) {
+            if (cmsConfigProperties.containsKey(CMK_ARNS_KEY)) {
+                logger.info("Overwriting existing CMK ARNs property: " + cmsConfigProperties.getProperty(CMK_ARNS_KEY));
+                logger.info("Existing CMKs will not be deleted and may be needed to decrypt existing secrets");
+            } else {
+                throw new ParameterException(CreateCmsCmkCommand.ROTATE_ARG + " was specified but there is no existing CMK to rotate");
+            }
+        } else {
+            if (cmsConfigProperties.containsKey(CMK_ARNS_KEY)) {
+                logger.info("Property already exists: " + CMK_ARNS_KEY + "=" + cmsConfigProperties.get(CMK_ARNS_KEY));
+                throw new ParameterException("CMK already exists but " + CreateCmsCmkCommand.ROTATE_ARG + " was not specified.  Generally, manual rotation is not necessary.");
+            } else {
+                logger.info("Will add CMK ARNs property: " + CMK_ARNS_KEY);
+            }
+        }
+    }
+
+    private void validateRegionsArg() {
+        String primaryRegion = environmentMetadata.getRegionName();
+        List<String> regions = additionalRegions;
+        if (regions.contains(primaryRegion)) {
+            throw new ParameterException("Additional regions should not contain the primary region for the environment");
+        }
+    }
+
+    private String generateAliasName(String envName, String primaryRegion) {
+        return "alias/cerberus/cms-" + envName + "-" + primaryRegion + "-" + DateFormatUtils.format(new Date(), "yyyy-MM-dd-HH-mm");
+    }
+
+    private String generateKeyPolicy(Properties cmsConfigProperties, String description) {
+        String rootUserArn = getRequiredProperty(cmsConfigProperties, ConfigConstants.ROOT_USER_ARN_KEY);
+        String adminUserArn = getRequiredProperty(cmsConfigProperties, ConfigConstants.ADMIN_ROLE_ARN_KEY);
+        String cmsRoleArn = getRequiredProperty(cmsConfigProperties, ConfigConstants.CMS_ROLE_ARN_KEY);
+
+        KmsPolicyGenerator generator = new KmsPolicyGenerator()
+                .withDescription(description)
+                .withAdminArns(Lists.newArrayList(rootUserArn, adminUserArn))
+                .withCmsArn(cmsRoleArn);
+
+        return generator.generatePolicyJson();
+    }
+
+    private String getRequiredProperty(Properties cmsConfigProperties, String propertyName) {
+        String value = cmsConfigProperties.getProperty(propertyName);
+        Validate.notBlank(value, "CMS config value " + propertyName + " was not found!");
+        return value;
+    }
+
+    private List<Regions> getTargetRegions() {
+        // make sure primary region is first in the list
+        List<Regions> cmkRegions = Lists.newArrayList(environmentMetadata.getRegions());
+        for (String region : additionalRegions) {
+            cmkRegions.add(Regions.fromName(region));
+        }
+        return cmkRegions;
     }
 }
