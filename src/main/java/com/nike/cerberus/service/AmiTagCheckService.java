@@ -45,7 +45,6 @@ public class AmiTagCheckService {
         this.ec2Client = ec2Client;
 
         stackAmiTagValueMap = new HashMap<>();
-        stackAmiTagValueMap.put(StackName.VAULT, ConfigConstants.VAULT_AMI_TAG_VALUE);
         stackAmiTagValueMap.put(StackName.CMS, ConfigConstants.CMS_AMI_TAG_VALUE);
     }
 

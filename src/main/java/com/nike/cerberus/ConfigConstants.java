@@ -48,8 +48,6 @@ public class ConfigConstants {
 
     public static final String BASE_STACK_TEMPLATE_PATH = "/cloudformation/vpc-and-base.json";
 
-    public static final String VAULT_STACK_TEMPLATE_PATH = "/cloudformation/vault-cluster.json";
-
     public static final String CMS_STACK_TEMPLATE_PATH = "/cloudformation/cms-cluster.json";
 
     public static final String CMS_ENV_CONFIG_PATH = "data/cms/environment.properties";
@@ -87,8 +85,6 @@ public class ConfigConstants {
     public static final String CERBERUS_AMI_TAG_NAME = "tag:cerberus_component";
 
     public static final String CMS_AMI_TAG_VALUE = "cms";
-
-    public static final String VAULT_AMI_TAG_VALUE = "vault";
 
     public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
 
