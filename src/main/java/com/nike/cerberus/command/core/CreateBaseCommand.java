@@ -105,7 +105,7 @@ public class CreateBaseCommand implements Command {
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
         cloudFormationService.createStack(cloudFormationService.getEnvStackName(stackName),
-                parameters, ConfigConstants.VPC_STACK_TEMPLATE_PATH, true);
+                parameters, ConfigConstants.BASE_STACK_TEMPLATE_PATH, true);
     }
 
     private Map<Integer, String> mapAvailabilityZones() {

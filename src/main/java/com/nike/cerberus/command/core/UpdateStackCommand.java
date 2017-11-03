@@ -139,7 +139,7 @@ public class UpdateStackCommand implements Command {
         stackParameterMap.put(StackName.CMS, CmsParameters.class);
 
         stackTemplatePathMap = new HashMap<>();
-        stackTemplatePathMap.put(StackName.BASE, ConfigConstants.VPC_STACK_TEMPLATE_PATH);
+        stackTemplatePathMap.put(StackName.BASE, ConfigConstants.BASE_STACK_TEMPLATE_PATH);
         stackTemplatePathMap.put(StackName.CMS, ConfigConstants.CMS_STACK_TEMPLATE_PATH);
     }
 
