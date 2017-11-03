@@ -1,5 +1,0 @@
-{
-  "lookup-self": {
-    "rules": "path \"auth/token/lookup\" {policy = \"read\"}"
-  }
-}

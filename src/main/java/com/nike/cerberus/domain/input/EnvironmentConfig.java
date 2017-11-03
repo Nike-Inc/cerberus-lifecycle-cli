@@ -34,12 +34,9 @@ public class EnvironmentConfig {
     private String hostname;
     private String hostedZoneId;
     private VpcAccessWhitelist vpcAccessWhitelist;
-    private Consul consul;
     private Vault vault;
     private ManagementService managementService;
     private Gateway gateway;
-    private Dashboard dashboard;
-    private EdgeSecurity edgeSecurity;
 
     public String getVersion() {
         return version;
@@ -137,14 +134,6 @@ public class EnvironmentConfig {
         this.vpcAccessWhitelist = vpcAccessWhitelist;
     }
 
-    public Consul getConsul() {
-        return consul;
-    }
-
-    public void setConsul(Consul consul) {
-        this.consul = consul;
-    }
-
     public Vault getVault() {
         return vault;
     }
@@ -167,21 +156,5 @@ public class EnvironmentConfig {
 
     public void setGateway(Gateway gateway) {
         this.gateway = gateway;
-    }
-
-    public Dashboard getDashboard() {
-        return dashboard;
-    }
-
-    public void setDashboard(Dashboard dashboard) {
-        this.dashboard = dashboard;
-    }
-
-    public EdgeSecurity getEdgeSecurity() {
-        return edgeSecurity;
-    }
-
-    public void setEdgeSecurity(EdgeSecurity edgeSecurity) {
-        this.edgeSecurity = edgeSecurity;
     }
 }

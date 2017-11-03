@@ -43,24 +43,6 @@ vpc-access-whitelist:
   cidrs:
     - 50.39.106.150/32
 
-consul:
-  cert-path: /home/fieldju/development/cerberus_environments/demo/certs/
-  ami-id: ami-1111
-  instance-size: m3.medium
-  key-pair-name: cerberus-test
-  desired-instances: 2
-  max-instances: 4
-  min-instances: 2
-
-vault:
-  cert-path: /home/fieldju/development/cerberus_environments/demo/certs/
-  ami-id: ami-2222
-  instance-size: m3.medium
-  key-pair-name: cerberus-test
-  desired-instances: 2
-  max-instances: 4
-  min-instances: 2
-
 management-service:
   cert-path: /home/fieldju/development/cerberus_environments/demo/certs/
   ami-id: ami-3333
@@ -75,33 +57,3 @@ management-service:
     - auth.connector.onelogin.client_id=123
     - auth.connector.onelogin.client_secret=312
     - auth.connector.onelogin.subdomain=nike
-
-gateway:
-  cert-path: /home/fieldju/development/cerberus_environments/demo/certs/
-  ami-id: ami-4444
-  instance-size: m3.medium
-  key-pair-name: cerberus-test
-
-dashboard:
-  # The url of the dashboard artifact, probably the newest release on the dashboard Github release page
-  artifact-url: https://github.com/Nike-Inc/cerberus-management-dashboard/releases/download/v0.8.0/cerberus-dashboard.tar.gz
-  # The secondary artifact that will get merged into the above artifact before getting uploaded to s3, we use this for custom help page.
-  override-artifact-url: https://someplace.com/where/you/want/to/store/this.tar.gz
-
-# By default The gateway elb for Cerberus is exposed to the public internet on port 443
-# We configure CloudFront and WAF to enable things like manual black and white lists as well as auto black listing
-edge-security:
-    # The artifact url for the CloudFront Lambda that process CloudFront Logs to enable things like rate limiting and KPI reporting
-    cloudfront-lambda-artifact-url: https://github.com/Nike-Inc/cerberus-cloudfront-lambda/releases/download/v1.1.0/cerberus-cloudfront-lambda.jar
-    # The artifact url to the lambda that ensures only CloudFront IPs are white listed to talk to the origin ELB
-    cloudfront-security-group-ip-sync-lambda-artifact-url: https://github.com/Nike-Inc/cerberus-lifecycle-cli/raw/master/update_security_groups.zip
-    # The maximum number of requests from an IP per minute that can flow through the gateway before being auto blocked.
-    rate-limit-per-minute: 100
-    # Time in minutes to block an ip that violates the rate limit.
-    rate-limit-violation-block-period-in-minutes: 60
-    # [Optional delete if you do not need] If you provide a Google Analytics tracking id, the KPI processor will send events to that GA Account.
-    google-analytics-tracking-id: abc123
-    # [Optional delete if you do not need] If you provide a web hook url for slack the cloudfront lambda will send messages on errors and summary info.
-    slack-web-hook-url: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
-    # [Optional delete if you do not need] If you provide an emoji or an icon url the lambda will use it when sending messages.
-    slack-icon: https://raw.githubusercontent.com/Nike-Inc/cerberus/master/images/cerberus-github-logo-black-filled-circle%40500px.png

@@ -32,8 +32,6 @@ public class ConfigConstants {
 
     public static final String ENV_DATA_FILE = "config/environment.json";
 
-    public static final String CF_LOG_PROCESSOR_LAMBDA_CONFIG_FILE = "data/cloud-front-log-processor/lambda-config.json";
-
     public static final String SECRETS_DATA_FILE = "config/secrets.json";
 
     public static final String CERT_PART_CA = "ca.pem";
@@ -50,43 +48,13 @@ public class ConfigConstants {
 
     public static final String BASE_STACK_TEMPLATE_PATH = "/cloudformation/vpc-and-base.json";
 
-    public static final String CONSUL_DATACENTER = "cerberus";
-
-    public static final String CONSUL_SERVER_CONFIG_FILE = "data/consul/consul-server-config.json";
-
-    public static final String CONSUL_CLIENT_CONFIG_FILE = "data/consul/consul-client-config.json";
-
-    public static final String CONSUL_STACK_TEMPLATE_PATH = "/cloudformation/consul-cluster.json";
-
-    public static final String VAULT_ACL_ENTRY_FILE = "data/consul/vault-acl.json";
-
-    public static final String VAULT_CONFIG_FILE = "data/vault/vault-config.json";
-
-    public static final int VAULT_SECRET_SHARES = 5;
-
-    public static final int VAULT_SECRET_THRESHOLD = 3;
-
-    public static final String VAULT_STACK_TEMPLATE_PATH = "/cloudformation/vault-cluster.json";
-
     public static final String CMS_STACK_TEMPLATE_PATH = "/cloudformation/cms-cluster.json";
 
-    public static final String GATEWAY_STACK_TEMPLATE_PATH = "/cloudformation/gateway-cluster.json";
-
-    public static final String GATEWAY_SITE_CONFIG_FILE = "data/gateway/gateway.conf";
-
-    public static final String GATEWAY_GLOBAL_CONFIG_FILE = "data/gateway/nginx.conf";
-
     public static final String CMS_ENV_CONFIG_PATH = "data/cms/environment.properties";
-
-    public static final String CF_ELB_IP_SYNC_STACK_TEMPLATE_PATH = "/cloudformation/cloudfront-elb-security-group-updater-lambda.json";
 
     public static final String VERSION_PROPERTY = "cli.version";
 
     public static final String CMS_ADMIN_GROUP_KEY = "cms.admin.group";
-
-    public static final String VAULT_ADDR_KEY = "vault.addr";
-
-    public static final String VAULT_TOKEN_KEY = "vault.token";
 
     public static final String ROOT_USER_ARN_KEY = "root.user.arn";
 
@@ -105,8 +73,6 @@ public class ConfigConstants {
     public static final String HASH_SALT = "auth.token.hashSalt";
 
     public static final ImmutableSet<String> SYSTEM_CONFIGURED_CMS_PROPERTIES = ImmutableSet.of(
-            VAULT_ADDR_KEY,
-            VAULT_TOKEN_KEY,
             ROOT_USER_ARN_KEY,
             ADMIN_ROLE_ARN_KEY,
             CMS_ROLE_ARN_KEY,
@@ -119,12 +85,6 @@ public class ConfigConstants {
     public static final String CERBERUS_AMI_TAG_NAME = "tag:cerberus_component";
 
     public static final String CMS_AMI_TAG_VALUE = "cms";
-
-    public static final String GATEWAY_AMI_TAG_VALUE = "gateway";
-
-    public static final String CONSUL_AMI_TAG_VALUE = "consul";
-
-    public static final String VAULT_AMI_TAG_VALUE = "vault";
 
     public static final String SKIP_AMI_TAG_CHECK_ARG = "--skip-ami-tag-check";
 
