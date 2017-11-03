@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.nike.cerberus.ConfigConstants.MINIMUM_AZS;
-import static com.nike.cerberus.command.core.CreateVpcCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.CreateBaseCommand.COMMAND_NAME;
 import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**

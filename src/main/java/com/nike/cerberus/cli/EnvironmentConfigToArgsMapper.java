@@ -20,7 +20,7 @@ import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.core.CreateVpcCommand;
+import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
@@ -74,8 +74,8 @@ public class EnvironmentConfigToArgsMapper {
 
     private static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
         switch (commandName) {
-            case CreateVpcCommand.COMMAND_NAME:
-                return getCreateVpcCommandArgs(environmentConfig);
+            case CreateBaseCommand.COMMAND_NAME:
+                return getCreateBaseCommandArgs(environmentConfig);
             case UploadCertFilesCommand.COMMAND_NAME:
                 return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
             case CreateCmsClusterCommand.COMMAND_NAME:
@@ -184,12 +184,12 @@ public class EnvironmentConfigToArgsMapper {
         return args;
     }
 
-    private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config) {
+    private static List<String> getCreateBaseCommandArgs(EnvironmentConfig config) {
         List<String> args = new LinkedList<>();
 
-        args.add(CreateVpcCommand.OWNER_EMAIL_LONG_ARG);
+        args.add(CreateBaseCommand.OWNER_EMAIL_LONG_ARG);
         args.add(config.getOwnerEmail());
-        args.add(CreateVpcCommand.COST_CENTER_LONG_ARG);
+        args.add(CreateBaseCommand.COST_CENTER_LONG_ARG);
         args.add(config.getCostCenter());
 
         return args;

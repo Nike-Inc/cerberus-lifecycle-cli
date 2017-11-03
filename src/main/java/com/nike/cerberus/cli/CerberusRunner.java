@@ -33,7 +33,7 @@ import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
-import com.nike.cerberus.command.core.CreateVpcCommand;
+import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
@@ -78,7 +78,7 @@ public class CerberusRunner {
     public CerberusRunner(JCommander commander,
                           CerberusHelp cerberusHelp,
                           BaseCerberusCommand baseCerberusCommand,
-                          CreateVpcCommand createVpcCommand,
+                          CreateBaseCommand createBaseCommand,
                           UploadCertFilesCommand uploadCertFilesCommand,
                           CreateCmsConfigCommand createCmsConfigCommand,
                           CreateCmsClusterCommand createCmsClusterCommand,
@@ -97,7 +97,7 @@ public class CerberusRunner {
         this.commander = commander;
         this.cerberusHelp = cerberusHelp;
 
-        registerCommand(createVpcCommand);
+        registerCommand(createBaseCommand);
         registerCommand(uploadCertFilesCommand);
         registerCommand(createCmsConfigCommand);
         registerCommand(createCmsClusterCommand);
