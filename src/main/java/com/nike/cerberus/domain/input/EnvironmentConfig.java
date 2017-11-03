@@ -36,6 +36,7 @@ public class EnvironmentConfig {
     private VpcAccessWhitelist vpcAccessWhitelist;
     private Vault vault;
     private ManagementService managementService;
+    private Gateway gateway;
 
     public String getVersion() {
         return version;
@@ -147,5 +148,13 @@ public class EnvironmentConfig {
 
     public void setManagementService(ManagementService managementService) {
         this.managementService = managementService;
+    }
+
+    public Gateway getGateway() {
+        return gateway;
+    }
+
+    public void setGateway(Gateway gateway) {
+        this.gateway = gateway;
     }
 }
