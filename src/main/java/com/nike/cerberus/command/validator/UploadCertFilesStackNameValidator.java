@@ -28,8 +28,7 @@ import java.util.Set;
  */
 public class UploadCertFilesStackNameValidator implements IValueValidator<StackName> {
 
-    private final Set<StackName> stackNamesWithCerts = Sets.newHashSet(
-            StackName.VAULT, StackName.CMS);
+    private final Set<StackName> stackNamesWithCerts = Sets.newHashSet(StackName.CMS);
 
     @Override
     public void validate(final String name, final StackName stackName) throws ParameterException {

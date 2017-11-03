@@ -61,4 +61,4 @@ management-service:
     - auth.connector.onelogin.client_id=123
     - auth.connector.onelogin.client_secret=312
     - auth.connector.onelogin.subdomain=example  # example.onelogin.com ~> 'example'
-  # optional: desired, min, and max instance values
+  # optional -P parameters: desired, min, and max instance values
