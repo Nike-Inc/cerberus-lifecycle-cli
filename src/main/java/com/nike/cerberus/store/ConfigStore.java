@@ -70,8 +70,6 @@ import static com.nike.cerberus.ConfigConstants.JDBC_URL_KEY;
 import static com.nike.cerberus.ConfigConstants.JDBC_USERNAME_KEY;
 import static com.nike.cerberus.ConfigConstants.ROOT_USER_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
-import static com.nike.cerberus.ConfigConstants.VAULT_ADDR_KEY;
-import static com.nike.cerberus.ConfigConstants.VAULT_TOKEN_KEY;
 import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 import static com.nike.cerberus.module.CerberusModule.CONFIG_OBJECT_MAPPER;
 
@@ -400,7 +398,6 @@ public class ConfigStore {
 
         final BaseOutputs baseOutputs = getBaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
-        final Optional<String> cmsVaultToken = getCmsVaultToken();
         final Optional<String> cmsDatabasePassword = getCmsDatabasePassword();
 
         final GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
@@ -408,7 +405,6 @@ public class ConfigStore {
         final String rootUserArn = String.format("arn:aws:iam::%s:root", callerIdentity.getAccount());
 
         final Properties properties = new Properties();
-        properties.put(VAULT_TOKEN_KEY, cmsVaultToken.get());
         properties.put(ROOT_USER_ARN_KEY, rootUserArn);
         properties.put(ADMIN_ROLE_ARN_KEY, baseParameters.getAccountAdminArn());
         properties.put(CMS_ROLE_ARN_KEY, baseOutputs.getCmsIamRoleArn());
