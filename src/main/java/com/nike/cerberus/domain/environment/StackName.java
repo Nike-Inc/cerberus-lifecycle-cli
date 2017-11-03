@@ -22,8 +22,8 @@ package com.nike.cerberus.domain.environment;
 public enum StackName {
     BASE("base"),
     VAULT("vault"),
-    GATEWAY("gateway"),
     CMS("cms"),
+    GATEWAY("gateway"),
     @Deprecated
     RDSBACKUP("rdsbackup"); // TODO: need to remove but casually deleting will cause JSON parse error
 
