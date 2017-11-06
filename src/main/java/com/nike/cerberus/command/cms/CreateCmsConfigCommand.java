@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static com.nike.cerberus.ConfigConstants.CMS_ADMIN_GROUP_KEY;
-import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.cms.CreateCmsConfigCommand.COMMAND_NAME;
 
 /**
  * Command to create the CMS cluster.

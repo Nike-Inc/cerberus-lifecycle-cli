@@ -28,7 +28,7 @@ import javax.inject.Inject;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.ViewConfigCommand.COMMAND_NAME;
 
 /**
  * Command to view configuration files in S3.
