@@ -22,7 +22,7 @@ import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.ViewConfigOperation;
 
-import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.ViewConfigCommand.COMMAND_NAME;
 
 /**
  * Command to view configuration files in S3.
