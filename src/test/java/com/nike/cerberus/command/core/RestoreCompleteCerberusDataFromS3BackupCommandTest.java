@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation.core;
+package com.nike.cerberus.command.core;
 
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.client.CerberusAdminClientFactory;
@@ -35,9 +35,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class RestoreCompleteCerberusDataFromS3BackupOperationTest {
+public class RestoreCompleteCerberusDataFromS3BackupCommandTest {
 
-    private RestoreCerberusBackupOperation operation;
+    private RestoreCerberusBackupCommand command;
 
     @Mock
     private CerberusAdminClientFactory adminClientFactory;
@@ -48,7 +48,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationTest {
     @Before
     public void before() {
         initMocks(this);
-        operation = new RestoreCerberusBackupOperation(CerberusModule.configObjectMapper(), consoleService, adminClientFactory);
+        command = new RestoreCerberusBackupCommand(CerberusModule.configObjectMapper(), consoleService, adminClientFactory);
     }
 
     @Test
@@ -59,14 +59,8 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationTest {
         );
 
         CerberusAdminClient client = mock(CerberusAdminClient.class);
-        RestoreCerberusBackupOperation operationSpy = spy(operation);
-        doNothing().when(operationSpy).deleteAllSecrets(anyString(), any(VaultAdminClient.class));
-        operationSpy.processBackup(serializedDecryptedBackupJson, client);
-
-
+        RestoreCerberusBackupCommand commandSpy = spy(command);
+        doNothing().when(commandSpy).deleteAllSecrets(anyString(), any(VaultAdminClient.class));
+        commandSpy.processBackup(serializedDecryptedBackupJson, client);
     }
-
-
-
-
 }

@@ -20,12 +20,19 @@ import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.cms.UpdateCmsConfigOperation;
+import com.nike.cerberus.store.ConfigStore;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 
+import static com.nike.cerberus.ConfigConstants.CMS_ADMIN_GROUP_KEY;
+import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
 import static com.nike.cerberus.command.cms.UpdateCmsConfigCommand.COMMAND_NAME;
 
 /**
@@ -35,6 +42,7 @@ import static com.nike.cerberus.command.cms.UpdateCmsConfigCommand.COMMAND_NAME;
 public class UpdateCmsConfigCommand implements Command {
 
     public static final String COMMAND_NAME = "update-cms-config";
+
     public static final String OVERWRITE_LONG_ARG = "--overwrite";
 
     @Parameter(names = CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, description = "Group that has admin privileges in CMS.")
@@ -46,16 +54,64 @@ public class UpdateCmsConfigCommand implements Command {
     @DynamicParameter(names = CreateCmsConfigCommand.PROPERTY_SHORT_ARG, description = "Dynamic parameters for setting additional properties in the CMS environment configuration.")
     private Map<String, String> additionalProperties = new HashMap<>();
 
-    public String getAdminGroup() {
-        return adminGroup;
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private final ConfigStore configStore;
+
+    @Inject
+    public UpdateCmsConfigCommand(final ConfigStore configStore) {
+        this.configStore = configStore;
     }
 
-    public boolean getOverwrite() {
-        return overwrite;
+    @Override
+    public void execute() {
+
+        logger.debug("Retrieving configuration data from the configuration bucket.");
+
+        final Properties newProperties = configStore.getCmsSystemProperties();
+        final Properties existingCustomProperties = configStore.getExistingCmsUserProperties();
+        if (! overwrite) {
+            // keep existing custom properties
+            newProperties.putAll(existingCustomProperties);
+        }
+
+        // update existing custom properties, add new ones
+        additionalProperties.forEach((k, v) -> {
+            if (! SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(k)) {
+                newProperties.put(k, v);
+            } else {
+                logger.warn("Ignoring additional property that would override system configured property, " + k);
+            }
+        });
+
+        final String existingAdminGroup = existingCustomProperties.getProperty(CMS_ADMIN_GROUP_KEY);
+        final String adminGroupParameter = adminGroup;
+        String newAdminGroupValue = existingAdminGroup;  // keep existing admin group by default
+
+        if (shouldOverwriteAdminGroup(existingAdminGroup, adminGroupParameter)) {
+            logger.warn(String.format("Updating CMS admin group from '%s' to '%s'", existingAdminGroup, adminGroupParameter));
+            configStore.storeCmsAdminGroup(adminGroupParameter);
+            newAdminGroupValue = adminGroupParameter;  // overwrite admin group
+        }
+        newProperties.put(CMS_ADMIN_GROUP_KEY, newAdminGroupValue);
+
+        logger.info("Uploading the CMS configuration to the configuration bucket.");
+        configStore.storeCmsEnvConfig(newProperties);
+
+        logger.info("Uploading complete.");
     }
 
-    public Map<String, String> getAdditionalProperties() {
-        return additionalProperties;
+    @Override
+    public boolean isRunnable() {
+        boolean isRunnable = true;
+        final Optional<String> cmsDatabasePassword = configStore.getCmsDatabasePassword();
+
+        if (!cmsDatabasePassword.isPresent()) {
+            logger.error("CMS database password not present for specified environment.");
+            isRunnable = false;
+        }
+
+        return isRunnable;
     }
 
     @Override
@@ -63,8 +119,17 @@ public class UpdateCmsConfigCommand implements Command {
         return COMMAND_NAME;
     }
 
-    @Override
-    public Class<? extends Operation<?>> getOperationClass() {
-        return UpdateCmsConfigOperation.class;
+    private boolean shouldOverwriteAdminGroup(final String existingAdminGroup, final String newAdminGroup) {
+        if (newAdminGroup == null && existingAdminGroup == null) {
+            throw new IllegalStateException("Admin group does not exist in S3 config and was not provided as a " +
+                    "parameter. Please use --admin-group parameter to fix.");
+        }
+
+        if (newAdminGroup == null) {
+            logger.warn("Admin group not provided, using existing group.");
+            return false;
+        }
+
+        return !StringUtils.equals(newAdminGroup, existingAdminGroup);
     }
 }

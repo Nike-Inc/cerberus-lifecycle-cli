@@ -18,33 +18,39 @@ package com.nike.cerberus.command.core;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.internal.Maps;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateBaseOperation;
+import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.cloudformation.BaseParameters;
+import com.nike.cerberus.service.CloudFormationService;
+import com.nike.cerberus.service.Ec2Service;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import java.util.List;
+import java.util.Map;
+
+import static com.nike.cerberus.ConfigConstants.MINIMUM_AZS;
 import static com.nike.cerberus.command.core.CreateBaseCommand.COMMAND_NAME;
+import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
  * Command for creating the base components for Cerberus.
  */
-@Parameters(commandNames = COMMAND_NAME, commandDescription = "Creates the base components to support Cerberus.")
+@Parameters(commandNames = COMMAND_NAME,
+        commandDescription = "Create the VPC in which Cerberus components live")
 public class CreateBaseCommand implements Command {
 
     public static final String COMMAND_NAME = "create-base";
-    public static final String ADMIN_ROLE_ARN_LONG_ARG = "--admin-role-arn";
-    public static final String VPC_HOSTED_ZONE_NAME_LONG_ARG = "--vpc-hosted-zone-name";
+
+    public static final String STACK_NAME = "cerberus-base";
+
     public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
+
     public static final String COST_CENTER_LONG_ARG = "--costcenter";
-
-    @Parameter(names = ADMIN_ROLE_ARN_LONG_ARG,
-            description = "A IAM role ARN that will be given elevated privileges for the KMS CMK created.",
-            required = true)
-    private String adminRoleArn;
-
-    @Parameter(names = VPC_HOSTED_ZONE_NAME_LONG_ARG,
-            description = "The Route 53 hosted zone name that will be created for CNAME records used by internal ELBs.",
-            required = true)
-    private String vpcHostedZoneName;
 
     @Parameter(names = OWNER_EMAIL_LONG_ARG,
             description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.",
@@ -56,20 +62,23 @@ public class CreateBaseCommand implements Command {
             required = true)
     private String costcenter;
 
-    public String getAdminRoleArn() {
-        return adminRoleArn;
-    }
+    private EnvironmentMetadata environmentMetadata;
 
-    public String getVpcHostedZoneName() {
-        return vpcHostedZoneName;
-    }
+    private CloudFormationService cloudFormationService;
 
-    public String getOwnerEmail() {
-        return ownerEmail;
-    }
+    private Ec2Service ec2Service;
 
-    public String getCostcenter() {
-        return costcenter;
+    private ObjectMapper cloudFormationObjectMapper;
+
+    @Inject
+    public CreateBaseCommand(final EnvironmentMetadata environmentMetadata,
+                             final CloudFormationService cloudFormationService,
+                             final Ec2Service ec2Service,
+                             @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
+        this.environmentMetadata = environmentMetadata;
+        this.cloudFormationService = cloudFormationService;
+        this.ec2Service = ec2Service;
+        this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
@@ -78,7 +87,45 @@ public class CreateBaseCommand implements Command {
     }
 
     @Override
-    public Class<? extends Operation<?>> getOperationClass() {
-        return CreateBaseOperation.class;
+    public void execute() {
+        final String environmentName = environmentMetadata.getName();
+        final String stackName = String.format("%s-%s", environmentMetadata.getName(), STACK_NAME);
+        final Map<Integer, String> azByIdentifier = mapAvailabilityZones();
+
+        final BaseParameters baseParameters = new BaseParameters();
+        baseParameters.setAz1(azByIdentifier.get(1))
+                .setAz2(azByIdentifier.get(2))
+                .setAz3(azByIdentifier.get(3));
+
+        baseParameters.getTagParameters().setTagEmail(ownerEmail);
+        baseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
+        baseParameters.getTagParameters().setTagCostcenter(costcenter);
+
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
+
+        cloudFormationService.createStack(cloudFormationService.getEnvStackName(stackName),
+                parameters, ConfigConstants.BASE_STACK_TEMPLATE_PATH, true);
+    }
+
+    private Map<Integer, String> mapAvailabilityZones() {
+        List<String> zones = ec2Service.getAvailabilityZones();
+
+        if (zones.size() < MINIMUM_AZS) {
+            throw new IllegalStateException("Not enough availability zones for the selected region.");
+        }
+
+        Map<Integer, String> azByIdentifier = Maps.newHashMap();
+
+        for (int i = 1; i <= MINIMUM_AZS; i++) {
+            azByIdentifier.put(i, zones.get(i - 1));
+        }
+
+        return azByIdentifier;
+    }
+
+    @Override
+    public boolean isRunnable() {
+        return true;
     }
 }

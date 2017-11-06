@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation;
+package com.nike.cerberus.command.core;
 
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.client.CerberusAdminClientFactory;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.module.CerberusModule;
-import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
 import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.utils.TestUtils;
 import com.nike.cerberus.vault.VaultAdminClientFactory;
@@ -51,10 +50,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
     @Mock
     private ConsoleService consoleService;
 
-    @Mock
-    private RestoreCerberusBackupCommand command;
-
-    private RestoreCerberusBackupOperation operation;
+    private RestoreCerberusBackupCommand operation;
 
     private String rootToken;
 
@@ -62,19 +58,15 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
     public void before() {
         initMocks(this);
 
-        operation = new RestoreCerberusBackupOperation(
+        operation = new RestoreCerberusBackupCommand(
                 CerberusModule.configObjectMapper(),
                 consoleService,
                 vaultAdminClientFactory);
 
-        when(command.getCerberusUrl()).thenReturn(TestUtils.getRequiredEnvVar("CERBERUS_URL",
-                "The Cerberus API to restore against"));
-        when(command.getS3Region()).thenReturn(TestUtils.getRequiredEnvVar("S3_REGION",
-                "The region for the bucket that contains the backups"));
-        when(command.getS3Bucket()).thenReturn(TestUtils.getRequiredEnvVar("S3_BUCKET",
-                "The bucket that contains the backups"));
-        when(command.getS3Prefix()).thenReturn(TestUtils.getRequiredEnvVar("S3_PREFIX",
-                "the folder that contains the json backup files"));
+        operation.setCerberusUrl(TestUtils.getRequiredEnvVar("CERBERUS_URL", "The Cerberus API to restore against"));
+        operation.setS3Region(TestUtils.getRequiredEnvVar("S3_REGION", "The region for the bucket that contains the backups"));
+        operation.setS3Bucket(TestUtils.getRequiredEnvVar("S3_BUCKET", "The bucket that contains the backups"));
+        operation.setS3Prefix(TestUtils.getRequiredEnvVar("S3_PREFIX", "the folder that contains the json backup files"));
 
         rootToken = TestUtils.getRequiredEnvVar("ROOT_TOKEN", "The root token for the destination Cerberus env");
     }
@@ -97,7 +89,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
 
         when(vaultAdminClientFactory.createCerberusAdminClient(anyString())).thenReturn(adminClient);
 
-        operation.run(command);
+        operation.execute();
     }
 
 }

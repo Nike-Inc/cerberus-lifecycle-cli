@@ -45,6 +45,7 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.beust.jcommander.JCommander;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,6 +56,8 @@ import com.github.mustachejava.MustacheFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.nike.cerberus.ConfigConstants;
+import com.nike.cerberus.cli.CerberusHelp;
+import com.nike.cerberus.command.BaseCerberusCommand;
 import com.nike.cerberus.command.ProxyDelegate;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.util.TokenSupplier;
@@ -76,7 +79,7 @@ import java.util.UUID;
  */
 public class CerberusModule extends AbstractModule {
 
-    public static final String CF_OBJECT_MAPPER = "cloudformationObjectMapper";
+    public static final String CF_OBJECT_MAPPER = "cloudFormationObjectMapper";
 
     public static final String CONFIG_OBJECT_MAPPER = "configObjectMapper";
 
@@ -113,6 +116,22 @@ public class CerberusModule extends AbstractModule {
         bind(AWSSecurityTokenService.class).toInstance(createAmazonClientInstance(AWSSecurityTokenServiceClient.class, region));
         bind(AWSLambda.class).toInstance(createAmazonClientInstance(AWSLambdaClient.class, region));
         bind(AmazonSNS.class).toInstance(createAmazonClientInstance(AmazonSNSClient.class, region));
+    }
+
+    @Provides
+    @Singleton
+    public JCommander getJCommander(BaseCerberusCommand baseCerberusCommand) {
+        JCommander commander = new JCommander(baseCerberusCommand);
+        commander.setProgramName("cerberus");
+        commander.setColumnSize(120);
+        commander.setAcceptUnknownOptions(true);
+        return commander;
+    }
+
+    @Provides
+    @Singleton
+    public CerberusHelp getCerberusHelp(JCommander commander) {
+        return new CerberusHelp(commander);
     }
 
     /**
@@ -168,12 +187,6 @@ public class CerberusModule extends AbstractModule {
         }
 
         return environmentMetadata;
-    }
-
-    @Provides
-    @Singleton
-    public MustacheFactory mustacheFactory() {
-        return new DefaultMustacheFactory();
     }
 
     @Provides

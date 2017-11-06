@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation;
+package com.nike.cerberus.command;
 
 /**
- * Represents attempting to use environment config that isn't in the expected state.
+ * Represents an unexpected CloudFormation status.
  */
-public class InvalidEnvironmentConfigException extends RuntimeException {
-    public InvalidEnvironmentConfigException(final String errorMessage) {
+public class UnexpectedCloudFormationStatusException extends RuntimeException {
+    public UnexpectedCloudFormationStatusException(final String errorMessage) {
         super(errorMessage);
     }
 }

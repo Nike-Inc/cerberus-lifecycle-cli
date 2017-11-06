@@ -277,31 +277,6 @@ public class ConfigStore {
     }
 
     /**
-     * Retrieves the CMS Vault token from the config store.
-     *
-     * @return CMS Vault token
-     */
-    public Optional<String> getCmsVaultToken() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            return Optional.ofNullable(secrets.getCms().getVaultToken());
-        }
-    }
-
-    /**
-     * Stores the CMS Vault token.
-     *
-     * @param cmsVaultToken CMS Vault token
-     */
-    public void storeCmsVaultToken(final String cmsVaultToken) {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            secrets.getCms().setVaultToken(cmsVaultToken);
-            saveSecretsData(secrets);
-        }
-    }
-
-    /**
      * Gets the Vault root token from the config store.
      *
      * @return Vault root token
@@ -576,19 +551,6 @@ public class ConfigStore {
         }
     }
 
-    /**
-     * Constructs the standard format for CNAMEs used by internal ELBs.
-     *
-     * @param stackName Stack name the CNAME is for
-     * @return CNAME
-     */
-    public String getInternalElbCname(final StackName stackName) {
-        final BaseParameters baseParameters = getBaseStackParameters();
-        return String.format("%s.%s.%s.",
-                stackName.getName(),
-                environmentMetadata.getRegionName(),
-                baseParameters.getVpcHostedZoneName());
-    }
 
     /**
      * Initializes the environment data in the config bucket.
