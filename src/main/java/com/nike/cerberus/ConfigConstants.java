@@ -70,7 +70,7 @@ public class ConfigConstants {
 
     public static final String CMK_ARNS_KEY = "cms.encryption.cmk.arns";
 
-    public static final String HASH_SALT = "auth.token.hashSalt";
+    public static final String HASH_SALT = "cms.auth.token.hash.salt";
 
     public static final ImmutableSet<String> SYSTEM_CONFIGURED_CMS_PROPERTIES = ImmutableSet.of(
             ROOT_USER_ARN_KEY,
