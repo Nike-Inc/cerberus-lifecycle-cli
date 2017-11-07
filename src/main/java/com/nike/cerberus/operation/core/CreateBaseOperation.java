@@ -92,11 +92,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
         baseParameters.setAccountAdminArn(command.getAdminRoleArn())
                 .setAz1(azByIdentifier.get(1))
                 .setAz2(azByIdentifier.get(2))
-                .setAz3(azByIdentifier.get(3))
-                .setCmsDbMasterUsername(ConfigConstants.DEFAULT_CMS_DB_NAME)
-                .setCmsDbMasterPassword(dbMasterPassword)
-                .setCmsDbName(ConfigConstants.DEFAULT_CMS_DB_NAME)
-                .setVpcHostedZoneName(command.getVpcHostedZoneName());
+                .setAz3(azByIdentifier.get(3));
 
         baseParameters.getTagParameters().setTagEmail(command.getOwnerEmail());
         baseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentMetadata.getName());

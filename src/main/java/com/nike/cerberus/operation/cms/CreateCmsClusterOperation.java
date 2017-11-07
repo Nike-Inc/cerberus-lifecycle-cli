@@ -87,7 +87,6 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         final BaseOutputs baseOutputs = configStore.getBaseStackOutputs();
         final Optional<String> cmsServerCertificateArn = configStore.getServerCertificateArn(StackName.CMS);
         final Optional<String> pubKey = configStore.getCertPart(StackName.CMS, ConfigConstants.CERT_PART_PUBKEY);
-        final String internalElbCname = configStore.getInternalElbCname(StackName.CMS);
 
         if (!cmsServerCertificateArn.isPresent() || !pubKey.isPresent()) {
             throw new IllegalStateException("CMS certificate has not been uploaded!");
@@ -107,8 +106,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
                 .setVpcSubnetIdForAz1(baseOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(baseOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(baseOutputs.getVpcSubnetIdForAz3())
-                .setHostedZoneId(baseOutputs.getVpcHostedZoneId())
-                .setCname(internalElbCname);
+                .setHostedZoneId(baseOutputs.getVpcHostedZoneId());
 
         cmsParameters.getSslConfigParameters().setCertPublicKey(pubKey.get());
         cmsParameters.getSslConfigParameters().setSslCertificateArn(cmsServerCertificateArn.get());

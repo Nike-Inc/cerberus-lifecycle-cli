@@ -31,8 +31,6 @@ public class BaseParameters implements TagParameters {
 
     private String az3;
 
-    private String accountAdminArn;
-
     @JsonUnwrapped
     private TagParametersDelegate tagParameters = new TagParametersDelegate();
 

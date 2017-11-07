@@ -577,20 +577,6 @@ public class ConfigStore {
     }
 
     /**
-     * Constructs the standard format for CNAMEs used by internal ELBs.
-     *
-     * @param stackName Stack name the CNAME is for
-     * @return CNAME
-     */
-    public String getInternalElbCname(final StackName stackName) {
-        final BaseParameters baseParameters = getBaseStackParameters();
-        return String.format("%s.%s.%s.",
-                stackName.getName(),
-                environmentMetadata.getRegionName(),
-                baseParameters.getVpcHostedZoneName());
-    }
-
-    /**
      * Initializes the environment data in the config bucket.
      */
     public void initEnvironmentData() {
