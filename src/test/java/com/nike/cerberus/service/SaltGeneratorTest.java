@@ -3,13 +3,15 @@ package com.nike.cerberus.service;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import java.security.NoSuchAlgorithmException;
+
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class SaltGeneratorTest {
 
     @Test
-    public void sanityTestSalt() {
+    public void sanityTestSalt() throws NoSuchAlgorithmException {
         SaltGenerator generator = new SaltGenerator();
         String s1 = generator.generateSalt();
         String s2 = generator.generateSalt();
