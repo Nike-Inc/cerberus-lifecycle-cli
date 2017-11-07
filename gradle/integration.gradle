@@ -34,3 +34,9 @@ task integrationTest(type: Test) {
     testClassesDir = sourceSets.integrationTest.output.classesDir
     classpath = sourceSets.integrationTest.runtimeClasspath
 }
+
+integrationTest {
+    testLogging {
+        showStandardStreams = true
+    }
+}
