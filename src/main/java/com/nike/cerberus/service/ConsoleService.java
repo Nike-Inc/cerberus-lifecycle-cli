@@ -17,6 +17,7 @@
 package com.nike.cerberus.service;
 
 import com.google.inject.Singleton;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -44,5 +45,46 @@ public class ConsoleService {
             return System.console().readPassword(format, args);
         }
         return readLine(format, args).toCharArray();
+    }
+
+    public void askUserToProceed(String additionalMessage, DefaultAction defaultAction) {
+        String userInput;
+        try {
+            StringBuilder sb = new StringBuilder();
+            if (StringUtils.isNotBlank(additionalMessage)) {
+                sb.append(additionalMessage).append('\n');
+            }
+            sb.append("Would you like to proceed? ")
+                    .append(defaultAction.isYesDefault() ? "(Y/n)" : "(y/N)")
+                    .append(": ");
+            userInput = readLine(sb.toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to ask user to proceed", e);
+        }
+
+        if (StringUtils.isBlank(userInput) && defaultAction.isYesDefault()) {
+            return;
+        }
+
+        if (StringUtils.isNotBlank(userInput) && (userInput.equalsIgnoreCase("y") || userInput.equalsIgnoreCase("yes"))) {
+            return;
+        }
+
+        throw new RuntimeException("User declined to proceed");
+    }
+
+    public enum DefaultAction {
+        YES(true),
+        NO(false);
+
+        private boolean yesIsDefault;
+
+        protected boolean isYesDefault() {
+            return yesIsDefault;
+        }
+
+        DefaultAction(boolean yesIsDefault) {
+            this.yesIsDefault = yesIsDefault;
+        }
     }
 }

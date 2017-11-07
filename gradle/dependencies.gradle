@@ -19,7 +19,7 @@ allprojects {
         jcenter()
     }
 
-    def awsSDKVersion = '1.11.155'
+    def awsSDKVersion = '1.11.220'
 
     //noinspection GroovyAssignabilityCheck
     dependencies {
@@ -33,6 +33,8 @@ allprojects {
         compile group: 'com.amazonaws', name: 'aws-java-sdk-sts', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-sns', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSDKVersion
+        compile group: 'com.amazonaws', name: 'aws-java-sdk-route53', version: awsSDKVersion
+
 
         compile 'com.nike:vault-client:1.4.1'
         compile 'com.squareup.okhttp3:okhttp:3.3.1'
@@ -57,9 +59,23 @@ allprojects {
         compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
         compile group: 'com.google.code.findbugs', name: 'annotations', version: '3.0.0'
 
+        // Cert Generation
+        compile group: 'dnsjava', name: 'dnsjava', version: '2.1.8'
+        compile group: 'org.shredzone.acme4j', name: 'acme4j-client', version: '0.13'
+        compile group: 'org.shredzone.acme4j', name: 'acme4j-utils', version: '0.13'
+
         testCompile "junit:junit:4.12"
         testCompile ("org.mockito:mockito-core:1.10.19") {
             exclude group: 'org.hamcrest'
         }
+        testCompile 'com.fieldju:commons:1.2.0'
+        testCompile group: 'io.netty', name: 'netty-handler', version: '4.1.16.Final'
+
     }
+
+    configurations.all {
+        // check for updates every build
+        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+    }
+
 }

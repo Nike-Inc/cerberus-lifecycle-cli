@@ -63,7 +63,6 @@ import static com.nike.cerberus.ConfigConstants.CERT_PART_CA;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CERT;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PKCS8_KEY;
-import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
 import static com.nike.cerberus.ConfigConstants.CMS_ROLE_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.HASH_SALT;
 import static com.nike.cerberus.ConfigConstants.JDBC_PASSWORD_KEY;
@@ -333,20 +332,18 @@ public class ConfigStore {
      * @param caContents      CA chain
      * @param certContents    Certificate body
      * @param keyContents     Certificate key
-     * @param pubKeyContents  Certificate public key
      */
     public void storeCert(final StackName stackName,
                           final String certificateName,
                           final String caContents,
                           final String certContents,
                           final String keyContents,
-                          final String pkcs8KeyContents,
-                          final String pubKeyContents) {
+                          final String pkcs8KeyContents) {
+
         saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_CA), caContents);
         saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_CERT), certContents);
         saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_KEY), keyContents);
         saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_PKCS8_KEY), pkcs8KeyContents);
-        saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_PUBKEY), pubKeyContents);
 
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();

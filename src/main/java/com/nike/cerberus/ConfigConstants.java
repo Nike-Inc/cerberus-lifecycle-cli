@@ -42,8 +42,6 @@ public class ConfigConstants {
 
     public static final String CERT_PART_KEY = "key.pem";
 
-    public static final String CERT_PART_PUBKEY = "pubkey.pem";
-
     public static final String BASE_STACK_NAME = "base";
 
     public static final String BASE_STACK_TEMPLATE_PATH = "/cloudformation/vpc-and-base.json";
