@@ -1,5 +1,6 @@
 package com.nike.cerberus.service;
 
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Random;
@@ -9,7 +10,10 @@ import java.util.Random;
  */
 public class SaltGenerator {
 
-    private Random random = new SecureRandom();
+    private Random random = SecureRandom.getInstanceStrong();
+
+    public SaltGenerator() throws NoSuchAlgorithmException {
+    }
 
     /**
      * Generate a Salt as a Base64 encoded String we can store in a properties file
