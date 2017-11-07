@@ -34,7 +34,7 @@ import static com.nike.cerberus.command.core.GenerateCertsCommand.COMMAND_NAME;
 )
 public class GenerateCertsCommand implements Command {
 
-    public static final String COMMAND_NAME = "generate-certs";
+    public static final String COMMAND_NAME = "generate-certificates";
     public static final String COMMAND_DESCRIPTION = "Generates the TLS certificates needed to enable https " +
             "through out the system, using an ACME provider such as LetsEncrypt";
 
@@ -46,7 +46,7 @@ public class GenerateCertsCommand implements Command {
 
     public static final String ENABLE_LE_CERTFIX_LONG_ARG = "--enable-letsecrypt-certfix";
 
-    public static final String CERT_FOLDER_LONG_ARG = "--cert-dir";
+    public static final String CERT_FOLDER_LONG_ARG = "--local-certificate-directory";
 
     public static final String ACME_API_LONG_ARG = "--acme-api-url";
 
@@ -61,10 +61,10 @@ public class GenerateCertsCommand implements Command {
             },
             description = "The base domain for the environment that this command will use to generate the following " +
                     "subject name {env}.{base-domain} and with the following subject alternative name {env}.{region}.{base-domain}\n" +
-                    "ex: cerberus -e demo -r us-west-2 generate-certs -d cerberus-oss.io would make a cert for demo.cerberus-oss.io " +
-                    "with a sans of demo.us-west-2.cerberus-oss.io so that we can create a CNAME record for " +
-                    "demo.cerberus-oss.io that will point to an ALB in us-west-2 with a CNAME record of " +
-                    "demo.us-west-2.cerberus-oss.io and the cert will be valid for both",
+                    "ex: cerberus -e demo -r us-west-2 generate-certificates --base-domain cerberus.example would make a cert for demo.cerberus.example " +
+                    "with a sans of demo.us-west-2.cerberus.example so that we can create a CNAME record for " +
+                    "demo.cerberus.example that will point to an ALB in us-west-2 with a CNAME record of " +
+                    "demo.us-west-2.cerberus.example and the cert will be valid for both",
             required = true
     )
     private String baseDomainName;
@@ -104,7 +104,7 @@ public class GenerateCertsCommand implements Command {
             },
             description = "This command uses the acme4j client to communicate with the ACME server, " +
                     "it supports uses a hardcoded letsencrypt cert to get around ssl errors, you can use this " +
-                    "flag if your truststore is not configured to trust LE Certs, which can be found " +
+                    "flag if your truststore is not configured to trust LE certificates, which can be found " +
                     " here: https://letsencrypt.org/certificates/"
     )
     private boolean EnableLetsEncryptCertfix = false;
@@ -130,7 +130,7 @@ public class GenerateCertsCommand implements Command {
             names = {
                     ACME_API_LONG_ARG
             },
-            description = "The ACME API Url to use, This can be any ACME provider like LetsEncrypt: "  + LETS_ENCRYPT_ACME_API_URI,
+            description = "The ACME provider API URL to use, e.g. Let's Encrypt: "  + LETS_ENCRYPT_ACME_API_URI,
             required = true
     )
     private String acmeApiUrl;
@@ -143,7 +143,7 @@ public class GenerateCertsCommand implements Command {
             names = {
                     CONTACT_EMAIL_LONG_ARG
             },
-            description = "The email contact to use when creating the certs",
+            description = "The email contact to use when creating the certificates",
             required = true
     )
     private String contactEmail;

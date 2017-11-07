@@ -87,7 +87,7 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
             // check that we can write to the provided dir
             FileUtils.forceMkdir(certDir);
             if (! certDir.isDirectory() || ! certDir.canWrite()) {
-                throw new RuntimeException("Cert dir file is not a directory or is not writable, path: " + certDir.getAbsolutePath());
+                throw new RuntimeException("The certificate directory is not a directory or is not writable, path: " + certDir.getAbsolutePath());
             }
 
             // generate the certs

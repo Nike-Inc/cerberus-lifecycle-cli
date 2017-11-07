@@ -38,23 +38,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
+import static com.nike.cerberus.service.CertificateService.DOMAIN_CERT_CHAIN_FILE;
+import static com.nike.cerberus.service.CertificateService.DOMAIN_CERT_FILE;
+import static com.nike.cerberus.service.CertificateService.DOMAIN_PKCS1_KEY_FILE;
+import static com.nike.cerberus.service.CertificateService.DOMAIN_PKCS8_KEY_FILE;
+import static com.nike.cerberus.service.CertificateService.DOMAIN_PUBLIC_KEY_FILE;
+
 /**
  * Handles uploading of certificate files to IAM and the config store.
  */
 public class UploadCertFilesOperation implements Operation<UploadCertFilesCommand> {
 
-    private static final String CHAIN_FILE_NAME = CertificateService.CERT_CHAIN_FILE;
-    private static final String CERT_FILE_NAME = CertificateService.DOMAIN_CERT_FILE;
-    private static final String PKCS1_KEY_FILE_NAME = CertificateService.DOMAIN_PKCS1_KEY_FILE;
-    private static final String PKCS8_KEY_FILE_NAME = CertificateService.DOMAIN_PKCS8_KEY_FILE;
-    private static final String PUB_KEY_FILE_NAME = CertificateService.PUB_KEY_FILE;
-
     public static final Set<String> EXPECTED_FILE_NAMES = ImmutableSet.of(
-            CHAIN_FILE_NAME,
-            CERT_FILE_NAME,
-            PKCS1_KEY_FILE_NAME,
-            PKCS8_KEY_FILE_NAME,
-            PUB_KEY_FILE_NAME
+            DOMAIN_CERT_CHAIN_FILE,
+            DOMAIN_CERT_FILE,
+            DOMAIN_PKCS1_KEY_FILE,
+            DOMAIN_PKCS8_KEY_FILE,
+            DOMAIN_PUBLIC_KEY_FILE
     );
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -82,11 +82,11 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
     public void run(final UploadCertFilesCommand command) {
         final StackName stackName = command.getStackName();
         final Path certPath = command.getCertPath();
-        final String caContents = getFileContents(certPath, CHAIN_FILE_NAME);
-        final String certContents = getFileContents(certPath, CERT_FILE_NAME);
-        final String keyContents = getFileContents(certPath, PKCS1_KEY_FILE_NAME);
-        final String pkcs8KeyContents = getFileContents(certPath, PKCS8_KEY_FILE_NAME);
-        final String pubKeyContents = getFileContents(certPath, PUB_KEY_FILE_NAME);
+        final String caContents = getFileContents(certPath, DOMAIN_CERT_CHAIN_FILE);
+        final String certContents = getFileContents(certPath, DOMAIN_CERT_FILE);
+        final String keyContents = getFileContents(certPath, DOMAIN_PKCS1_KEY_FILE);
+        final String pkcs8KeyContents = getFileContents(certPath, DOMAIN_PKCS8_KEY_FILE);
+        final String pubKeyContents = getFileContents(certPath, DOMAIN_PUBLIC_KEY_FILE);
         final String certificateName = stackName.getName() + "_" + uuidSupplier.get();
 
         logger.info("Uploading certificate to IAM for {}, with name of {}.", stackName.getName(), certificateName);

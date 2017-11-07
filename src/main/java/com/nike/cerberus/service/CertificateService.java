@@ -92,19 +92,19 @@ public class CertificateService {
     public static final String DOMAIN_PKCS8_KEY_FILE = "domain-private-key-pkcs8.pem";
 
     // File name of pub key pem
-    public static final String PUB_KEY_FILE = "domain-public-key.pem";
+    public static final String DOMAIN_PUBLIC_KEY_FILE = "domain-public-key.pem";
 
-    // File name of the CSR
+    // File name of the certificate signing request
     public static final String DOMAIN_CSR_FILE = "domain.csr";
 
-    // File name of the signed certificate
+    // File name of the signed certificate with chain
     public static final String DOMAIN_FULL_CERT_WITH_CHAIN_CRT_FILE = "domain-full-cert-with-chain.crt";
 
     // File name of the signed certificate
     public static final String DOMAIN_CERT_FILE = "domain-cert.crt";
 
-    // File name of the ca chain
-    public static final String CERT_CHAIN_FILE = "chain.crt";
+    // File name of the certificate chain
+    public static final String DOMAIN_CERT_CHAIN_FILE = "chain.crt";
 
     // RSA key size of generated key pairs
     private static final int KEY_SIZE = 2048;
@@ -310,7 +310,7 @@ public class CertificateService {
                 CertificateUtils.writeX509Certificate(cert, certWriter);
             }
             // write just the chain
-            try (FileWriter chainWriter = new FileWriter(new File(certDir.getAbsolutePath() + File.separator + CERT_CHAIN_FILE))) {
+            try (FileWriter chainWriter = new FileWriter(new File(certDir.getAbsolutePath() + File.separator + DOMAIN_CERT_CHAIN_FILE))) {
                 CertificateUtils.writeX509CertificateChain(chainWriter, null, chain);
             }
 
@@ -411,7 +411,7 @@ public class CertificateService {
 
     protected void createPKCS1PublicKeyPem(KeyPair keyPair, File certDir) {
         try {
-            FileWriter pubKeyWriter = new FileWriter(new File(certDir.getAbsolutePath() + File.separator + PUB_KEY_FILE));
+            FileWriter pubKeyWriter = new FileWriter(new File(certDir.getAbsolutePath() + File.separator + DOMAIN_PUBLIC_KEY_FILE));
             try (JcaPEMWriter jw = new JcaPEMWriter(pubKeyWriter)) {
                 jw.writeObject(keyPair.getPublic());
             }

@@ -41,13 +41,13 @@ import java.util.UUID;
 
 import static com.fieldju.commons.PropUtils.getPropWithDefaultValue;
 import static com.fieldju.commons.PropUtils.getRequiredProperty;
-import static com.nike.cerberus.service.CertificateService.CERT_CHAIN_FILE;
+import static com.nike.cerberus.service.CertificateService.DOMAIN_CERT_CHAIN_FILE;
 import static com.nike.cerberus.service.CertificateService.DOMAIN_CERT_FILE;
 import static com.nike.cerberus.service.CertificateService.DOMAIN_CSR_FILE;
 import static com.nike.cerberus.service.CertificateService.DOMAIN_FULL_CERT_WITH_CHAIN_CRT_FILE;
 import static com.nike.cerberus.service.CertificateService.DOMAIN_PKCS1_KEY_FILE;
 import static com.nike.cerberus.service.CertificateService.DOMAIN_PKCS8_KEY_FILE;
-import static com.nike.cerberus.service.CertificateService.PUB_KEY_FILE;
+import static com.nike.cerberus.service.CertificateService.DOMAIN_PUBLIC_KEY_FILE;
 import static com.nike.cerberus.service.CertificateService.USER_KEY_FILE;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -134,8 +134,8 @@ public class GenerateCertsOperationIntegrationTest {
                 DOMAIN_CSR_FILE,
                 DOMAIN_FULL_CERT_WITH_CHAIN_CRT_FILE,
                 DOMAIN_CERT_FILE,
-                CERT_CHAIN_FILE,
-                PUB_KEY_FILE
+                DOMAIN_CERT_CHAIN_FILE,
+                DOMAIN_PUBLIC_KEY_FILE
         ).forEach(expectedFileName -> {
             File expectedFile = new File(certDir.getAbsolutePath() + File.separator + expectedFileName);
             assertTrue("The expected file should exist after running the generate certs command", expectedFile.exists());
@@ -157,7 +157,7 @@ public class GenerateCertsOperationIntegrationTest {
                 .withServerCertificateName("cert-gen-integration-test-" + uuid)
                 .withPath("/cert-gen-integration-test/" + uuid + "/")
                 .withCertificateBody(new String(Files.readAllBytes((new File(certDir.getAbsolutePath() + File.separator + DOMAIN_CERT_FILE).toPath()))))
-                .withCertificateChain(new String(Files.readAllBytes((new File(certDir.getAbsolutePath() + File.separator + CERT_CHAIN_FILE).toPath()))))
+                .withCertificateChain(new String(Files.readAllBytes((new File(certDir.getAbsolutePath() + File.separator + DOMAIN_CERT_CHAIN_FILE).toPath()))))
                 .withPrivateKey(new String(Files.readAllBytes(new File(certDir.getAbsolutePath() + File.separator + DOMAIN_PKCS1_KEY_FILE).toPath())));
 
         final UploadServerCertificateResult result = amazonIdentityManagement.uploadServerCertificate(request);
