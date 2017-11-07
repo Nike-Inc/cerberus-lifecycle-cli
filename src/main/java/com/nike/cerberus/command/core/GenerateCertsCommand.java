@@ -51,7 +51,7 @@ public class GenerateCertsCommand implements Command {
     public static final String ENABLE_LE_CERTFIX_SHORT_ARG = "-elec";
 
     public static final String CERT_FOLDER_LONG_ARG = "--cert-dir";
-    public static final String CERT_FOLDER_SHORT_ARG = "-c";
+    public static final String CERT_FOLDER_SHORT_ARG = "-cd";
 
     public static final String ACME_API_LONG_ARG = "--acme-api-url";
     public static final String ACME_API_SHORT_ARG = "-u";
