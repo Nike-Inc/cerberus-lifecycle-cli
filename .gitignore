@@ -74,3 +74,9 @@ gradle-app.setting
 
 # Python cache
 **/__pycache__/
+/certs/
+build/certs/
+*.pem
+*.key
+*.crt
+*.csr
