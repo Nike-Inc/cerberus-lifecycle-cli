@@ -39,32 +39,25 @@ public class GenerateCertsCommand implements Command {
             "through out the system, using an ACME provider such as LetsEncrypt";
 
     public static final String BASE_DOMAIN_LONG_ARG = "--base-domain";
-    public static final String BASE_DOMAIN_SHORT_ARG = "-d";
 
     public static final String HOSTED_ZONE_ID_LONG_ARG = "--hosted-zone-id";
-    public static final String HOSTED_ZONE_ID_SHORT_ARG = "-h";
 
     public static final String ADDITIONAL_SUBJECT_ALT_NAME_LONG_ARG = "--additional-subject-alternative-name";
-    public static final String ADDITIONAL_SUBJECT_ALT_NAME_SHORT_ARG = "-a";
 
     public static final String ENABLE_LE_CERTFIX_LONG_ARG = "--enable-letsecrypt-certfix";
-    public static final String ENABLE_LE_CERTFIX_SHORT_ARG = "-elec";
 
     public static final String CERT_FOLDER_LONG_ARG = "--cert-dir";
-    public static final String CERT_FOLDER_SHORT_ARG = "-cd";
 
     public static final String ACME_API_LONG_ARG = "--acme-api-url";
-    public static final String ACME_API_SHORT_ARG = "-u";
+
+    public static final String CONTACT_EMAIL_LONG_ARG = "--contact-email";
 
     public static final String LETS_ENCRYPT_ACME_API_URI = "acme://letsencrypt.org";
 
-    public static final String CONTACT_EMAIL_LONG_ARG = "--contact-email";
-    public static final String CONTACT_EMAIL_SHORT_ARG = "-c";
 
     @Parameter(
             names = {
-                    BASE_DOMAIN_LONG_ARG,
-                    BASE_DOMAIN_SHORT_ARG
+                    BASE_DOMAIN_LONG_ARG
             },
             description = "The base domain for the environment that this command will use to generate the following " +
                     "subject name {env}.{base-domain} and with the following subject alternative name {env}.{region}.{base-domain}\n" +
@@ -82,8 +75,7 @@ public class GenerateCertsCommand implements Command {
 
     @Parameter(
             names = {
-                    HOSTED_ZONE_ID_LONG_ARG,
-                    HOSTED_ZONE_ID_SHORT_ARG
+                    HOSTED_ZONE_ID_LONG_ARG
             },
             description = "The AWS Route 53 hosted zone id that is configured to create records for the base domain",
             required = true
@@ -96,8 +88,7 @@ public class GenerateCertsCommand implements Command {
 
     @Parameter(
             names = {
-                    ADDITIONAL_SUBJECT_ALT_NAME_LONG_ARG,
-                    ADDITIONAL_SUBJECT_ALT_NAME_SHORT_ARG
+                    ADDITIONAL_SUBJECT_ALT_NAME_LONG_ARG
             },
             description = "Alternative subject names, this should be any additional cnames that need to be secured. such as "
     )
@@ -109,8 +100,7 @@ public class GenerateCertsCommand implements Command {
 
     @Parameter(
             names = {
-                    ENABLE_LE_CERTFIX_LONG_ARG,
-                    ENABLE_LE_CERTFIX_SHORT_ARG
+                    ENABLE_LE_CERTFIX_LONG_ARG
             },
             description = "This command uses the acme4j client to communicate with the ACME server, " +
                     "it supports uses a hardcoded letsencrypt cert to get around ssl errors, you can use this " +
@@ -125,10 +115,9 @@ public class GenerateCertsCommand implements Command {
 
     @Parameter(
             names = {
-                    CERT_FOLDER_LONG_ARG,
-                    CERT_FOLDER_SHORT_ARG
+                    CERT_FOLDER_LONG_ARG
             },
-            description = "The cert folder to store the generated files",
+            description = "A local writable folder to store the generated key and cert files",
             required = true
     )
     private String certDir;
@@ -139,8 +128,7 @@ public class GenerateCertsCommand implements Command {
 
     @Parameter(
             names = {
-                    ACME_API_LONG_ARG,
-                    ACME_API_SHORT_ARG
+                    ACME_API_LONG_ARG
             },
             description = "The ACME API Url to use, This can be any ACME provider like LetsEncrypt: "  + LETS_ENCRYPT_ACME_API_URI,
             required = true
@@ -153,8 +141,7 @@ public class GenerateCertsCommand implements Command {
 
     @Parameter(
             names = {
-                    CONTACT_EMAIL_LONG_ARG,
-                    CONTACT_EMAIL_SHORT_ARG
+                    CONTACT_EMAIL_LONG_ARG
             },
             description = "The email contact to use when creating the certs",
             required = true
