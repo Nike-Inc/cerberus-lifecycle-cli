@@ -18,11 +18,11 @@ package com.nike.cerberus.operation.core;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
+import com.nike.cerberus.service.CertificateService;
 import com.nike.cerberus.service.IdentityManagementService;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.UuidSupplier;
@@ -43,12 +43,17 @@ import java.util.Set;
  */
 public class UploadCertFilesOperation implements Operation<UploadCertFilesCommand> {
 
-    private static final String CA_FILE_NAME = "ca.pem";
-    private static final String CERT_FILE_NAME = "cert.pem";
-    private static final String KEY_FILE_NAME = "key.pem";
-    private static final String PKCS8_KEY_FILE_NAME = "pkcs8-key.pem";
-    private static final String PUB_KEY_FILE_NAME = "pubkey.pem";
-    public static final Set<String> EXPECTED_FILE_NAMES = ImmutableSet.of(CA_FILE_NAME, CERT_FILE_NAME, KEY_FILE_NAME, PKCS8_KEY_FILE_NAME, PUB_KEY_FILE_NAME);
+    private static final String CHAIN_FILE_NAME = CertificateService.CERT_CHAIN;
+    private static final String CERT_FILE_NAME = CertificateService.DOMAIN_CERT;
+    private static final String PKCS1_KEY_FILE_NAME = CertificateService.DOMAIN_PKCS1_KEY_FILE;
+    private static final String PKCS8_KEY_FILE_NAME = CertificateService.DOMAIN_PKCS8_KEY_FILE;
+
+    public static final Set<String> EXPECTED_FILE_NAMES = ImmutableSet.of(
+            CHAIN_FILE_NAME,
+            CERT_FILE_NAME,
+            PKCS1_KEY_FILE_NAME,
+            PKCS8_KEY_FILE_NAME
+    );
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -75,11 +80,10 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
     public void run(final UploadCertFilesCommand command) {
         final StackName stackName = command.getStackName();
         final Path certPath = command.getCertPath();
-        final String caContents = getFileContents(certPath, CA_FILE_NAME);
+        final String caContents = getFileContents(certPath, CHAIN_FILE_NAME);
         final String certContents = getFileContents(certPath, CERT_FILE_NAME);
-        final String keyContents = getFileContents(certPath, KEY_FILE_NAME);
+        final String keyContents = getFileContents(certPath, PKCS1_KEY_FILE_NAME);
         final String pkcs8KeyContents = getFileContents(certPath, PKCS8_KEY_FILE_NAME);
-        final String pubKeyContents = getFileContents(certPath, PUB_KEY_FILE_NAME);
         final String certificateName = stackName.getName() + "_" + uuidSupplier.get();
 
         logger.info("Uploading certificate to IAM for {}, with name of {}.", stackName.getName(), certificateName);
@@ -89,7 +93,7 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
         logger.info("Cert ID: {}", id);
 
         logger.info("Uploading certificate parts to the configuration bucket.");
-        configStore.storeCert(stackName, certificateName, caContents, certContents, keyContents, pkcs8KeyContents, pubKeyContents);
+        configStore.storeCert(stackName, certificateName, caContents, certContents, keyContents, pkcs8KeyContents);
 
         logger.info("Uploading certificate completed.");
     }
@@ -127,6 +131,6 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
     }
 
     private String getPath() {
-        return "/cloudfront/cerberus/" + environmentMetadata.getName() + "/";
+        return "/cerberus/" + environmentMetadata.getName() + "/";
     }
 }
