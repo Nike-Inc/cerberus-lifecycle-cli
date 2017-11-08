@@ -17,7 +17,7 @@
 package com.nike.cerberus.domain.cloudformation;
 
 /**
- * Represents the vpc stack outputs.
+ * Represents the load balancer stack outputs.
  */
 public class LoadBalancerOutputs {
 

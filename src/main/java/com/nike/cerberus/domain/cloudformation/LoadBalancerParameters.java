@@ -19,7 +19,7 @@ package com.nike.cerberus.domain.cloudformation;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
- * Represents the vpc stack inputs.
+ * Represents the load balancer stack inputs.
  */
 public class LoadBalancerParameters implements TagParameters {
 

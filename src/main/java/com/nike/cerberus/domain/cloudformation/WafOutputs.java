@@ -17,7 +17,7 @@
 package com.nike.cerberus.domain.cloudformation;
 
 /**
- * Represents the vpc stack outputs.
+ * Represents the waf stack outputs.
  */
 public class WafOutputs {
 

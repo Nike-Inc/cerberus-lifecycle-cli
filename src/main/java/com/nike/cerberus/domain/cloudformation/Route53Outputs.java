@@ -17,7 +17,7 @@
 package com.nike.cerberus.domain.cloudformation;
 
 /**
- * Represents the base stack outputs.
+ * Represents the route53 stack outputs.
  */
 public class Route53Outputs {
 

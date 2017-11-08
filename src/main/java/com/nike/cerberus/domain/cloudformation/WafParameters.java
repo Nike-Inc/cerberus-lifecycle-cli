@@ -19,7 +19,7 @@ package com.nike.cerberus.domain.cloudformation;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
- * Represents the vpc stack inputs.
+ * Represents the waf stack inputs.
  */
 public class WafParameters implements TagParameters {
 

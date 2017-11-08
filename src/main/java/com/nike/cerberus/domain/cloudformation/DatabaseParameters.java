@@ -19,7 +19,7 @@ package com.nike.cerberus.domain.cloudformation;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
- * Represents the vpc stack inputs.
+ * Represents the database stack inputs.
  */
 public class DatabaseParameters implements TagParameters {
 
