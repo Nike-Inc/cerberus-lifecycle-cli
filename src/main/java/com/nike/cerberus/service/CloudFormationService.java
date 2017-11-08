@@ -71,6 +71,7 @@ public class CloudFormationService {
     public final static String MIN_INSTANCES_STACK_PARAMETER_KEY = "minimumInstances";
 
     private final AmazonCloudFormation cloudFormationClient;
+
     private final EnvironmentMetadata environmentMetadata;
 
     @Inject
@@ -262,11 +263,16 @@ public class CloudFormationService {
                 new DescribeStacksRequest()
                         .withStackName(stackName));
 
-        if (result.getStacks().size() > 0) {
-            return result.getStacks().get(0).getStackId();
+        List<Stack> stacks = result.getStacks();
+        if (stacks.isEmpty()) {
+            throw new IllegalArgumentException("No stack found with name: " + stackName);
+        } else if (stacks.size() > 1) {
+            logger.warn("Found more than stack with name: {}. Selecting the first one: stack id: {}",
+                    stackName,
+                    stacks.get(0).getStackId());
         }
 
-        throw new IllegalArgumentException("No stack found with name: " + stackName);
+        return stacks.get(0).getStackId();
     }
 
     /**
