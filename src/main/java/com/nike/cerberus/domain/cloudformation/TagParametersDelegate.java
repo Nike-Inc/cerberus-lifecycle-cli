@@ -74,4 +74,12 @@ public class TagParametersDelegate {
         this.tagCostcenter = tagCostcenter;
         return this;
     }
+
+    public Map<String, String> getDynamicParameters() {
+        return dynamicParameters;
+    }
+
+    public void setDynamicParameters(Map<String, String> dynamicParameters) {
+        this.dynamicParameters = dynamicParameters;
+    }
 }

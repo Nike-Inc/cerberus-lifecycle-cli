@@ -65,10 +65,6 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
     @Override
     public void run(final CreateRoute53Command command) {
         final String environmentName = environmentMetadata.getName();
-        final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
-
-        final String sslCertificateArn = configStore.getServerCertificateArn(StackName.CMS)
-                .orElseThrow(() -> new IllegalStateException("Could not retrieve SSL certificate ARN!"));
 
         final Route53Parameters route53Parameters = new Route53Parameters()
                 .setHostname(command.getCerberusHostname())
@@ -79,7 +75,8 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, typeReference);
 
         cloudFormationService.createStack(StackName.ROUTE53.getFullName(environmentName),
-                parameters, ConfigConstants.ROUTE53_TEMPLATE_PATH, true);    }
+                parameters, ConfigConstants.ROUTE53_TEMPLATE_PATH, true);
+    }
 
     @Override
     public boolean isRunnable(final CreateRoute53Command command) {

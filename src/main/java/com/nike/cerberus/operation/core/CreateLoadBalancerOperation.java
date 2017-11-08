@@ -93,7 +93,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
         try {
             configStore.getSecurityGroupStackOutputs();
         } catch (IllegalStateException ise) {
-            throw new IllegalStateException("The security group stack must exist to create load balancer!", ise);
+            throw new IllegalStateException("The security group stack must exist to create the load balancer!", ise);
         }
 
         return true;

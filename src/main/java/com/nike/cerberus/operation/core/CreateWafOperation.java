@@ -67,10 +67,6 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
     @Override
     public void run(final CreateWafCommand command) {
         final String environmentName = environmentMetadata.getName();
-        final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
-
-        final String sslCertificateArn = configStore.getServerCertificateArn(StackName.CMS)
-                .orElseThrow(() -> new IllegalStateException("Could not retrieve SSL certificate ARN!"));
 
         final WafParameters wafParameters = new WafParameters()
                 .setLoadBalancerStackName(StackName.LOAD_BALANCER.getFullName(environmentName));
