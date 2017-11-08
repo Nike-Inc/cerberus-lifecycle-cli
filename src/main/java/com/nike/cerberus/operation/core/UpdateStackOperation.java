@@ -24,8 +24,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.domain.cloudformation.BaseParameters;
+import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
+import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.LaunchConfigParameters;
 import com.nike.cerberus.domain.cloudformation.SslConfigParametersDelegate;
 import com.nike.cerberus.domain.cloudformation.TagParameters;
@@ -84,6 +85,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
         stackParameterMap = new HashMap<>();
         stackParameterMap.put(StackName.CMS, CmsParameters.class);
+        stackParameterMap.put(StackName.GATEWAY, GatewayParameters.class);
 
         stackTemplatePathMap = new HashMap<>();
         stackTemplatePathMap.put(StackName.BASE, ConfigConstants.BASE_STACK_TEMPLATE_PATH);
@@ -194,44 +196,12 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
             launchConfigParameters.getTagParameters().setTagCostcenter(command.getCostcenter());
         }
 
-        if (command.getDesiredInstances() != null) {
-            launchConfigParameters.getLaunchConfigParameters().setDesiredInstances(command.getDesiredInstances());
-        }
-
-        if (command.getMinimumInstances() != null) {
-            launchConfigParameters.getLaunchConfigParameters().setMinimumInstances(command.getMinimumInstances());
-        }
-
-        if (command.getMaximumInstances() != null) {
-            launchConfigParameters.getLaunchConfigParameters().setMaximumInstances(command.getMaximumInstances());
-        }
-
-        updateSslConfigParameters(stackName, launchConfigParameters);
-
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         return cloudformationObjectMapper.convertValue(launchConfigParameters, typeReference);
     }
 
-    private void updateSslConfigParameters(final StackName stackName,
-                                           final LaunchConfigParameters launchConfigParameters) {
-
-        final SslConfigParametersDelegate sslConfigParameters = launchConfigParameters.getSslConfigParameters();
-
-        if (StringUtils.isNotBlank(sslConfigParameters.getCertPublicKey())) {
-            sslConfigParameters.setCertPublicKey(configStore.getCertPart(stackName, CERT_PART_PUBKEY).get());
-        }
-
-        if (StringUtils.isNotBlank(sslConfigParameters.getSslCertificateId())) {
-            sslConfigParameters.setSslCertificateId(configStore.getServerCertificateId(stackName).get());
-        }
-
-        if (StringUtils.isNotBlank(sslConfigParameters.getSslCertificateArn())) {
-            sslConfigParameters.setSslCertificateArn(configStore.getServerCertificateArn(stackName).get());
-        }
-    }
-
     private Map<String, String> getUpdatedBaseStackParameters(final UpdateStackCommand command) {
-        final TagParameters tagParameters = configStore.getStackParameters(command.getStackName(), BaseParameters.class);
+        final TagParameters tagParameters = configStore.getStackParameters(command.getStackName(), SecurityGroupParameters.class);
 
         if (StringUtils.isNotBlank(command.getOwnerEmail())) {
             tagParameters.getTagParameters().setTagEmail(command.getOwnerEmail());

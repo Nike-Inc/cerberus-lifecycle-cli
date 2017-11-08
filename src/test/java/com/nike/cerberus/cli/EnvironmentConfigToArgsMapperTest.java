@@ -92,9 +92,9 @@ public class EnvironmentConfigToArgsMapperTest {
                 "-f", "/path/to/environment.yaml",
                 commandName,
                 "--admin-role-arn", "arn:aws:iam::111111111:role/onelogin-roles-OneLoginAdminRole-2222222222",
-                "--vpc-hosted-zone-name", "demo.internal.cerberus-oss.io",
                 "--owner-email", "obvisouly.fake@nike.com",
-                "--costcenter", "11111"
+                "--costcenter", "11111",
+                "--owner-group", "engineering team name"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -153,7 +153,7 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",
                 StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-                StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering"
+                StackDelegate.OWNER_GROUP_LONG_ARG, "engineering team name"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -221,7 +221,7 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",
                 StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-                StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
+                StackDelegate.OWNER_GROUP_LONG_ARG, "engineering team name",
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -244,7 +244,7 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
                 StackDelegate.COST_CENTER_LONG_ARG, "11111",
                 StackDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-                StackDelegate.OWNER_GROUP_LONG_ARG, "cloud platform engineering",
+                StackDelegate.OWNER_GROUP_LONG_ARG, "engineering team name",
                 UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG,
                 UpdateStackCommand.PARAMETER_SHORT_ARG, "k=v",
         };

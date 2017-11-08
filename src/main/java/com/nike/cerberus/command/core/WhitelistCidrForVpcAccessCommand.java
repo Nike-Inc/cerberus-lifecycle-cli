@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.WhitelistCidrForVpcAccessOpertaion;
+import com.nike.cerberus.operation.core.WhitelistCidrForVpcAccessOperation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +58,6 @@ public class WhitelistCidrForVpcAccessCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return WhitelistCidrForVpcAccessOpertaion.class;
+        return WhitelistCidrForVpcAccessOperation.class;
     }
 }

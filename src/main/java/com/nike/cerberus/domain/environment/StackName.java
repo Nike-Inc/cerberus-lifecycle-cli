@@ -24,8 +24,12 @@ public enum StackName {
     VAULT("vault"),
     CMS("cms"),
     GATEWAY("gateway"),
-    @Deprecated
-    RDSBACKUP("rdsbackup"); // TODO: need to remove but casually deleting will cause JSON parse error
+    VPC("vpc"),
+    DATABASE("database"),
+    SECURITY_GROUPS("security-groups"),
+    LOAD_BALANCER("load-balancer"),
+    ROUTE53("route53"),
+    WAF("web-app-firewall");
 
     private final String name;
 
@@ -35,6 +39,15 @@ public enum StackName {
 
     public String getName() {
         return name;
+    }
+
+    /**
+     * Generate the CloudFormation stack name for each Cerberus component
+     * @param environmentName  The name of the environment in which the component lives (e.g. demo, preprod, devel, etc.)
+     * @return  The generated CloudFormation stack name
+     */
+    public String getFullName(String environmentName) {
+        return String.format("%s-cerberus-%s", environmentName, name);
     }
 
     public static StackName fromName(final String name) {

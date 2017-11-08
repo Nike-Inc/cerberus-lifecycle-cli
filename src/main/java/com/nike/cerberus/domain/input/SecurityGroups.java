@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,20 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.domain.configuration;
+package com.nike.cerberus.domain.input;
 
 /**
- * POJO creating the ACL token and entry JSON.
+ * Stores Management Service-specific parameters parsed from YAML
  */
-public class VaultAclEntry {
+public class SecurityGroups extends CerberusStack {
 
-    private String aclToken;
+    private String loadBalancerCidrBlock;
 
-    private String entry;
-
-    public String getAclToken() {
-        return aclToken;
+    public String getLoadBalancerCidrBlock() {
+        return loadBalancerCidrBlock;
     }
 
-    public VaultAclEntry setAclToken(String aclToken) {
-        this.aclToken = aclToken;
-        return this;
-    }
-
-    public String getEntry() {
-        return entry;
-    }
-
-    public VaultAclEntry setEntry(String entry) {
-        this.entry = entry;
-        return this;
+    public void setLoadBalancerCidrBlock(String loadBalancerCidrBlock) {
+        this.loadBalancerCidrBlock = loadBalancerCidrBlock;
     }
 }

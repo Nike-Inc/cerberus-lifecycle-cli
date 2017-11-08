@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,12 @@ import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
 import com.nike.cerberus.command.core.GenerateCertsCommand;
+import com.nike.cerberus.command.core.CreateDatabaseCommand;
+import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
+import com.nike.cerberus.command.core.CreateRoute53Command;
+import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
+import com.nike.cerberus.command.core.CreateVpcCommand;
+import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
@@ -172,6 +178,12 @@ public class CerberusRunner {
         registerCommand(new CreateCerberusBackupCommand());
         registerCommand(new SetBackupAdminPrincipalsCommand());
         registerCommand(new GenerateCertsCommand());
+        registerCommand(new CreateVpcCommand());
+        registerCommand(new CreateWafCommand());
+        registerCommand(new CreateDatabaseCommand());
+        registerCommand(new CreateRoute53Command());
+        registerCommand(new CreateSecurityGroupsCommand());
+        registerCommand(new CreateLoadBalancerCommand());
     }
 
     /**

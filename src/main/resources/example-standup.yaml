@@ -19,7 +19,7 @@ cost-center: 11111
 # The e-mail for who owns the provisioned resources. Will be tagged on all resources.
 owner-email: obvisouly.fake@nike.com
 # The owning group for the provision resources. Will be tagged on all resources.
-owner-group: cloud platform engineering
+owner-group: engineering team name
 
 # A IAM role ARN that will be given elevated privileges for the KMS CMK created.,
 # If you don't separate root access from admins just use the root role here

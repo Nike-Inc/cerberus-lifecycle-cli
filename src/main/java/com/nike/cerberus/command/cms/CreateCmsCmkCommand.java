@@ -24,7 +24,7 @@ import com.nike.cerberus.operation.cms.CreateCmsCmkOperation;
 
 import java.util.List;
 
-import static com.nike.cerberus.command.cms.UpdateCmsConfigCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.cms.CreateCmsCmkCommand.COMMAND_NAME;
 
 /**
  * Command to create the CMS cluster.

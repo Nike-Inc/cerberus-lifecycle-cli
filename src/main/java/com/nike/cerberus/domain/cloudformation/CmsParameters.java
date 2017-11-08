@@ -23,15 +23,11 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  */
 public class CmsParameters implements LaunchConfigParameters {
 
-    private String vpcId;
+    private String baseStackName;
 
-    private String instanceProfileName;
+    private String loadBalancerStackName;
 
-    private String cmsElbSgId;
-
-    private String cmsSgId;
-
-    private String toolsIngressSgId;
+    private String sgStackName;
 
     private String vpcSubnetIdForAz1;
 
@@ -39,61 +35,36 @@ public class CmsParameters implements LaunchConfigParameters {
 
     private String vpcSubnetIdForAz3;
 
-    private String hostedZoneId;
-
-    private String cname;
-
-    @JsonUnwrapped
-    private SslConfigParametersDelegate sslConfigParameters = new SslConfigParametersDelegate();
-
     @JsonUnwrapped
     private LaunchConfigParametersDelegate launchConfigParameters = new LaunchConfigParametersDelegate();
 
     @JsonUnwrapped
     private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
-    public String getVpcId() {
-        return vpcId;
+    public String getBaseStackName() {
+        return baseStackName;
     }
 
-    public CmsParameters setVpcId(String vpcId) {
-        this.vpcId = vpcId;
+    public CmsParameters setBaseStackName(String baseStackName) {
+        this.baseStackName = baseStackName;
         return this;
     }
 
-    public String getInstanceProfileName() {
-        return instanceProfileName;
+    public String getLoadBalancerStackName() {
+        return loadBalancerStackName;
     }
 
-    public CmsParameters setInstanceProfileName(String instanceProfileName) {
-        this.instanceProfileName = instanceProfileName;
+    public CmsParameters setLoadBalancerStackName(String loadBalancerStackName) {
+        this.loadBalancerStackName = loadBalancerStackName;
         return this;
     }
 
-    public String getCmsElbSgId() {
-        return cmsElbSgId;
+    public String getSgStackName() {
+        return sgStackName;
     }
 
-    public CmsParameters setCmsElbSgId(String cmsElbSgId) {
-        this.cmsElbSgId = cmsElbSgId;
-        return this;
-    }
-
-    public String getCmsSgId() {
-        return cmsSgId;
-    }
-
-    public CmsParameters setCmsSgId(String cmsSgId) {
-        this.cmsSgId = cmsSgId;
-        return this;
-    }
-
-    public String getToolsIngressSgId() {
-        return toolsIngressSgId;
-    }
-
-    public CmsParameters setToolsIngressSgId(String toolsIngressSgId) {
-        this.toolsIngressSgId = toolsIngressSgId;
+    public CmsParameters setSgStackName(String sgStackName) {
+        this.sgStackName = sgStackName;
         return this;
     }
 
@@ -121,34 +92,6 @@ public class CmsParameters implements LaunchConfigParameters {
 
     public CmsParameters setVpcSubnetIdForAz3(String vpcSubnetIdForAz3) {
         this.vpcSubnetIdForAz3 = vpcSubnetIdForAz3;
-        return this;
-    }
-
-    public String getHostedZoneId() {
-        return hostedZoneId;
-    }
-
-    public CmsParameters setHostedZoneId(String hostedZoneId) {
-        this.hostedZoneId = hostedZoneId;
-        return this;
-    }
-
-    public String getCname() {
-        return cname;
-    }
-
-    public CmsParameters setCname(String cname) {
-        this.cname = cname;
-        return this;
-    }
-
-    @Override
-    public SslConfigParametersDelegate getSslConfigParameters() {
-        return sslConfigParameters;
-    }
-
-    public CmsParameters setSslConfigParameters(SslConfigParametersDelegate sslConfigParameters) {
-        this.sslConfigParameters = sslConfigParameters;
         return this;
     }
 

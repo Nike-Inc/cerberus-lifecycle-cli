@@ -25,15 +25,7 @@ public class CmsOutputs {
 
     private String launchConfigurationLogicalId;
 
-    private String elbLogicalId;
-
-    private String elbCanonicalHostedZoneNameId;
-
-    private String elbDnsName;
-
-    private String elbSourceSecurityGroupName;
-
-    private String elbSourceSecurityGroupOwnerAlias;
+    private String cmsInstanceProfileName;
 
     public String getAutoscalingGroupLogicalId() {
         return autoscalingGroupLogicalId;
@@ -53,48 +45,12 @@ public class CmsOutputs {
         return this;
     }
 
-    public String getElbLogicalId() {
-        return elbLogicalId;
+    public String getCmsInstanceProfileName() {
+        return cmsInstanceProfileName;
     }
 
-    public CmsOutputs setElbLogicalId(String elbLogicalId) {
-        this.elbLogicalId = elbLogicalId;
-        return this;
-    }
-
-    public String getElbCanonicalHostedZoneNameId() {
-        return elbCanonicalHostedZoneNameId;
-    }
-
-    public CmsOutputs setElbCanonicalHostedZoneNameId(String elbCanonicalHostedZoneNameId) {
-        this.elbCanonicalHostedZoneNameId = elbCanonicalHostedZoneNameId;
-        return this;
-    }
-
-    public String getElbDnsName() {
-        return elbDnsName;
-    }
-
-    public CmsOutputs setElbDnsName(String elbDnsName) {
-        this.elbDnsName = elbDnsName;
-        return this;
-    }
-
-    public String getElbSourceSecurityGroupName() {
-        return elbSourceSecurityGroupName;
-    }
-
-    public CmsOutputs setElbSourceSecurityGroupName(String elbSourceSecurityGroupName) {
-        this.elbSourceSecurityGroupName = elbSourceSecurityGroupName;
-        return this;
-    }
-
-    public String getElbSourceSecurityGroupOwnerAlias() {
-        return elbSourceSecurityGroupOwnerAlias;
-    }
-
-    public CmsOutputs setElbSourceSecurityGroupOwnerAlias(String elbSourceSecurityGroupOwnerAlias) {
-        this.elbSourceSecurityGroupOwnerAlias = elbSourceSecurityGroupOwnerAlias;
+    public CmsOutputs setCmsInstanceProfileName(String cmsInstanceProfileName) {
+        this.cmsInstanceProfileName = cmsInstanceProfileName;
         return this;
     }
 }

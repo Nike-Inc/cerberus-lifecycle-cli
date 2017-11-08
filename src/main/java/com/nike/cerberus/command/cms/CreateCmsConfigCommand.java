@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.nike.cerberus.operation.cms.CreateCmsConfigOperation;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.cms.CreateCmsConfigCommand.COMMAND_NAME;
 
 /**
  * Command to create the CMS cluster.

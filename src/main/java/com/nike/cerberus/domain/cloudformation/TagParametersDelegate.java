@@ -16,16 +16,37 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
+import com.beust.jcommander.DynamicParameter;
+import com.beust.jcommander.Parameter;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.nike.cerberus.command.StackDelegate.COST_CENTER_LONG_ARG;
+import static com.nike.cerberus.command.StackDelegate.OWNER_EMAIL_LONG_ARG;
+import static com.nike.cerberus.command.StackDelegate.PARAMETER_SHORT_ARG;
+
 /**
  * CloudFormation input parameters common to all Cerberus CloudFormation stacks.
  */
 public class TagParametersDelegate {
 
+    @Parameter(names = "--tag-name",
+            description = "The environment name (e.g. 'cerberus-demo', 'cerberus-preprod')")
     private String tagName;
 
+    @Parameter(names = OWNER_EMAIL_LONG_ARG,
+            description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.",
+            required = true)
     private String tagEmail;
 
+    @Parameter(names = COST_CENTER_LONG_ARG,
+            description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.",
+            required = true)
     private String tagCostcenter;
+
+    @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
+    private Map<String, String> dynamicParameters = new HashMap<>();
 
     public String getTagName() {
         return tagName;
@@ -52,5 +73,13 @@ public class TagParametersDelegate {
     public TagParametersDelegate setTagCostcenter(String tagCostcenter) {
         this.tagCostcenter = tagCostcenter;
         return this;
+    }
+
+    public Map<String, String> getDynamicParameters() {
+        return dynamicParameters;
+    }
+
+    public void setDynamicParameters(Map<String, String> dynamicParameters) {
+        this.dynamicParameters = dynamicParameters;
     }
 }

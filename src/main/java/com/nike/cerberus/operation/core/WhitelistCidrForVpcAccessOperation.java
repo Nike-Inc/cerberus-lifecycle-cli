@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest;
 import com.google.common.collect.Lists;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.cloudformation.BaseOutputs;
+import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
+import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -39,7 +41,7 @@ import java.util.List;
 /**
  * Operation
  */
-public class WhitelistCidrForVpcAccessOpertaion implements Operation<WhitelistCidrForVpcAccessCommand> {
+public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCidrForVpcAccessCommand> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -50,7 +52,7 @@ public class WhitelistCidrForVpcAccessOpertaion implements Operation<WhitelistCi
     private final AmazonEC2 ec2Client;
 
     @Inject
-    public WhitelistCidrForVpcAccessOpertaion(final CloudFormationService cloudFormationService,
+    public WhitelistCidrForVpcAccessOperation(final CloudFormationService cloudFormationService,
                                               final ConfigStore configStore,
                                               final AmazonEC2 ec2Client) {
         this.cloudFormationService = cloudFormationService;
@@ -60,15 +62,15 @@ public class WhitelistCidrForVpcAccessOpertaion implements Operation<WhitelistCi
 
     @Override
     public void run(final WhitelistCidrForVpcAccessCommand command) {
-        final BaseOutputs baseStackOutputs = configStore.getBaseStackOutputs();
+        final SecurityGroupOutputs securityGroupOutputs = configStore.getSecurityGroupStackOutputs();
 
         logger.info("Revoking the previous ingress rules...");
         final DescribeSecurityGroupsResult securityGroupsResult = ec2Client.describeSecurityGroups(
-                new DescribeSecurityGroupsRequest().withGroupIds(baseStackOutputs.getToolsIngressSgId()));
+                new DescribeSecurityGroupsRequest().withGroupIds(securityGroupOutputs.getWhitelistIngressSgId()));
         securityGroupsResult.getSecurityGroups().forEach(securityGroup -> {
             if (!securityGroup.getIpPermissions().isEmpty()) {
                 RevokeSecurityGroupIngressRequest revokeIngressRequest = new RevokeSecurityGroupIngressRequest()
-                        .withGroupId(baseStackOutputs.getToolsIngressSgId())
+                        .withGroupId(securityGroupOutputs.getWhitelistIngressSgId())
                         .withIpPermissions(securityGroup.getIpPermissions());
                 ec2Client.revokeSecurityGroupIngress(revokeIngressRequest);
             }
@@ -88,7 +90,7 @@ public class WhitelistCidrForVpcAccessOpertaion implements Operation<WhitelistCi
         });
 
         AuthorizeSecurityGroupIngressRequest ingressRequest = new AuthorizeSecurityGroupIngressRequest()
-                .withGroupId(baseStackOutputs.getToolsIngressSgId())
+                .withGroupId(securityGroupOutputs.getWhitelistIngressSgId())
                 .withIpPermissions(ipPermissionList);
         ec2Client.authorizeSecurityGroupIngress(ingressRequest);
         logger.info("Done.");
