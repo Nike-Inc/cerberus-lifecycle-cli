@@ -16,13 +16,7 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.nike.cerberus.command.StackDelegate.PARAMETER_SHORT_ARG;
 
 /**
  * CloudFormation input parameters common to all Cerberus CloudFormation stacks.
