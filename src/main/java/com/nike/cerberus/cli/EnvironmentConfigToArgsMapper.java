@@ -21,6 +21,12 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.CreateDatabaseCommand;
+import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
+import com.nike.cerberus.command.core.CreateRoute53Command;
+import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
+import com.nike.cerberus.command.core.CreateVpcCommand;
+import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
@@ -88,6 +94,18 @@ public class EnvironmentConfigToArgsMapper {
                 return getUpdateStackCommandArgs(environmentConfig, passedArgs);
             case UpdateCmsConfigCommand.COMMAND_NAME:
                 return getCreateCmsConfigCommandArgs(environmentConfig);
+            case CreateVpcCommand.COMMAND_NAME:
+                return getCreateVpcCommandArgs(environmentConfig);
+            case CreateSecurityGroupsCommand.COMMAND_NAME:
+                return getCreateSecurityGroupsCommandArgs(environmentConfig);
+            case CreateDatabaseCommand.COMMAND_NAME:
+                return getCreateDatabaseCommandArgs(environmentConfig);
+            case CreateLoadBalancerCommand.COMMAND_NAME:
+                return getCreateLoadBalancerCommandArgs(environmentConfig);
+            case CreateRoute53Command.COMMAND_NAME:
+                return getCreateRoute53CommandArgs(environmentConfig);
+            case CreateWafCommand.COMMAND_NAME:
+                return getCreateWafCommandArgs(environmentConfig);
             default:
                 return new LinkedList<>();
         }
@@ -144,6 +162,10 @@ public class EnvironmentConfigToArgsMapper {
         args.add(StackDelegate.KEY_PAIR_NAME_LONG_ARG);
         args.add(stack.getKeyPairName());
 
+        addTagArgs(environmentConfig, args);
+    }
+
+    private static void addTagArgs(EnvironmentConfig environmentConfig, List<String> args) {
         args.add(StackDelegate.COST_CENTER_LONG_ARG);
         args.add(environmentConfig.getCostCenter());
         args.add(StackDelegate.OWNER_EMAIL_LONG_ARG);
@@ -187,10 +209,8 @@ public class EnvironmentConfigToArgsMapper {
     private static List<String> getCreateBaseCommandArgs(EnvironmentConfig config) {
         List<String> args = new LinkedList<>();
 
-        args.add(StackDelegate.OWNER_EMAIL_LONG_ARG);
-        args.add(config.getOwnerEmail());
-        args.add(StackDelegate.COST_CENTER_LONG_ARG);
-        args.add(config.getCostCenter());
+        addTagArgs(config, args);
+
         args.add(CreateBaseCommand.ADMIN_ROLE_ARN_LONG_ARG);
         args.add(config.getAdminRoleArn());
 
@@ -235,6 +255,55 @@ public class EnvironmentConfigToArgsMapper {
             }
         }
 
+        return args;
+    }
+
+    private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config) {
+        List<String> args = new LinkedList<>();
+        addTagArgs(config, args);
+        return args;
+    }
+
+    private static List<String> getCreateSecurityGroupsCommandArgs(EnvironmentConfig config) {
+        List<String> args = new LinkedList<>();
+
+        if (config.getSecurityGroups() != null &&
+                config.getSecurityGroups().getLoadBalancerCidrBlock() != null) {
+            args.add(CreateSecurityGroupsCommand.LOAD_BALANCER_CIDR_BLOCK_LONG_ARG);
+            args.add(config.getSecurityGroups().getLoadBalancerCidrBlock());
+        }
+
+        addTagArgs(config, args);
+
+        return args;
+    }
+
+    private static List<String> getCreateDatabaseCommandArgs(EnvironmentConfig config) {
+        List<String> args = new LinkedList<>();
+        addTagArgs(config, args);
+        return args;
+    }
+
+    private static List<String> getCreateLoadBalancerCommandArgs(EnvironmentConfig config) {
+        List<String> args = new LinkedList<>();
+        addTagArgs(config, args);
+        return args;
+    }
+
+    private static List<String> getCreateRoute53CommandArgs(EnvironmentConfig config) {
+        List<String> args = new LinkedList<>();
+
+        args.add(CreateRoute53Command.HOSTNAME_LONG_ARG);
+        args.add(config.getHostname());
+        args.add(CreateRoute53Command.HOSTED_ZONE_ID);
+        args.add(config.getHostedZoneId());
+
+        return args;
+    }
+
+    private static List<String> getCreateWafCommandArgs(EnvironmentConfig config) {
+        List<String> args = new LinkedList<>();
+        addTagArgs(config, args);
         return args;
     }
 

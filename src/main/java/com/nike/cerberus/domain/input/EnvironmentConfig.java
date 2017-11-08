@@ -37,6 +37,7 @@ public class EnvironmentConfig {
     private Vault vault;
     private ManagementService managementService;
     private Gateway gateway;
+    private SecurityGroups securityGroups;
 
     public String getVersion() {
         return version;
@@ -156,5 +157,13 @@ public class EnvironmentConfig {
 
     public void setGateway(Gateway gateway) {
         this.gateway = gateway;
+    }
+
+    public SecurityGroups getSecurityGroups() {
+        return securityGroups;
+    }
+
+    public void setSecurityGroups(SecurityGroups securityGroups) {
+        this.securityGroups = securityGroups;
     }
 }

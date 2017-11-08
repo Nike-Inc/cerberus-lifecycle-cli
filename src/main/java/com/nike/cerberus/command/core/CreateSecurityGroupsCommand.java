@@ -33,7 +33,9 @@ public class CreateSecurityGroupsCommand implements Command {
 
     public static final String COMMAND_NAME = "create-security-groups";
 
-    @Parameter(names = "--load-balancer-cidr",
+    public static final String LOAD_BALANCER_CIDR_BLOCK_LONG_ARG = "--load-balancer-cidr";
+
+    @Parameter(names = LOAD_BALANCER_CIDR_BLOCK_LONG_ARG,
             description = "The CIDR from which to allow traffic to the load balancer")
     private String loadBalancerCidr;
 
