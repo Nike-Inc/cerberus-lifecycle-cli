@@ -33,17 +33,9 @@ public class CreateSecurityGroupsCommand implements Command {
 
     public static final String COMMAND_NAME = "create-security-groups";
 
-    @Parameter(names = "--cms-db-port",
-            description = "Port number for communicating with the database for CMS")
-    private Integer cmsDbPort;
-
     @Parameter(names = "--load-balancer-cidr",
             description = "The CIDR from which to allow traffic to the load balancer")
     private String loadBalancerCidr;
-
-    public Integer getCmsDbPort() {
-        return cmsDbPort;
-    }
 
     public String getLoadBalancerCidr() {
         return loadBalancerCidr;

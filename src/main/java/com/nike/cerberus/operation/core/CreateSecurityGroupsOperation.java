@@ -69,7 +69,6 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
 
         final SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
                 .setVpcId(vpcOutputs.getVpcId())
-                .setCmsDbPort(command.getCmsDbPort())
                 .setLoadBalancerCidrBlock(command.getLoadBalancerCidr());
 
         securityGroupParameters.getTagParameters().setTagEmail(securityGroupParameters.getTagParameters().getTagEmail());
