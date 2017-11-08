@@ -47,9 +47,6 @@ public class TagParametersDelegate {
             required = true)
     private String tagCostcenter;
 
-    @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
-    private Map<String, String> dynamicParameters = new HashMap<>();
-
     public String getTagName() {
         return tagName;
     }
