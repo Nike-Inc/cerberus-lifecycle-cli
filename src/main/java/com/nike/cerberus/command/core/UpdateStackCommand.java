@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.StackDelegate;
+import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UpdateStackOperation;
@@ -46,7 +47,7 @@ public class UpdateStackCommand implements Command {
     @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.")
     private StackName stackName;
 
-    @Parameter(names = StackDelegate.OWNER_GROUP_LONG_ARG,
+    @Parameter(names = TagParametersDelegate.OWNER_GROUP_LONG_ARG,
             description = "The owning group for the resources to be updated. Will be tagged on all resources.",
             required = true)
     private String ownerGroup;
@@ -60,11 +61,11 @@ public class UpdateStackCommand implements Command {
     @Parameter(names = StackDelegate.KEY_PAIR_NAME_LONG_ARG, description = "SSH key pair name.")
     private String keyPairName;
 
-    @Parameter(names = StackDelegate.OWNER_EMAIL_LONG_ARG,
+    @Parameter(names = TagParametersDelegate.OWNER_EMAIL_LONG_ARG,
             description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.")
     private String ownerEmail;
 
-    @Parameter(names = StackDelegate.COST_CENTER_LONG_ARG,
+    @Parameter(names = TagParametersDelegate.COST_CENTER_LONG_ARG,
             description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.")
     private String costcenter;
 

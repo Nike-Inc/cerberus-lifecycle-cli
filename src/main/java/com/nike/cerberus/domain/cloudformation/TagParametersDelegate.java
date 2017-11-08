@@ -22,14 +22,16 @@ import com.beust.jcommander.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.nike.cerberus.command.StackDelegate.COST_CENTER_LONG_ARG;
-import static com.nike.cerberus.command.StackDelegate.OWNER_EMAIL_LONG_ARG;
 import static com.nike.cerberus.command.StackDelegate.PARAMETER_SHORT_ARG;
 
 /**
  * CloudFormation input parameters common to all Cerberus CloudFormation stacks.
  */
 public class TagParametersDelegate {
+
+    public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
+    public static final String OWNER_GROUP_LONG_ARG = "--owner-group";
+    public static final String COST_CENTER_LONG_ARG = "--costcenter";
 
     @Parameter(names = "--tag-name",
             description = "The environment name (e.g. 'cerberus-demo', 'cerberus-preprod')")
