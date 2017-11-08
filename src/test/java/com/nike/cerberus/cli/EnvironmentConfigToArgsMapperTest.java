@@ -92,7 +92,6 @@ public class EnvironmentConfigToArgsMapperTest {
                 "-f", "/path/to/environment.yaml",
                 commandName,
                 "--admin-role-arn", "arn:aws:iam::111111111:role/onelogin-roles-OneLoginAdminRole-2222222222",
-                "--vpc-hosted-zone-name", "demo.internal.cerberus-oss.io",
                 "--owner-email", "obvisouly.fake@nike.com",
                 "--costcenter", "11111"
         };
