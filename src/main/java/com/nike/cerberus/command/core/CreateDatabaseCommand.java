@@ -36,7 +36,7 @@ public class CreateDatabaseCommand implements Command {
     public static final String COMMAND_NAME = "create-database";
 
     @ParametersDelegate
-    private TagParametersDelegate tagsDelegate;
+    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;

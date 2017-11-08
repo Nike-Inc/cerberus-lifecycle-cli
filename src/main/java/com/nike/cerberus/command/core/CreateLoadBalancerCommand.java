@@ -35,7 +35,7 @@ public class CreateLoadBalancerCommand implements Command {
     public static final String COMMAND_NAME = "create-load-balancer";
 
     @ParametersDelegate
-    private TagParametersDelegate tagsDelegate;
+    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;

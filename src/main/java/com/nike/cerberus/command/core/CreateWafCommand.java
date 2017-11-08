@@ -35,7 +35,7 @@ public class CreateWafCommand implements Command {
     public static final String COMMAND_NAME = "create-waf";
 
     @ParametersDelegate
-    private TagParametersDelegate tagsDelegate;
+    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;

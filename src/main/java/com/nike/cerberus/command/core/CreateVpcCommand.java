@@ -35,7 +35,7 @@ public class CreateVpcCommand implements Command {
     public static final String COMMAND_NAME = "create-vpc";
 
     @ParametersDelegate
-    private TagParametersDelegate tagsDelegate;
+    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;
