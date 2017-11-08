@@ -29,11 +29,7 @@ public enum StackName {
     SECURITY_GROUPS("security-groups"),
     LOAD_BALANCER("load-balancer"),
     ROUTE53("route53"),
-    WAF("web-app-firewall"),
-    @Deprecated
-    RDSBACKUP("rdsbackup"), // TODO: need to remove but casually deleting will cause JSON parse error
-    @Deprecated
-    DEPRECATED_BASE("base");  // TODO: remove this class when old backup and restore is removed
+    WAF("web-app-firewall");
 
     private final String name;
 

@@ -34,7 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.nike.cerberus.module.CerberusModule.getAWSCredentialsProviderChain;
 
@@ -65,7 +69,7 @@ public class SetBackupAdminPrincipalsOperation implements Operation<SetBackupAdm
         GetCallerIdentityResult identityResult = sts.getCallerIdentity(new GetCallerIdentityRequest());
         String accountId = identityResult.getAccount();
         String rootArn = String.format("arn:aws:iam::%s:root", accountId);
-        String adminRoleArn = configStore.deprecatedGetAccountAdminArn().get();
+        String adminRoleArn = configStore.getAccountAdminArn().get();
 
         Set<String> principals = new HashSet<>();
         principals.add(rootArn);
@@ -74,10 +78,10 @@ public class SetBackupAdminPrincipalsOperation implements Operation<SetBackupAdm
 
         configStore.storeBackupAdminIamPrincipals(principals);
 
-        if (! configStore.getRegionBackupBucketMap().isEmpty()) {
+        if (!configStore.getRegionBackupBucketMap().isEmpty()) {
             configStore.getRegionBackupBucketMap().forEach((region, backupRegionInfo) -> {
                 final List<Statement> statements = new LinkedList<>();
-                principals.forEach( principal -> {
+                principals.forEach(principal -> {
                     log.debug("Adding principal: {} to the CMK Policy for region {}", principal, region);
                     statements.add(new Statement(Statement.Effect.Allow)
                             .withId("Principal " + principal + " Has All Actions")
@@ -109,8 +113,8 @@ public class SetBackupAdminPrincipalsOperation implements Operation<SetBackupAdm
 
     @Override
     public boolean isRunnable(SetBackupAdminPrincipalsCommand command) {
-        Optional<String> adminIamPrincipalArn = configStore.deprecatedGetAccountAdminArn();
-        if (! adminIamPrincipalArn.isPresent()) {
+        Optional<String> adminIamPrincipalArn = configStore.getAccountAdminArn();
+        if (!adminIamPrincipalArn.isPresent()) {
             log.error("The admin IAM principal must be set for this environment");
             return false;
         }

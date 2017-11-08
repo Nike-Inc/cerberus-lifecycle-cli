@@ -90,13 +90,13 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
 
     @Override
     public boolean isRunnable(final CreateLoadBalancerCommand command) {
+        String environmentName = environmentMetadata.getName();
         try {
-            String environmentName = environmentMetadata.getName();
             cloudFormationService.getStackId(StackName.SECURITY_GROUPS.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             throw new IllegalStateException("The security group stack must exist to create the load balancer!", iae);
         }
 
-        return true;
+        return ! cloudFormationService.isStackPresent(StackName.LOAD_BALANCER.getFullName(environmentName));
     }
 }

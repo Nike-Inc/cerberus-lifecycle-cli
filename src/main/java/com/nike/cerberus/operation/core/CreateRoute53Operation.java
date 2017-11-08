@@ -80,13 +80,13 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
 
     @Override
     public boolean isRunnable(final CreateRoute53Command command) {
+        String environmentName = environmentMetadata.getName();
         try {
-            String environmentName = environmentMetadata.getName();
             cloudFormationService.getStackId(StackName.LOAD_BALANCER.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             throw new IllegalStateException("The load balancer stack must exist to create the Route53 record!", iae);
         }
 
-        return true;
+        return ! cloudFormationService.isStackPresent(StackName.ROUTE53.getFullName(environmentName));
     }
 }

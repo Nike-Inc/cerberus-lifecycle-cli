@@ -86,7 +86,8 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
 
     @Override
     public boolean isRunnable(final CreateVpcCommand command) {
-        return true;
+        String environmentName = environmentMetadata.getName();
+        return ! cloudFormationService.isStackPresent(StackName.VPC.getFullName(environmentName));
     }
 
     private Map<Integer, String> mapAvailabilityZones() {

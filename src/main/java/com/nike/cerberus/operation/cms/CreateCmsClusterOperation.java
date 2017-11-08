@@ -147,6 +147,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
             return false;
         }
 
-        return configStore.getCmsEnvConfig().isPresent();
+        return configStore.getCmsEnvConfig().isPresent() &&
+                ! cloudFormationService.isStackPresent(StackName.CMS.getFullName(environmentName));
     }
 }

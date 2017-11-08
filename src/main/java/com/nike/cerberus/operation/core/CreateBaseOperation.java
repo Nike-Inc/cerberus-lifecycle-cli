@@ -25,11 +25,6 @@ import com.nike.cerberus.domain.cloudformation.BaseParameters;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
-import com.nike.cerberus.service.Ec2Service;
-import com.nike.cerberus.store.ConfigStore;
-import com.nike.cerberus.util.RandomStringGenerator;
-import com.nike.cerberus.util.UuidSupplier;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +66,8 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
         baseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
         baseParameters.getTagParameters().setTagCostcenter(baseParameters.getTagParameters().getTagCostcenter());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
         cloudFormationService.createStack(StackName.BASE.getFullName(environmentName),
@@ -80,7 +76,8 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
     @Override
     public boolean isRunnable(final CreateBaseCommand command) {
-        return true;
+        String environmentName = environmentMetadata.getName();
+        return ! cloudFormationService.isStackPresent(StackName.BASE.getFullName(environmentName));
     }
 
 }

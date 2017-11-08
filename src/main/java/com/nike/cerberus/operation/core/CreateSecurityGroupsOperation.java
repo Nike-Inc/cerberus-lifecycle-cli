@@ -84,7 +84,8 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
 
     @Override
     public boolean isRunnable(final CreateSecurityGroupsCommand command) {
-        return true;
+        String environmentName = environmentMetadata.getName();
+        return ! cloudFormationService.isStackPresent(StackName.SECURITY_GROUPS.getFullName(environmentName));
     }
 
 }

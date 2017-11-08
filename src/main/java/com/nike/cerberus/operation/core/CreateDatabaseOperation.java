@@ -100,6 +100,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
     @Override
     public boolean isRunnable(final CreateDatabaseCommand command) {
-        return true;
+        String environmentName = environmentMetadata.getName();
+        return ! cloudFormationService.isStackPresent(StackName.DATABASE.getFullName(environmentName));
     }
 }

@@ -31,15 +31,15 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.BaseOutputs;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
-import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
-import com.nike.cerberus.domain.cloudformation.DeprecatedBaseParameters;
-import com.nike.cerberus.domain.cloudformation.LoadBalancerOutputs;
-import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
-import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
 import com.nike.cerberus.domain.cloudformation.CmsOutputs;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
+import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
 import com.nike.cerberus.domain.cloudformation.DatabaseParameters;
 import com.nike.cerberus.domain.cloudformation.GatewayParameters;
+import com.nike.cerberus.domain.cloudformation.LoadBalancerOutputs;
+import com.nike.cerberus.domain.cloudformation.Route53Parameters;
+import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
+import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
 import com.nike.cerberus.domain.cloudformation.VaultOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
@@ -429,15 +429,8 @@ public class ConfigStore {
         return Optional.ofNullable(baseParameters.getAccountAdminArn());
     }
 
-    @Deprecated
-    public Optional<String> deprecatedGetAccountAdminArn() {
-        final DeprecatedBaseParameters baseParameters = getDeprecatedBaseStackParameters();
-        return Optional.ofNullable(baseParameters.getAccountAdminArn());
-    }
-
-
     public String getCerberusBaseUrl() {
-        return String.format("https://%s", getGatewayStackParamters().getHostname());
+        return String.format("https://%s", getRoute53Parameters().getHostname());
     }
 
     /**
@@ -507,15 +500,6 @@ public class ConfigStore {
     }
 
     /**
-     * Get the base stack parameters.
-     *
-     * @return Base parameters
-     */
-    public DeprecatedBaseParameters getDeprecatedBaseStackParameters() {
-        return getStackParameters(StackName.DEPRECATED_BASE, DeprecatedBaseParameters.class);
-    }
-
-    /**
      * Get the base stack outputs.
      *
      * @return Base outputs
@@ -576,6 +560,15 @@ public class ConfigStore {
      */
     public DatabaseParameters getDatabaseStackParameters() {
         return getStackParameters(getStackLogicalId(StackName.DATABASE), DatabaseParameters.class);
+    }
+
+    /**
+     * Get the base stack parameters.
+     *
+     * @return Base parameters
+     */
+    public Route53Parameters getRoute53Parameters() {
+        return getStackParameters(getStackLogicalId(StackName.ROUTE53), Route53Parameters.class);
     }
 
     /**
@@ -704,6 +697,7 @@ public class ConfigStore {
         final Map<String, String> stackOutputs = cloudFormationService.getStackParameters(stackId);
         return cloudFormationObjectMapper.convertValue(stackOutputs, parameterClass);
     }
+
     /**
      * Initializes the environment data in the config bucket.
      */
