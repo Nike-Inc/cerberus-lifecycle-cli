@@ -35,24 +35,8 @@ public class CreateDatabaseCommand implements Command {
 
     public static final String COMMAND_NAME = "create-database";
 
-    @Parameter(names = "--cms-db-port",
-            description = "Port number for communicating with the database for CMS")
-    private Integer cmsDbPort;
-
-    @Parameter(names = "--load-balancer-cidr",
-            description = "Port number for communicating with the database for CMS")
-    private String loadBalancerCidr;
-
     @ParametersDelegate
     private TagParametersDelegate tagsDelegate;
-
-    public Integer getCmsDbPort() {
-        return cmsDbPort;
-    }
-
-    public String getLoadBalancerCidr() {
-        return loadBalancerCidr;
-    }
 
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;
