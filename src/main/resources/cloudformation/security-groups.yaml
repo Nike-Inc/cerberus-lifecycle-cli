@@ -13,7 +13,7 @@ Outputs:
     Value: !GetAtt 'CmsDbSg.GroupId'
     Export:
       Name: !Sub "${AWS::StackName}-cmsDbSgId"
-loadBalancerSgId:
+  loadBalancerSgId:
     Value: !GetAtt 'AlbSg.GroupId'
     Export:
       Name: !Sub "${AWS::StackName}-loadBalancerSgId"
