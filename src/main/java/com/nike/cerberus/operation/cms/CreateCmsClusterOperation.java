@@ -23,8 +23,9 @@ import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.cloudformation.BaseOutputs;
+import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
+import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
@@ -58,33 +59,29 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
     private final AmiTagCheckService amiTagCheckService;
 
-    private final UuidSupplier uuidSupplier;
-
     private final ConfigStore configStore;
 
-    private final ObjectMapper cloudformationObjectMapper;
+    private final ObjectMapper cloudFormationObjectMapper;
 
     @Inject
     public CreateCmsClusterOperation(final EnvironmentMetadata environmentMetadata,
                                      final CloudFormationService cloudFormationService,
                                      final Ec2UserDataService ec2UserDataService,
                                      final AmiTagCheckService amiTagCheckService,
-                                     final UuidSupplier uuidSupplier,
                                      final ConfigStore configStore,
-                                     @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+                                     @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.ec2UserDataService = ec2UserDataService;
         this.amiTagCheckService = amiTagCheckService;
-        this.uuidSupplier = uuidSupplier;
         this.configStore = configStore;
-        this.cloudformationObjectMapper = cloudformationObjectMapper;
+        this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
     public void run(final CreateCmsClusterCommand command) {
-        final String uniqueStackName = String.format("%s-%s", StackName.CMS.getName(), uuidSupplier.get());
-        final BaseOutputs baseOutputs = configStore.getBaseStackOutputs();
+        final String environmentName = environmentMetadata.getName();
+        final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
         final Optional<String> cmsServerCertificateArn = configStore.getServerCertificateArn(StackName.CMS);
         final Optional<String> pubKey = configStore.getCertPart(StackName.CMS, ConfigConstants.CERT_PART_PUBKEY);
 
@@ -93,46 +90,36 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         }
 
         // Make sure the given AmiId is for CMS component. Check if it contains required tag
-        if ( !command.isSkipAmiTagCheck() ) {
+        if ( ! command.isSkipAmiTagCheck() ) {
             amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), StackName.CMS);
         }
 
         final CmsParameters cmsParameters = new CmsParameters()
-                .setInstanceProfileName(baseOutputs.getCmsInstanceProfileName())
-                .setCmsElbSgId(baseOutputs.getCmsElbSgId())
-                .setCmsSgId(baseOutputs.getCmsSgId())
-                .setToolsIngressSgId(baseOutputs.getToolsIngressSgId())
-                .setVpcId(baseOutputs.getVpcId())
-                .setVpcSubnetIdForAz1(baseOutputs.getVpcSubnetIdForAz1())
-                .setVpcSubnetIdForAz2(baseOutputs.getVpcSubnetIdForAz2())
-                .setVpcSubnetIdForAz3(baseOutputs.getVpcSubnetIdForAz3())
-                .setHostedZoneId(baseOutputs.getVpcHostedZoneId());
-
-        cmsParameters.getSslConfigParameters().setCertPublicKey(pubKey.get());
-        cmsParameters.getSslConfigParameters().setSslCertificateArn(cmsServerCertificateArn.get());
+                .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
+                .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
+                .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
+                .setBaseStackName(StackName.BASE.getFullName(environmentName))
+                .setLoadBalancerStackName(StackName.LOAD_BALANCER.getFullName(environmentName))
+                .setSgStackName(StackName.SECURITY_GROUPS.getFullName(environmentName));
 
         cmsParameters.getLaunchConfigParameters().setAmiId(command.getStackDelegate().getAmiId());
         cmsParameters.getLaunchConfigParameters().setInstanceSize(command.getStackDelegate().getInstanceSize());
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         cmsParameters.getLaunchConfigParameters().setUserData(
                 ec2UserDataService.getUserData(StackName.CMS, command.getStackDelegate().getOwnerGroup()));
-        cmsParameters.getLaunchConfigParameters().setDesiredInstances(command.getStackDelegate().getDesiredInstances());
-        cmsParameters.getLaunchConfigParameters().setMinimumInstances(command.getStackDelegate().getMinimumInstances());
-        cmsParameters.getLaunchConfigParameters().setMaximumInstances(command.getStackDelegate().getMaximumInstances());
 
         cmsParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
-        cmsParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentMetadata.getName());
+        cmsParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
         cmsParameters.getTagParameters().setTagCostcenter(command.getStackDelegate().getCostcenter());
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
-        final Map<String, String> parameters = cloudformationObjectMapper.convertValue(cmsParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters, typeReference);
 
-        final String stackId = cloudFormationService.createStack(cloudFormationService.getEnvStackName(uniqueStackName),
+        // allow user to overwrite CloudFormation parameters with -P option
+        parameters.putAll(command.getStackDelegate().getDynamicParameters());
+
+        final String stackId = cloudFormationService.createStack(StackName.CMS.getFullName(environmentName),
                 parameters, ConfigConstants.CMS_STACK_TEMPLATE_PATH, true);
-
-        logger.info("Uploading data to the configuration bucket.");
-        configStore.storeStackId(StackName.CMS, stackId);
-        logger.info("Uploading complete.");
 
         final StackStatus endStatus =
                 cloudFormationService.waitForStatus(stackId,

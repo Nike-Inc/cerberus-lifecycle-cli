@@ -50,6 +50,18 @@ public class ConfigConstants {
 
     public static final String CMS_STACK_TEMPLATE_PATH = "/cloudformation/cms-cluster.json";
 
+    public static final String DATABASE_STACK_TEMPLATE_PATH = "/cloudformation/database.yaml";
+
+    public static final String LOAD_BALANCER_STACK_TEMPLATE_PATH = "/cloudformation/load-balancer.yaml";
+
+    public static final String ROUTE53_TEMPLATE_PATH = "/cloudformation/route53.yaml";
+
+    public static final String SECURITY_GROUPS_STACK_TEMPLATE_PATH = "/cloudformation/security-groups.yaml";
+
+    public static final String VPC_STACK_TEMPLATE_PATH = "/cloudformation/vpc.yaml";
+
+    public static final String WAF_STACK_TEMPLATE_PATH = "/cloudformation/web-app-firewall.yaml";
+
     public static final String CMS_ENV_CONFIG_PATH = "data/cms/environment.properties";
 
     public static final String VERSION_PROPERTY = "cli.version";

@@ -7,8 +7,8 @@ Outputs:
     Value: !Ref 'WAFAutoBlockSet'
   manualBlockIPSetID:
     Value: !Ref 'WAFManualBlockSet'
-  whiteListIPSetID:
-    Value: !Ref 'WAFWhiteListSet'
+  whitelistIPSetID:
+    Value: !Ref 'WAFWhitelistSet'
 Parameters:
   loadBalancerStackName:
     Description: The name of the Cerberus load balancer CloudFormation stack
@@ -164,16 +164,16 @@ Resources:
       Name: Manual Block Set
     Type: AWS::WAFRegional::IPSet
   WAFWhiteListRule:
-    DependsOn: WAFWhiteListSet
+    DependsOn: WAFWhitelistSet
     Properties:
       MetricName: WhiteListRule
       Name: White List Rule
       Predicates:
-        - DataId: !Ref 'WAFWhiteListSet'
+        - DataId: !Ref 'WAFWhitelistSet'
           Negated: 'false'
           Type: IPMatch
     Type: AWS::WAFRegional::Rule
-  WAFWhiteListSet:
+  WAFWhitelistSet:
     Properties:
       Name: White List Set
     Type: AWS::WAFRegional::IPSet

@@ -24,8 +24,16 @@ public enum StackName {
     VAULT("vault"),
     CMS("cms"),
     GATEWAY("gateway"),
+    VPC("vpc"),
+    DATABASE("database"),
+    SECURITY_GROUPS("security-groups"),
+    LOAD_BALANCER("load-balancer"),
+    ROUTE53("route53"),
+    WAF("web-app-firewall"),
     @Deprecated
-    RDSBACKUP("rdsbackup"); // TODO: need to remove but casually deleting will cause JSON parse error
+    RDSBACKUP("rdsbackup"), // TODO: need to remove but casually deleting will cause JSON parse error
+    @Deprecated
+    DEPRECATED_BASE("base");  // TODO: remove this class when old backup and restore is removed
 
     private final String name;
 
@@ -35,6 +43,10 @@ public enum StackName {
 
     public String getName() {
         return name;
+    }
+
+    public String getFullName(String environmentName) {
+        return String.format("%s-cerberus-%s", environmentName, name);
     }
 
     public static StackName fromName(final String name) {

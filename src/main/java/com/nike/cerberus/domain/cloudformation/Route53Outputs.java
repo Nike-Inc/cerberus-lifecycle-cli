@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,18 @@
 package com.nike.cerberus.domain.cloudformation;
 
 /**
- * Interface implemented by stack parameter POJOs that have launch configuration parameters.
+ * Represents the base stack outputs.
  */
-public interface LaunchConfigParameters extends TagParameters {
+public class Route53Outputs {
 
-    LaunchConfigParametersDelegate getLaunchConfigParameters();
+    private String recordSet;
+
+    public String getRecordSet() {
+        return recordSet;
+    }
+
+    public Route53Outputs setRecordSet(String recordSet) {
+        this.recordSet = recordSet;
+        return this;
+    }
 }

@@ -16,7 +16,11 @@
 
 package com.nike.cerberus.command;
 
+import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents CloudFormation stack parameters that are common to all Cerberus cluster components.
@@ -29,9 +33,7 @@ public class StackDelegate {
     public static final String OWNER_GROUP_LONG_ARG = "--owner-group";
     public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
     public static final String COST_CENTER_LONG_ARG = "--costcenter";
-    public static final String DESIRED_INSTANCES_LONG_ARG = "--desired-instances";
-    public static final String MAX_INSTANCES_LONG_ARG = "--max-instances";
-    public static final String MIN_INSTANCES_LONG_ARG = "--min-instances";
+    public static final String PARAMETER_SHORT_ARG = "-P";
 
     @Parameter(names = AMI_ID_LONG_ARG, description = "The AMI ID for the specified stack.", required = true)
     private String amiId;
@@ -57,14 +59,8 @@ public class StackDelegate {
             required = true)
     private String costcenter;
 
-    @Parameter(names = DESIRED_INSTANCES_LONG_ARG, description = "Desired number of auto scaling instances.")
-    private int desiredInstances = 3;
-
-    @Parameter(names = MAX_INSTANCES_LONG_ARG, description = "Maximum number of auto scaling instances (must be larger than min).")
-    private int maximumInstances = 4;
-
-    @Parameter(names = MIN_INSTANCES_LONG_ARG, description = "Minimum number of auto scaling instances")
-    private int minimumInstances = 3;
+    @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
+    private Map<String, String> dynamicParameters = new HashMap<>();
 
     public String getAmiId() {
         return amiId;
@@ -90,15 +86,7 @@ public class StackDelegate {
         return costcenter;
     }
 
-    public int getDesiredInstances() {
-        return desiredInstances;
-    }
-
-    public int getMaximumInstances() {
-        return maximumInstances;
-    }
-
-    public int getMinimumInstances() {
-        return minimumInstances;
+    public Map<String, String> getDynamicParameters() {
+        return dynamicParameters;
     }
 }

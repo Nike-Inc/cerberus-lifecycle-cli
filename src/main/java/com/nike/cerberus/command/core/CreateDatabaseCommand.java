@@ -16,26 +16,43 @@
 
 package com.nike.cerberus.command.core;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateVpcOperation;
+import com.nike.cerberus.operation.core.CreateDatabaseOperation;
 
-import static com.nike.cerberus.command.core.CreateVpcCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.CreateDatabaseCommand.COMMAND_NAME;
 
 /**
  * Command for creating the base components for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
-        commandDescription = "Create the VPC in which Cerberus components live")
-public class CreateVpcCommand implements Command {
+        commandDescription = "Create the database to be used by the Cerberus Management Service (CMS)")
+public class CreateDatabaseCommand implements Command {
 
-    public static final String COMMAND_NAME = "create-vpc";
+    public static final String COMMAND_NAME = "create-database";
+
+    @Parameter(names = "--cms-db-port",
+            description = "Port number for communicating with the database for CMS")
+    private Integer cmsDbPort;
+
+    @Parameter(names = "--load-balancer-cidr",
+            description = "Port number for communicating with the database for CMS")
+    private String loadBalancerCidr;
 
     @ParametersDelegate
     private TagParametersDelegate tagsDelegate;
+
+    public Integer getCmsDbPort() {
+        return cmsDbPort;
+    }
+
+    public String getLoadBalancerCidr() {
+        return loadBalancerCidr;
+    }
 
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;
@@ -48,6 +65,7 @@ public class CreateVpcCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return CreateVpcOperation.class;
+        return CreateDatabaseOperation.class;
     }
+
 }

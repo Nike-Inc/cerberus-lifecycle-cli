@@ -72,15 +72,6 @@ public class UpdateStackCommand implements Command {
             description = "Flag for overwriting existing CloudFormation template")
     private boolean overwriteTemplate;
 
-    @Parameter(names = StackDelegate.DESIRED_INSTANCES_LONG_ARG, description = "Desired number of auto scaling instances.")
-    private Integer desiredInstances;
-
-    @Parameter(names = StackDelegate.MAX_INSTANCES_LONG_ARG, description = "Maximum number of auto scaling instances.")
-    private Integer maximumInstances;
-
-    @Parameter(names = StackDelegate.MIN_INSTANCES_LONG_ARG, description = "Minimum number of autos scaling instances")
-    private Integer minimumInstances;
-
     @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
             description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
     private boolean skipAmiTagCheck;
@@ -122,18 +113,6 @@ public class UpdateStackCommand implements Command {
 
     public Map<String, String> getDynamicParameters() {
         return dynamicParameters;
-    }
-
-    public Integer getDesiredInstances() {
-        return desiredInstances;
-    }
-
-    public Integer getMaximumInstances() {
-        return maximumInstances;
-    }
-
-    public Integer getMinimumInstances() {
-        return minimumInstances;
     }
 
     public boolean isSkipAmiTagCheck() {

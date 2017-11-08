@@ -31,10 +31,18 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.BaseOutputs;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
+import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
+import com.nike.cerberus.domain.cloudformation.DeprecatedBaseParameters;
+import com.nike.cerberus.domain.cloudformation.LoadBalancerOutputs;
+import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
+import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
 import com.nike.cerberus.domain.cloudformation.CmsOutputs;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
+import com.nike.cerberus.domain.cloudformation.DatabaseParameters;
 import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.VaultOutputs;
+import com.nike.cerberus.domain.cloudformation.VpcOutputs;
+import com.nike.cerberus.domain.cloudformation.VpcParameters;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
 import com.nike.cerberus.domain.environment.Environment;
 import com.nike.cerberus.domain.environment.Secrets;
@@ -52,7 +60,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -398,6 +405,7 @@ public class ConfigStore {
     private Properties generateBaseCmsSystemProperties() {
 
         final BaseOutputs baseOutputs = getBaseStackOutputs();
+        final DatabaseOutputs databaseOutputs = getDatabaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
         final Optional<String> cmsDatabasePassword = getCmsDatabasePassword();
 
@@ -409,7 +417,7 @@ public class ConfigStore {
         properties.put(ROOT_USER_ARN_KEY, rootUserArn);
         properties.put(ADMIN_ROLE_ARN_KEY, baseParameters.getAccountAdminArn());
         properties.put(CMS_ROLE_ARN_KEY, baseOutputs.getCmsIamRoleArn());
-        properties.put(JDBC_URL_KEY, baseOutputs.getCmsDbJdbcConnectionString());
+        properties.put(JDBC_URL_KEY, databaseOutputs.getCmsDbJdbcConnectionString());
         properties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
         properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword.get());
 
@@ -420,6 +428,13 @@ public class ConfigStore {
         final BaseParameters baseParameters = getBaseStackParameters();
         return Optional.ofNullable(baseParameters.getAccountAdminArn());
     }
+
+    @Deprecated
+    public Optional<String> deprecatedGetAccountAdminArn() {
+        final DeprecatedBaseParameters baseParameters = getDeprecatedBaseStackParameters();
+        return Optional.ofNullable(baseParameters.getAccountAdminArn());
+    }
+
 
     public String getCerberusBaseUrl() {
         return String.format("https://%s", getGatewayStackParamters().getHostname());
@@ -478,13 +493,26 @@ public class ConfigStore {
         return getEncryptedObject(path);
     }
 
+    public String getStackLogicalId(StackName stackName) {
+        return stackName.getFullName(environmentMetadata.getName());
+    }
+
     /**
      * Get the base stack parameters.
      *
      * @return Base parameters
      */
     public BaseParameters getBaseStackParameters() {
-        return getStackParameters(StackName.BASE, BaseParameters.class);
+        return getStackParameters(getStackLogicalId(StackName.BASE), BaseParameters.class);
+    }
+
+    /**
+     * Get the base stack parameters.
+     *
+     * @return Base parameters
+     */
+    public DeprecatedBaseParameters getDeprecatedBaseStackParameters() {
+        return getStackParameters(StackName.DEPRECATED_BASE, DeprecatedBaseParameters.class);
     }
 
     /**
@@ -493,7 +521,70 @@ public class ConfigStore {
      * @return Base outputs
      */
     public BaseOutputs getBaseStackOutputs() {
-        return getStackOutputs(StackName.BASE, BaseOutputs.class);
+        return getStackOutputs(getStackLogicalId(StackName.BASE), BaseOutputs.class);
+    }
+
+    /**
+     * Get the base stack parameters.
+     *
+     * @return Base parameters
+     */
+    public VpcParameters getVpcStackParameters() {
+        return getStackParameters(getStackLogicalId(StackName.VPC), VpcParameters.class);
+    }
+
+    /**
+     * Get the base stack outputs.
+     *
+     * @return Base outputs
+     */
+    public VpcOutputs getVpcStackOutputs() {
+        return getStackOutputs(getStackLogicalId(StackName.VPC), VpcOutputs.class);
+    }
+
+    /**
+     * Get the base stack parameters.
+     *
+     * @return Base parameters
+     */
+    public SecurityGroupParameters getSecurityGroupStackParameters() {
+        return getStackParameters(getStackLogicalId(StackName.SECURITY_GROUPS), SecurityGroupParameters.class);
+    }
+
+    /**
+     * Get the base stack outputs.
+     *
+     * @return Base outputs
+     */
+    public SecurityGroupOutputs getSecurityGroupStackOutputs() {
+        return getStackOutputs(getStackLogicalId(StackName.SECURITY_GROUPS), SecurityGroupOutputs.class);
+    }
+
+    /**
+     * Get the base stack outputs.
+     *
+     * @return Base outputs
+     */
+    public LoadBalancerOutputs getLoadBalancerStackOutputs() {
+        return getStackOutputs(getStackLogicalId(StackName.LOAD_BALANCER), LoadBalancerOutputs.class);
+    }
+
+    /**
+     * Get the base stack parameters.
+     *
+     * @return Base parameters
+     */
+    public DatabaseParameters getDatabaseStackParameters() {
+        return getStackParameters(getStackLogicalId(StackName.DATABASE), DatabaseParameters.class);
+    }
+
+    /**
+     * Get the base stack outputs.
+     *
+     * @return Base outputs
+     */
+    public DatabaseOutputs getDatabaseStackOutputs() {
+        return getStackOutputs(getStackLogicalId(StackName.DATABASE), DatabaseOutputs.class);
     }
 
     /**
@@ -511,7 +602,7 @@ public class ConfigStore {
      * @return CMS parameters
      */
     public CmsParameters getCmsStackParamters() {
-        return getStackParameters(StackName.CMS, CmsParameters.class);
+        return getStackParameters(getStackLogicalId(StackName.CMS), CmsParameters.class);
     }
 
     /**
@@ -520,7 +611,7 @@ public class ConfigStore {
      * @return CMS outputs
      */
     public CmsOutputs getCmsStackOutputs() {
-        return getStackOutputs(StackName.CMS, CmsOutputs.class);
+        return getStackOutputs(getStackLogicalId(StackName.CMS), CmsOutputs.class);
     }
 
     /**
@@ -555,6 +646,25 @@ public class ConfigStore {
     }
 
     /**
+     * Get the stack outputs for a specific stack name.
+     *
+     * @param stackName   Full stack name
+     * @param outputClass Outputs class
+     * @param <M>         Outputs type
+     * @return Outputs
+     */
+    public <M> M getStackOutputs(final String stackName, final Class<M> outputClass) {
+        final String stackId = cloudFormationService.getStackId(stackName);
+
+        if (!cloudFormationService.isStackPresent(stackId)) {
+            throw new IllegalStateException("Failed to get CloudFormation output for stack: '" + stackName + "'. Stack does not exist.");
+        }
+
+        final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(stackId);
+        return cloudFormationObjectMapper.convertValue(stackOutputs, outputClass);
+    }
+
+    /**
      * Get the stack parameters for a specific stack name.
      *
      * @param stackName      Stack name
@@ -576,6 +686,24 @@ public class ConfigStore {
         }
     }
 
+    /**
+     * Get the stack parameters for a specific stack name.
+     *
+     * @param stackName      Full stack name
+     * @param parameterClass Parameters class
+     * @param <M>            Parameters type
+     * @return Parameters
+     */
+    public <M> M getStackParameters(final String stackName, final Class<M> parameterClass) {
+        final String stackId = cloudFormationService.getStackId(stackName);
+
+        if (!cloudFormationService.isStackPresent(stackId)) {
+            throw new IllegalStateException("Failed to get CloudFormation parameters for stack: '" + stackName + "'. Stack does not exist.");
+        }
+
+        final Map<String, String> stackOutputs = cloudFormationService.getStackParameters(stackId);
+        return cloudFormationObjectMapper.convertValue(stackOutputs, parameterClass);
+    }
     /**
      * Initializes the environment data in the config bucket.
      */

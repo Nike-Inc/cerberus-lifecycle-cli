@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,56 +20,19 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
  * Represents the base stack inputs.
- *
- * @deprecated TODO: remove this class when old backup and restore is removed
- *             use {@link com.nike.cerberus.domain.cloudformation.BaseOutputs} for new environments
  */
-@Deprecated
-public class DeprecatedBaseParameters implements TagParameters {
+public class BaseParameters implements TagParameters {
 
     private String accountAdminArn;
 
-    private String az1;
-
-    private String az2;
-
-    private String az3;
-
     @JsonUnwrapped
     private TagParametersDelegate tagParameters = new TagParametersDelegate();
-
-    public String getAz1() {
-        return az1;
-    }
-
-    public DeprecatedBaseParameters setAz1(String az1) {
-        this.az1 = az1;
-        return this;
-    }
-
-    public String getAz2() {
-        return az2;
-    }
-
-    public DeprecatedBaseParameters setAz2(String az2) {
-        this.az2 = az2;
-        return this;
-    }
-
-    public String getAz3() {
-        return az3;
-    }
-
-    public DeprecatedBaseParameters setAz3(String az3) {
-        this.az3 = az3;
-        return this;
-    }
 
     public String getAccountAdminArn() {
         return accountAdminArn;
     }
 
-    public DeprecatedBaseParameters setAccountAdminArn(String accountAdminArn) {
+    public BaseParameters setAccountAdminArn(String accountAdminArn) {
         this.accountAdminArn = accountAdminArn;
         return this;
     }
@@ -79,7 +42,7 @@ public class DeprecatedBaseParameters implements TagParameters {
         return tagParameters;
     }
 
-    public DeprecatedBaseParameters setTagParameters(TagParametersDelegate tagParameters) {
+    public BaseParameters setTagParameters(TagParametersDelegate tagParameters) {
         this.tagParameters = tagParameters;
         return this;
     }

@@ -16,29 +16,37 @@
 
 package com.nike.cerberus.command.core;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateVpcOperation;
+import com.nike.cerberus.operation.core.CreateSecurityGroupsOperation;
 
-import static com.nike.cerberus.command.core.CreateVpcCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.CreateSecurityGroupsCommand.COMMAND_NAME;
 
 /**
  * Command for creating the base components for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
-        commandDescription = "Create the VPC in which Cerberus components live")
-public class CreateVpcCommand implements Command {
+        commandDescription = "Create the IAM roles, KMS keys, and S3 buckets for Cerberus")
+public class CreateSecurityGroupsCommand implements Command {
 
-    public static final String COMMAND_NAME = "create-vpc";
+    public static final String COMMAND_NAME = "create-security-groups";
 
-    @ParametersDelegate
-    private TagParametersDelegate tagsDelegate;
+    @Parameter(names = "--cms-db-port",
+            description = "Port number for communicating with the database for CMS")
+    private Integer cmsDbPort;
 
-    public TagParametersDelegate getTagsDelegate() {
-        return tagsDelegate;
+    @Parameter(names = "--load-balancer-cidr",
+            description = "Port number for communicating with the database for CMS")
+    private String loadBalancerCidr;
+
+    public Integer getCmsDbPort() {
+        return cmsDbPort;
+    }
+
+    public String getLoadBalancerCidr() {
+        return loadBalancerCidr;
     }
 
     @Override
@@ -48,6 +56,7 @@ public class CreateVpcCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return CreateVpcOperation.class;
+        return CreateSecurityGroupsOperation.class;
     }
+
 }

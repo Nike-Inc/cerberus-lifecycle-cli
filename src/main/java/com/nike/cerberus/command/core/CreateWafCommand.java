@@ -21,18 +21,18 @@ import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateVpcOperation;
+import com.nike.cerberus.operation.core.CreateLoadBalancerOperation;
 
-import static com.nike.cerberus.command.core.CreateVpcCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.CreateWafCommand.COMMAND_NAME;
 
 /**
  * Command for creating the base components for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
-        commandDescription = "Create the VPC in which Cerberus components live")
-public class CreateVpcCommand implements Command {
+        commandDescription = "Create the WAF which protects Cerberus.")
+public class CreateWafCommand implements Command {
 
-    public static final String COMMAND_NAME = "create-vpc";
+    public static final String COMMAND_NAME = "create-waf";
 
     @ParametersDelegate
     private TagParametersDelegate tagsDelegate;
@@ -48,6 +48,7 @@ public class CreateVpcCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return CreateVpcOperation.class;
+        return CreateLoadBalancerOperation.class;
     }
+
 }

@@ -251,13 +251,32 @@ public class CloudFormationService {
     }
 
     /**
+     * Get the full ID of the stack
+     * @param stackName - The stack logical id / full stack name
+     * @return
+     */
+    public String getStackId(String stackName) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(stackName), "Stack name cannot be blank");
+
+        DescribeStacksResult result = cloudFormationClient.describeStacks(
+                new DescribeStacksRequest()
+                        .withStackName(stackName));
+
+        if (result.getStacks().size() > 0) {
+            return result.getStacks().get(0).getStackId();
+        }
+
+        throw new IllegalArgumentException("No stack found with name: " + stackName);
+    }
+
+    /**
      * Checks if a stack exists with the specified ID.
      *
      * @param stackId Stack ID.
      * @return boolean
      */
     public boolean isStackPresent(final String stackId) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(stackId), "Stack ID can not be blank");
+        Preconditions.checkArgument(StringUtils.isNotBlank(stackId), "Stack ID cannot be blank");
 
         return getStackStatus(stackId) != null;
     }
@@ -302,16 +321,6 @@ public class CloudFormationService {
             logger.error(errorMessage);
             throw new RuntimeException(errorMessage, e);
         }
-    }
-
-    /**
-     * Prepends the name with the environment name. ([environment]-[name])
-     *
-     * @param name Custom stack name
-     * @return Formatted name with environment prepended
-     */
-    public String getEnvStackName(final String name) {
-        return String.format("%s-%s", environmentMetadata.getName(), name);
     }
 
     /**

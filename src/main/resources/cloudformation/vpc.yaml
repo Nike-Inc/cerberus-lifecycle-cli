@@ -12,23 +12,19 @@ Outputs:
   subnetCidrBlockForAz3:
     Description: Cidr block for subnet in AZ '3'
     Value: !Ref 'subnetCidrBlockForAz3'
-  vpcSubnetForAz1:
+  vpcSubnetIdForAz1:
     Description: The VPC subnet in AZ '1'
     Value: !Ref 'CerberusSubnetForAz1'
-  vpcSubnetForAz2:
+  vpcSubnetIdForAz2:
     Description: The VPC subnet in AZ '2'
     Value: !Ref 'CerberusSubnetForAz2'
-  vpcSubnetForAz3:
+  vpcSubnetIdForAz3:
     Description: The VPC subnet in AZ '3'
     Value: !Ref 'CerberusSubnetForAz3'
+  vpcId:
+    Description: ID of the created VPC
+    Value: !Ref 'CerberusVpc'
 Parameters:
-  internetGatewayCidrBlock:
-    AllowedPattern: '[0-9./]*'
-    Default: 0.0.0.0/0
-    Description: The application load balancer CIDR block for where traffic is allowed from
-    MaxLength: '20'
-    MinLength: '9'
-    Type: String
   az1:
     AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
     Description: An availability zone identifier for zone '1'
@@ -40,6 +36,13 @@ Parameters:
   az3:
     AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
     Description: An availability zone identifier for zone '3'
+    Type: String
+  internetGatewayCidrBlock:
+    AllowedPattern: '[0-9./]*'
+    Default: 0.0.0.0/0
+    Description: The application load balancer CIDR block for where traffic is allowed from
+    MaxLength: '20'
+    MinLength: '9'
     Type: String
   subnetCidrBlockForAz1:
     AllowedPattern: '[0-9./]*'

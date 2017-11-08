@@ -1,10 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Launches the Security Groups required for Cerberus
 Outputs:
-  appLoadBalancerSgId:
-    Value: !GetAtt 'AlbSg.GroupId'
-    Export:
-      Name: !Sub "${AWS::StackName}-appLoadBalancerSgId"
   cmsDbPort:
     Value: !Ref 'cmsDbPort'
     Export:
@@ -17,24 +13,25 @@ Outputs:
     Value: !GetAtt 'CmsDbSg.GroupId'
     Export:
       Name: !Sub "${AWS::StackName}-cmsDbSgId"
+loadBalancerSgId:
+    Value: !GetAtt 'AlbSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-loadBalancerSgId"
   whitelistIngressSgId:
     Value: !GetAtt 'WhitelistIngressSg.GroupId'
     Export:
       Name: !Sub "${AWS::StackName}-whitelistIngressSgId"
 Parameters:
-  appLoadBalancerCidrBlock:
+  cmsDbPort:
+    Default: '3306'
+    Description: Port for the cms DB instance
+    Type: Number
+  loadBalancerCidrBlock:
     AllowedPattern: '[0-9./]*'
     Default: 0.0.0.0/0
     Description: The application load balancer CIDR block for where traffic is allowed from
     MaxLength: '20'
     MinLength: '9'
-    Type: String
-  cmsDbPort:
-    Default: '3306'
-    Description: Port for the cms DB instance
-    Type: Number
-  vpcId:
-    Description: ID of the VPC to associate with the security groups
     Type: String
   tagClassification:
     Default: Gold
@@ -49,6 +46,9 @@ Parameters:
     Type: String
   tagName:
     Description: 'Environment name, e.g. "cerberus-{environment}"'
+    Type: String
+  vpcId:
+    Description: ID of the VPC to associate with the security groups
     Type: String
 Resources:
   AlbSg:
@@ -68,7 +68,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
   AlbIngressFromInternetSg443:
     Properties:
-      CidrIp: !Ref 'appLoadBalancerCidrBlock'
+      CidrIp: !Ref 'loadBalancerCidrBlock'
       FromPort: 443
       GroupId: !Ref 'AlbSg'
       IpProtocol: tcp

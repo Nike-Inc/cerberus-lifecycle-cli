@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,15 @@ package com.nike.cerberus.domain.cloudformation;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
- * Input parameters for the CMS CloudFormation template.
+ * Represents the vpc stack inputs.
  */
-public class CmsParameters implements LaunchConfigParameters {
-
-    private String baseStackName;
-
-    private String loadBalancerStackName;
+public class LoadBalancerParameters implements TagParameters {
 
     private String sgStackName;
+
+    private String sslCertificateArn;
+
+    private String vpcId;
 
     private String vpcSubnetIdForAz1;
 
@@ -36,35 +36,32 @@ public class CmsParameters implements LaunchConfigParameters {
     private String vpcSubnetIdForAz3;
 
     @JsonUnwrapped
-    private LaunchConfigParametersDelegate launchConfigParameters = new LaunchConfigParametersDelegate();
-
-    @JsonUnwrapped
     private TagParametersDelegate tagParameters = new TagParametersDelegate();
-
-    public String getBaseStackName() {
-        return baseStackName;
-    }
-
-    public CmsParameters setBaseStackName(String baseStackName) {
-        this.baseStackName = baseStackName;
-        return this;
-    }
-
-    public String getLoadBalancerStackName() {
-        return loadBalancerStackName;
-    }
-
-    public CmsParameters setLoadBalancerStackName(String loadBalancerStackName) {
-        this.loadBalancerStackName = loadBalancerStackName;
-        return this;
-    }
 
     public String getSgStackName() {
         return sgStackName;
     }
 
-    public CmsParameters setSgStackName(String sgStackName) {
+    public LoadBalancerParameters setSgStackName(String sgStackName) {
         this.sgStackName = sgStackName;
+        return this;
+    }
+
+    public String getSslCertificateArn() {
+        return sslCertificateArn;
+    }
+
+    public LoadBalancerParameters setSslCertificateArn(String sslCertificateArn) {
+        this.sslCertificateArn = sslCertificateArn;
+        return this;
+    }
+
+    public String getVpcId() {
+        return vpcId;
+    }
+
+    public LoadBalancerParameters setVpcId(String vpcId) {
+        this.vpcId = vpcId;
         return this;
     }
 
@@ -72,7 +69,7 @@ public class CmsParameters implements LaunchConfigParameters {
         return vpcSubnetIdForAz1;
     }
 
-    public CmsParameters setVpcSubnetIdForAz1(String vpcSubnetIdForAz1) {
+    public LoadBalancerParameters setVpcSubnetIdForAz1(String vpcSubnetIdForAz1) {
         this.vpcSubnetIdForAz1 = vpcSubnetIdForAz1;
         return this;
     }
@@ -81,7 +78,7 @@ public class CmsParameters implements LaunchConfigParameters {
         return vpcSubnetIdForAz2;
     }
 
-    public CmsParameters setVpcSubnetIdForAz2(String vpcSubnetIdForAz2) {
+    public LoadBalancerParameters setVpcSubnetIdForAz2(String vpcSubnetIdForAz2) {
         this.vpcSubnetIdForAz2 = vpcSubnetIdForAz2;
         return this;
     }
@@ -90,17 +87,8 @@ public class CmsParameters implements LaunchConfigParameters {
         return vpcSubnetIdForAz3;
     }
 
-    public CmsParameters setVpcSubnetIdForAz3(String vpcSubnetIdForAz3) {
+    public LoadBalancerParameters setVpcSubnetIdForAz3(String vpcSubnetIdForAz3) {
         this.vpcSubnetIdForAz3 = vpcSubnetIdForAz3;
-        return this;
-    }
-
-    public LaunchConfigParametersDelegate getLaunchConfigParameters() {
-        return launchConfigParameters;
-    }
-
-    public CmsParameters setLaunchConfigParameters(LaunchConfigParametersDelegate launchConfigParameters) {
-        this.launchConfigParameters = launchConfigParameters;
         return this;
     }
 
@@ -109,7 +97,7 @@ public class CmsParameters implements LaunchConfigParameters {
         return tagParameters;
     }
 
-    public CmsParameters setTagParameters(TagParametersDelegate tagParameters) {
+    public LoadBalancerParameters setTagParameters(TagParametersDelegate tagParameters) {
         this.tagParameters = tagParameters;
         return this;
     }

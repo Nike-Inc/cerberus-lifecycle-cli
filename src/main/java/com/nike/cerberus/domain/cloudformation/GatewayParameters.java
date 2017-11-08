@@ -148,7 +148,6 @@ public class GatewayParameters implements LaunchConfigParameters {
         return this;
     }
 
-    @Override
     public SslConfigParametersDelegate getSslConfigParameters() {
         return sslConfigParameters;
     }

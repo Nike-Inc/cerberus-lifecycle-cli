@@ -16,29 +16,37 @@
 
 package com.nike.cerberus.command.core;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateVpcOperation;
+import com.nike.cerberus.operation.core.CreateRoute53Operation;
 
-import static com.nike.cerberus.command.core.CreateVpcCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.CreateRoute53Command.COMMAND_NAME;
 
 /**
  * Command for creating the base components for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
-        commandDescription = "Create the VPC in which Cerberus components live")
-public class CreateVpcCommand implements Command {
+        commandDescription = "Create the Route53 record for use by Cerberus")
+public class CreateRoute53Command implements Command {
 
-    public static final String COMMAND_NAME = "create-vpc";
+    public static final String COMMAND_NAME = "create-route53-record";
 
-    @ParametersDelegate
-    private TagParametersDelegate tagsDelegate;
+    @Parameter(names = "--cerberus-hostname",
+            description = "The hostname of the Route53 record to be created for Cerberus (e.g. <env>.cerberus.nike.com)")
+    private String cerberusHostname;
 
-    public TagParametersDelegate getTagsDelegate() {
-        return tagsDelegate;
+    @Parameter(names = "--hosted-zone-id",
+            description = "The Route53 Hosted Zone in which to create the new Cerberus record")
+    private String hostedZoneId;
+
+    public String getCerberusHostname() {
+        return cerberusHostname;
+    }
+
+    public String getHostedZoneId() {
+        return hostedZoneId;
     }
 
     @Override
@@ -48,6 +56,7 @@ public class CreateVpcCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return CreateVpcOperation.class;
+        return CreateRoute53Operation.class;
     }
+
 }

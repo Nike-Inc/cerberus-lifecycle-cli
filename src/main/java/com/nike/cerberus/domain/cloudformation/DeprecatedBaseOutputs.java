@@ -18,8 +18,12 @@ package com.nike.cerberus.domain.cloudformation;
 
 /**
  * Represents the base stack outputs.
+ *
+ * @deprecated TODO: remove this class when old backup and restore is removed
+ *             use {@link com.nike.cerberus.domain.cloudformation.BaseOutputs} for new environments
  */
-public class BaseOutputs {
+@Deprecated
+public class DeprecatedBaseOutputs {
 
     private String vpcId;
 
@@ -101,7 +105,7 @@ public class BaseOutputs {
         return vpcId;
     }
 
-    public BaseOutputs setVpcId(String vpcId) {
+    public DeprecatedBaseOutputs setVpcId(String vpcId) {
         this.vpcId = vpcId;
         return this;
     }
@@ -110,7 +114,7 @@ public class BaseOutputs {
         return gatewayIamRoleArn;
     }
 
-    public BaseOutputs setGatewayIamRoleArn(String gatewayIamRoleArn) {
+    public DeprecatedBaseOutputs setGatewayIamRoleArn(String gatewayIamRoleArn) {
         this.gatewayIamRoleArn = gatewayIamRoleArn;
         return this;
     }
@@ -119,7 +123,7 @@ public class BaseOutputs {
         return cmsIamRoleArn;
     }
 
-    public BaseOutputs setCmsIamRoleArn(String cmsIamRoleArn) {
+    public DeprecatedBaseOutputs setCmsIamRoleArn(String cmsIamRoleArn) {
         this.cmsIamRoleArn = cmsIamRoleArn;
         return this;
     }
@@ -128,7 +132,7 @@ public class BaseOutputs {
         return consulIamRoleArn;
     }
 
-    public BaseOutputs setConsulIamRoleArn(String consulIamRoleArn) {
+    public DeprecatedBaseOutputs setConsulIamRoleArn(String consulIamRoleArn) {
         this.consulIamRoleArn = consulIamRoleArn;
         return this;
     }
@@ -137,7 +141,7 @@ public class BaseOutputs {
         return vaultIamRoleArn;
     }
 
-    public BaseOutputs setVaultIamRoleArn(String vaultIamRoleArn) {
+    public DeprecatedBaseOutputs setVaultIamRoleArn(String vaultIamRoleArn) {
         this.vaultIamRoleArn = vaultIamRoleArn;
         return this;
     }
@@ -154,7 +158,7 @@ public class BaseOutputs {
         return gatewayInstanceProfileName;
     }
 
-    public BaseOutputs setGatewayInstanceProfileName(String gatewayInstanceProfileName) {
+    public DeprecatedBaseOutputs setGatewayInstanceProfileName(String gatewayInstanceProfileName) {
         this.gatewayInstanceProfileName = gatewayInstanceProfileName;
         return this;
     }
@@ -163,7 +167,7 @@ public class BaseOutputs {
         return cmsInstanceProfileName;
     }
 
-    public BaseOutputs setCmsInstanceProfileName(String cmsInstanceProfileName) {
+    public DeprecatedBaseOutputs setCmsInstanceProfileName(String cmsInstanceProfileName) {
         this.cmsInstanceProfileName = cmsInstanceProfileName;
         return this;
     }
@@ -172,7 +176,7 @@ public class BaseOutputs {
         return consulInstanceProfileName;
     }
 
-    public BaseOutputs setConsulInstanceProfileName(String consulInstanceProfileName) {
+    public DeprecatedBaseOutputs setConsulInstanceProfileName(String consulInstanceProfileName) {
         this.consulInstanceProfileName = consulInstanceProfileName;
         return this;
     }
@@ -181,7 +185,7 @@ public class BaseOutputs {
         return vaultInstanceProfileName;
     }
 
-    public BaseOutputs setVaultInstanceProfileName(String vaultInstanceProfileName) {
+    public DeprecatedBaseOutputs setVaultInstanceProfileName(String vaultInstanceProfileName) {
         this.vaultInstanceProfileName = vaultInstanceProfileName;
         return this;
     }
@@ -190,7 +194,7 @@ public class BaseOutputs {
         return toolsIngressSgId;
     }
 
-    public BaseOutputs setToolsIngressSgId(String toolsIngressSgId) {
+    public DeprecatedBaseOutputs setToolsIngressSgId(String toolsIngressSgId) {
         this.toolsIngressSgId = toolsIngressSgId;
         return this;
     }
@@ -199,7 +203,7 @@ public class BaseOutputs {
         return gatewayElbSgId;
     }
 
-    public BaseOutputs setGatewayElbSgId(String gatewayElbSgId) {
+    public DeprecatedBaseOutputs setGatewayElbSgId(String gatewayElbSgId) {
         this.gatewayElbSgId = gatewayElbSgId;
         return this;
     }
@@ -208,7 +212,7 @@ public class BaseOutputs {
         return gatewayServerSgId;
     }
 
-    public BaseOutputs setGatewayServerSgId(String gatewayServerSgId) {
+    public DeprecatedBaseOutputs setGatewayServerSgId(String gatewayServerSgId) {
         this.gatewayServerSgId = gatewayServerSgId;
         return this;
     }
@@ -217,7 +221,7 @@ public class BaseOutputs {
         return cmsElbSgId;
     }
 
-    public BaseOutputs setCmsElbSgId(String cmsElbSgId) {
+    public DeprecatedBaseOutputs setCmsElbSgId(String cmsElbSgId) {
         this.cmsElbSgId = cmsElbSgId;
         return this;
     }
@@ -226,7 +230,7 @@ public class BaseOutputs {
         return cmsSgId;
     }
 
-    public BaseOutputs setCmsSgId(String cmsSgId) {
+    public DeprecatedBaseOutputs setCmsSgId(String cmsSgId) {
         this.cmsSgId = cmsSgId;
         return this;
     }
@@ -235,7 +239,7 @@ public class BaseOutputs {
         return cmsDbSgId;
     }
 
-    public BaseOutputs setCmsDbSgId(String cmsDbSgId) {
+    public DeprecatedBaseOutputs setCmsDbSgId(String cmsDbSgId) {
         this.cmsDbSgId = cmsDbSgId;
         return this;
     }
@@ -244,7 +248,7 @@ public class BaseOutputs {
         return vaultServerElbSgId;
     }
 
-    public BaseOutputs setVaultServerElbSgId(String vaultServerElbSgId) {
+    public DeprecatedBaseOutputs setVaultServerElbSgId(String vaultServerElbSgId) {
         this.vaultServerElbSgId = vaultServerElbSgId;
         return this;
     }
@@ -253,7 +257,7 @@ public class BaseOutputs {
         return vaultClientSgId;
     }
 
-    public BaseOutputs setVaultClientSgId(String vaultClientSgId) {
+    public DeprecatedBaseOutputs setVaultClientSgId(String vaultClientSgId) {
         this.vaultClientSgId = vaultClientSgId;
         return this;
     }
@@ -262,7 +266,7 @@ public class BaseOutputs {
         return vaultServerSgId;
     }
 
-    public BaseOutputs setVaultServerSgId(String vaultServerSgId) {
+    public DeprecatedBaseOutputs setVaultServerSgId(String vaultServerSgId) {
         this.vaultServerSgId = vaultServerSgId;
         return this;
     }
@@ -271,7 +275,7 @@ public class BaseOutputs {
         return consulClientSgId;
     }
 
-    public BaseOutputs setConsulClientSgId(String consulClientSgId) {
+    public DeprecatedBaseOutputs setConsulClientSgId(String consulClientSgId) {
         this.consulClientSgId = consulClientSgId;
         return this;
     }
@@ -280,7 +284,7 @@ public class BaseOutputs {
         return consulServerSgId;
     }
 
-    public BaseOutputs setConsulServerSgId(String consulServerSgId) {
+    public DeprecatedBaseOutputs setConsulServerSgId(String consulServerSgId) {
         this.consulServerSgId = consulServerSgId;
         return this;
     }
@@ -289,7 +293,7 @@ public class BaseOutputs {
         return configFileKeyId;
     }
 
-    public BaseOutputs setConfigFileKeyId(String configFileKeyId) {
+    public DeprecatedBaseOutputs setConfigFileKeyId(String configFileKeyId) {
         this.configFileKeyId = configFileKeyId;
         return this;
     }
@@ -298,7 +302,7 @@ public class BaseOutputs {
         return dashboardBucketName;
     }
 
-    public BaseOutputs setDashboardBucketName(String dashboardBucketName) {
+    public DeprecatedBaseOutputs setDashboardBucketName(String dashboardBucketName) {
         this.dashboardBucketName = dashboardBucketName;
         return this;
     }
@@ -307,7 +311,7 @@ public class BaseOutputs {
         return dashboardBucketWebsiteUrl;
     }
 
-    public BaseOutputs setDashboardBucketWebsiteUrl(String dashboardBucketWebsiteUrl) {
+    public DeprecatedBaseOutputs setDashboardBucketWebsiteUrl(String dashboardBucketWebsiteUrl) {
         this.dashboardBucketWebsiteUrl = dashboardBucketWebsiteUrl;
         return this;
     }
@@ -316,7 +320,7 @@ public class BaseOutputs {
         return configBucketName;
     }
 
-    public BaseOutputs setConfigBucketName(String configBucketName) {
+    public DeprecatedBaseOutputs setConfigBucketName(String configBucketName) {
         this.configBucketName = configBucketName;
         return this;
     }
@@ -325,7 +329,7 @@ public class BaseOutputs {
         return configBucketDomainName;
     }
 
-    public BaseOutputs setConfigBucketDomainName(String configBucketDomainName) {
+    public DeprecatedBaseOutputs setConfigBucketDomainName(String configBucketDomainName) {
         this.configBucketDomainName = configBucketDomainName;
         return this;
     }
@@ -334,7 +338,7 @@ public class BaseOutputs {
         return cmsDbId;
     }
 
-    public BaseOutputs setCmsDbId(String cmsDbId) {
+    public DeprecatedBaseOutputs setCmsDbId(String cmsDbId) {
         this.cmsDbId = cmsDbId;
         return this;
     }
@@ -343,7 +347,7 @@ public class BaseOutputs {
         return cmsDbAddress;
     }
 
-    public BaseOutputs setCmsDbAddress(String cmsDbAddress) {
+    public DeprecatedBaseOutputs setCmsDbAddress(String cmsDbAddress) {
         this.cmsDbAddress = cmsDbAddress;
         return this;
     }
@@ -352,7 +356,7 @@ public class BaseOutputs {
         return cmsDbPort;
     }
 
-    public BaseOutputs setCmsDbPort(String cmsDbPort) {
+    public DeprecatedBaseOutputs setCmsDbPort(String cmsDbPort) {
         this.cmsDbPort = cmsDbPort;
         return this;
     }
@@ -361,7 +365,7 @@ public class BaseOutputs {
         return cmsDbJdbcConnectionString;
     }
 
-    public BaseOutputs setCmsDbJdbcConnectionString(String cmsDbJdbcConnectionString) {
+    public DeprecatedBaseOutputs setCmsDbJdbcConnectionString(String cmsDbJdbcConnectionString) {
         this.cmsDbJdbcConnectionString = cmsDbJdbcConnectionString;
         return this;
     }
@@ -370,7 +374,7 @@ public class BaseOutputs {
         return vpcHostedZoneId;
     }
 
-    public BaseOutputs setVpcHostedZoneId(String vpcHostedZoneId) {
+    public DeprecatedBaseOutputs setVpcHostedZoneId(String vpcHostedZoneId) {
         this.vpcHostedZoneId = vpcHostedZoneId;
         return this;
     }
@@ -379,7 +383,7 @@ public class BaseOutputs {
         return vpcSubnetIdForAz1;
     }
 
-    public BaseOutputs setVpcSubnetIdForAz1(String vpcSubnetIdForAz1) {
+    public DeprecatedBaseOutputs setVpcSubnetIdForAz1(String vpcSubnetIdForAz1) {
         this.vpcSubnetIdForAz1 = vpcSubnetIdForAz1;
         return this;
     }
@@ -388,7 +392,7 @@ public class BaseOutputs {
         return vpcSubnetIdForAz2;
     }
 
-    public BaseOutputs setVpcSubnetIdForAz2(String vpcSubnetIdForAz2) {
+    public DeprecatedBaseOutputs setVpcSubnetIdForAz2(String vpcSubnetIdForAz2) {
         this.vpcSubnetIdForAz2 = vpcSubnetIdForAz2;
         return this;
     }
@@ -397,7 +401,7 @@ public class BaseOutputs {
         return vpcSubnetIdForAz3;
     }
 
-    public BaseOutputs setVpcSubnetIdForAz3(String vpcSubnetIdForAz3) {
+    public DeprecatedBaseOutputs setVpcSubnetIdForAz3(String vpcSubnetIdForAz3) {
         this.vpcSubnetIdForAz3 = vpcSubnetIdForAz3;
         return this;
     }
@@ -406,7 +410,7 @@ public class BaseOutputs {
         return cmsKmsPolicyId;
     }
 
-    public BaseOutputs setCmsKmsPolicyId(String cmsKmsPolicyId) {
+    public DeprecatedBaseOutputs setCmsKmsPolicyId(String cmsKmsPolicyId) {
         this.cmsKmsPolicyId = cmsKmsPolicyId;
         return this;
     }
@@ -415,7 +419,7 @@ public class BaseOutputs {
         return subnetCidrBlockForAz1;
     }
 
-    public BaseOutputs setSubnetCidrBlockForAz1(String subnetCidrBlockForAz1) {
+    public DeprecatedBaseOutputs setSubnetCidrBlockForAz1(String subnetCidrBlockForAz1) {
         this.subnetCidrBlockForAz1 = subnetCidrBlockForAz1;
         return this;
     }
@@ -424,7 +428,7 @@ public class BaseOutputs {
         return subnetCidrBlockForAz2;
     }
 
-    public BaseOutputs setSubnetCidrBlockForAz2(String subnetCidrBlockForAz2) {
+    public DeprecatedBaseOutputs setSubnetCidrBlockForAz2(String subnetCidrBlockForAz2) {
         this.subnetCidrBlockForAz2 = subnetCidrBlockForAz2;
         return this;
     }
@@ -433,7 +437,7 @@ public class BaseOutputs {
         return subnetCidrBlockForAz3;
     }
 
-    public BaseOutputs setSubnetCidrBlockForAz3(String subnetCidrBlockForAz3) {
+    public DeprecatedBaseOutputs setSubnetCidrBlockForAz3(String subnetCidrBlockForAz3) {
         this.subnetCidrBlockForAz3 = subnetCidrBlockForAz3;
         return this;
     }

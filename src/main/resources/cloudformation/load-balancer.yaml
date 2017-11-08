@@ -3,20 +3,20 @@ Conditions:
   RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
 Description: Creates the application Load Balancer for the Cerberus environment
 Outputs:
-  albAccessLogBucket:
-    Value: !Ref 'ALBLogBucket'
-  appLoadBalancerLogicalId:
-    Value: !Ref 'ApplicationLoadBalancer'
-    Export:
-      Name: !Sub "${AWS::StackName}-appLoadBalancerLogicalId"
-  albDnsName:
-    Value: !GetAtt 'ApplicationLoadBalancer.DNSName'
-    Export:
-      Name: !Sub "${AWS::StackName}-appLoadBalancerDnsName"
   cmsTargetGroup:
     Value: !Ref 'CmsTargetGroup'
     Export:
       Name: !Sub "${AWS::StackName}-cmsTargetGroupArn"
+  loadBalancerAccessLogBucket:
+    Value: !Ref 'ALBLogBucket'
+  loadBalancerDnsName:
+    Value: !GetAtt 'ApplicationLoadBalancer.DNSName'
+    Export:
+      Name: !Sub "${AWS::StackName}-loadBalancerDnsName"
+  loadBalancerLogicalId:
+    Value: !Ref 'ApplicationLoadBalancer'
+    Export:
+      Name: !Sub "${AWS::StackName}-loadBalancerLogicalId"
 Parameters:
   sgStackName:
     Description: The name of the stack containing Cerberus IAM roles and SGs stack

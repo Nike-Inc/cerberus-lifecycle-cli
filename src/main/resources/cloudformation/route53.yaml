@@ -22,7 +22,7 @@ Resources:
         Ref: hostedZoneId
       Name: !Join [., [!Ref 'hostname', '']]
       ResourceRecords:
-        - Fn::ImportValue: !Sub "${loadBalancerStackName}-appLoadBalancerDnsName"
+        - Fn::ImportValue: !Sub "${loadBalancerStackName}-loadBalancerDnsName"
       TTL: 30
       Type: CNAME
     Type: AWS::Route53::RecordSet
