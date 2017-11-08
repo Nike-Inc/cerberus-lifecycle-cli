@@ -29,7 +29,7 @@ import static com.nike.cerberus.command.core.CreateWafCommand.COMMAND_NAME;
  * Command to create the WAF for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
-        commandDescription = "Create the WAF which protects Cerberus.")
+        commandDescription = "Create the Web Application Firewall (WAF) for the load balancer.")
 public class CreateWafCommand implements Command {
 
     public static final String COMMAND_NAME = "create-waf";
