@@ -26,7 +26,7 @@ import com.nike.cerberus.operation.core.CreateVpcOperation;
 import static com.nike.cerberus.command.core.CreateVpcCommand.COMMAND_NAME;
 
 /**
- * Command for creating the VPC in which Cerberus components will live.
+ * Command to create the VPC in which Cerberus components will live.
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the VPC in which Cerberus components live")

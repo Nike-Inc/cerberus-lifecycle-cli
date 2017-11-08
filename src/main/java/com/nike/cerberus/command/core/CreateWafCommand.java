@@ -26,7 +26,7 @@ import com.nike.cerberus.operation.core.CreateLoadBalancerOperation;
 import static com.nike.cerberus.command.core.CreateWafCommand.COMMAND_NAME;
 
 /**
- * Command for creating the base components for Cerberus.
+ * Command to create the WAF for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the WAF which protects Cerberus.")

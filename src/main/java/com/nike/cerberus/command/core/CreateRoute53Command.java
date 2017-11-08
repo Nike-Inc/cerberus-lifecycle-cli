@@ -25,7 +25,7 @@ import com.nike.cerberus.operation.core.CreateRoute53Operation;
 import static com.nike.cerberus.command.core.CreateRoute53Command.COMMAND_NAME;
 
 /**
- * Command for creating the base components for Cerberus.
+ * Command to create the Route53 record for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the Route53 record for use by Cerberus")

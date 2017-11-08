@@ -25,7 +25,7 @@ import com.nike.cerberus.operation.core.CreateSecurityGroupsOperation;
 import static com.nike.cerberus.command.core.CreateSecurityGroupsCommand.COMMAND_NAME;
 
 /**
- * Command for creating the base components for Cerberus.
+ * Command to create the security groups for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the IAM roles, KMS keys, and S3 buckets for Cerberus")

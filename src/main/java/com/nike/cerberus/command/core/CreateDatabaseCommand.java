@@ -27,7 +27,7 @@ import com.nike.cerberus.operation.core.CreateDatabaseOperation;
 import static com.nike.cerberus.command.core.CreateDatabaseCommand.COMMAND_NAME;
 
 /**
- * Command for creating the base components for Cerberus.
+ * Command to create the database for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the database to be used by the Cerberus Management Service (CMS)")
