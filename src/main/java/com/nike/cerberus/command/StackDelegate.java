@@ -18,6 +18,7 @@ package com.nike.cerberus.command;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
+import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,9 +31,6 @@ public class StackDelegate {
     public static final String AMI_ID_LONG_ARG = "--ami-id";
     public static final String INSTANCE_SIZE_LONG_ARG = "--instance-size";
     public static final String KEY_PAIR_NAME_LONG_ARG = "--key-pair-name";
-    public static final String OWNER_GROUP_LONG_ARG = "--owner-group";
-    public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
-    public static final String COST_CENTER_LONG_ARG = "--costcenter";
     public static final String PARAMETER_SHORT_ARG = "-P";
 
     @Parameter(names = AMI_ID_LONG_ARG, description = "The AMI ID for the specified stack.", required = true)
@@ -44,17 +42,17 @@ public class StackDelegate {
     @Parameter(names = KEY_PAIR_NAME_LONG_ARG, required = true, description = "SSH key pair name.")
     private String keyPairName;
 
-    @Parameter(names = OWNER_GROUP_LONG_ARG,
+    @Parameter(names = TagParametersDelegate.OWNER_GROUP_LONG_ARG,
             description = "The owning group for the provision resources. Will be tagged on all resources.",
             required = true)
     private String ownerGroup;
 
-    @Parameter(names = OWNER_EMAIL_LONG_ARG,
+    @Parameter(names = TagParametersDelegate.OWNER_EMAIL_LONG_ARG,
             description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.",
             required = true)
     private String ownerEmail;
 
-    @Parameter(names = COST_CENTER_LONG_ARG,
+    @Parameter(names = TagParametersDelegate.COST_CENTER_LONG_ARG,
             description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.",
             required = true)
     private String costcenter;

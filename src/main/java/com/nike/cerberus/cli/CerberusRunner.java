@@ -31,22 +31,22 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
+import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
-import com.nike.cerberus.command.core.GenerateCertsCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
 import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
-import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
-import com.nike.cerberus.command.core.ViewConfigCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.GenerateCertsCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
+import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
+import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
-import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
+import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
@@ -94,7 +94,7 @@ public class CerberusRunner {
             String commandName = commander.getParsedCommand();
             Command command = commandMap.get(commandName);
 
-            if(cerberusCommand.isVersion()) {
+            if (cerberusCommand.isVersion()) {
                 printCliVersion();
             } else if (cerberusCommand.isHelp() || commandName == null) {
                 cerberusHelp.print();
@@ -117,8 +117,7 @@ public class CerberusRunner {
         } catch (Throwable e) {
             if (cerberusCommand.isHelp()) {
                 cerberusHelp.print();
-            }
-            else {
+            } else {
                 System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
                 e.printStackTrace();
                 cerberusHelp.print();
@@ -212,6 +211,7 @@ public class CerberusRunner {
 
     /**
      * Program entry point.  Instantiates and calls run.
+     *
      * @param args Command line arguments
      */
     public static void main(String[] args) {
