@@ -38,6 +38,8 @@ import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClient;
+import com.amazonaws.services.route53.AmazonRoute53;
+import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
@@ -113,6 +115,7 @@ public class CerberusModule extends AbstractModule {
         bind(AWSSecurityTokenService.class).toInstance(createAmazonClientInstance(AWSSecurityTokenServiceClient.class, region));
         bind(AWSLambda.class).toInstance(createAmazonClientInstance(AWSLambdaClient.class, region));
         bind(AmazonSNS.class).toInstance(createAmazonClientInstance(AmazonSNSClient.class, region));
+        bind(AmazonRoute53.class).toInstance(createAmazonClientInstance(AmazonRoute53Client.class, region));
     }
 
     /**
