@@ -49,6 +49,7 @@ public class SetBackupAdminPrincipalsOperation implements Operation<SetBackupAdm
     private static final String AWS_PROVIDER = "AWS";
 
     private final ConfigStore configStore;
+
     private final AWSSecurityTokenService sts;
 
     @Inject
@@ -64,7 +65,7 @@ public class SetBackupAdminPrincipalsOperation implements Operation<SetBackupAdm
         GetCallerIdentityResult identityResult = sts.getCallerIdentity(new GetCallerIdentityRequest());
         String accountId = identityResult.getAccount();
         String rootArn = String.format("arn:aws:iam::%s:root", accountId);
-        String adminRoleArn = configStore.getAccountAdminArn().get();
+        String adminRoleArn = configStore.deprecatedGetAccountAdminArn().get();
 
         Set<String> principals = new HashSet<>();
         principals.add(rootArn);
@@ -108,7 +109,7 @@ public class SetBackupAdminPrincipalsOperation implements Operation<SetBackupAdm
 
     @Override
     public boolean isRunnable(SetBackupAdminPrincipalsCommand command) {
-        Optional<String> adminIamPrincipalArn = configStore.getAccountAdminArn();
+        Optional<String> adminIamPrincipalArn = configStore.deprecatedGetAccountAdminArn();
         if (! adminIamPrincipalArn.isPresent()) {
             log.error("The admin IAM principal must be set for this environment");
             return false;

@@ -19,17 +19,14 @@ package com.nike.cerberus.operation.core;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.cloudformation.BaseParameters;
+import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
+import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
-import com.nike.cerberus.service.Ec2Service;
 import com.nike.cerberus.store.ConfigStore;
-import com.nike.cerberus.util.RandomStringGenerator;
-import com.nike.cerberus.util.UuidSupplier;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +39,7 @@ import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
  */
-public class CreateBaseOperation implements Operation<CreateBaseCommand> {
+public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGroupsCommand> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -50,36 +47,44 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
     private final CloudFormationService cloudFormationService;
 
+    private final ConfigStore configStore;
+
     private final ObjectMapper cloudFormationObjectMapper;
 
     @Inject
-    public CreateBaseOperation(final EnvironmentMetadata environmentMetadata,
-                               final CloudFormationService cloudFormationService,
-                               @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+    public CreateSecurityGroupsOperation(final EnvironmentMetadata environmentMetadata,
+                                         final CloudFormationService cloudFormationService,
+                                         final ConfigStore configStore,
+                                         @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
+        this.configStore = configStore;
         this.cloudFormationObjectMapper = cloudformationObjectMapper;
     }
 
     @Override
-    public void run(final CreateBaseCommand command) {
+    public void run(final CreateSecurityGroupsCommand command) {
         final String environmentName = environmentMetadata.getName();
-        final BaseParameters baseParameters = new BaseParameters()
-                .setAccountAdminArn(command.getAdminRoleArn());
+        final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
 
-        baseParameters.getTagParameters().setTagEmail(baseParameters.getTagParameters().getTagEmail());
-        baseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        baseParameters.getTagParameters().setTagCostcenter(baseParameters.getTagParameters().getTagCostcenter());
+        final SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
+                .setVpcId(vpcOutputs.getVpcId())
+                .setCmsDbPort(command.getCmsDbPort())
+                .setLoadBalancerCidrBlock(command.getLoadBalancerCidr());
+
+        securityGroupParameters.getTagParameters().setTagEmail(securityGroupParameters.getTagParameters().getTagEmail());
+        securityGroupParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
+        securityGroupParameters.getTagParameters().setTagCostcenter(securityGroupParameters.getTagParameters().getTagCostcenter());
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.BASE.getFullName(environmentName),
-                parameters, ConfigConstants.BASE_STACK_TEMPLATE_PATH, true);
+        cloudFormationService.createStack(StackName.SECURITY_GROUPS.getFullName(environmentName),
+                parameters, ConfigConstants.SECURITY_GROUPS_STACK_TEMPLATE_PATH, true);
     }
 
     @Override
-    public boolean isRunnable(final CreateBaseCommand command) {
+    public boolean isRunnable(final CreateSecurityGroupsCommand command) {
         return true;
     }
 
