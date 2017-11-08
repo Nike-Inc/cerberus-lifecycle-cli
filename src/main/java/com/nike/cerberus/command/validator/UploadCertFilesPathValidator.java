@@ -54,7 +54,7 @@ public class UploadCertFilesPathValidator implements IValueValidator<Path> {
         }
 
 
-        final FilenameFilter filter = new RegexFileFilter("^.*\\.pem$");
+        final FilenameFilter filter = new RegexFileFilter("^.*\\.(pem|crt)$");
         final File[] files = certDirectory.listFiles(filter);
         Arrays.stream(files).forEach(file -> filenames.add(file.getName()));
 
