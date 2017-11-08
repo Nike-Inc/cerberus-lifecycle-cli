@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.nike.cerberus.operation.core.CreateVpcOperation;
 import static com.nike.cerberus.command.core.CreateVpcCommand.COMMAND_NAME;
 
 /**
- * Command for creating the base components for Cerberus.
+ * Command for creating the VPC in which Cerberus components will live.
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the VPC in which Cerberus components live")

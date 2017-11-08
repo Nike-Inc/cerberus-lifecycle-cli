@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ public class CreateRoute53Command implements Command {
     public static final String COMMAND_NAME = "create-route53-record";
 
     @Parameter(names = "--cerberus-hostname",
-            description = "The hostname of the Route53 record to be created for Cerberus (e.g. <env>.cerberus.nike.com)")
+            description = "The hostname of the Route53 record to be created for Cerberus (e.g. <env>.cerberus.example.com)")
     private String cerberusHostname;
 
     @Parameter(names = "--hosted-zone-id",
