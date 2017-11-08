@@ -91,9 +91,10 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
     @Override
     public boolean isRunnable(final CreateLoadBalancerCommand command) {
         try {
-            configStore.getSecurityGroupStackOutputs();
-        } catch (IllegalStateException ise) {
-            throw new IllegalStateException("The security group stack must exist to create the load balancer!", ise);
+            String environmentName = environmentMetadata.getName();
+            cloudFormationService.getStackId(StackName.SECURITY_GROUPS.getFullName(environmentName));
+        } catch (IllegalArgumentException iae) {
+            throw new IllegalStateException("The security group stack must exist to create the load balancer!", iae);
         }
 
         return true;

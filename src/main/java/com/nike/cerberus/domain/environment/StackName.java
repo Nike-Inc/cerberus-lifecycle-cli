@@ -45,6 +45,11 @@ public enum StackName {
         return name;
     }
 
+    /**
+     * Generate the CloudFormation stack name for each Cerberus component
+     * @param environmentName  The name of the environment in which the component lives (e.g. demo, preprod, devel, etc.)
+     * @return  The generated CloudFormation stack name
+     */
     public String getFullName(String environmentName) {
         return String.format("%s-cerberus-%s", environmentName, name);
     }

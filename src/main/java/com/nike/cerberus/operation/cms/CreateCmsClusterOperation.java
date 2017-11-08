@@ -135,6 +135,18 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
     @Override
     public boolean isRunnable(final CreateCmsClusterCommand command) {
+        String environmentName = environmentMetadata.getName();
+
+        try {
+            cloudFormationService.getStackId(StackName.LOAD_BALANCER.getFullName(environmentName));
+            cloudFormationService.getStackId(StackName.SECURITY_GROUPS.getFullName(environmentName));
+            cloudFormationService.getStackId(StackName.BASE.getFullName(environmentName));
+        } catch (IllegalArgumentException iae) {
+            logger.error("Could not create the CMS cluster." +
+                    "Make sure the load balancer, security group, and base stacks have all been created.", iae);
+            return false;
+        }
+
         return configStore.getCmsEnvConfig().isPresent();
     }
 }

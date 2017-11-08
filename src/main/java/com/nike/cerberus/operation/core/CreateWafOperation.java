@@ -84,9 +84,10 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
     @Override
     public boolean isRunnable(final CreateWafCommand command) {
         try {
-            configStore.getLoadBalancerStackOutputs();
-        } catch (IllegalStateException ise) {
-            throw new IllegalStateException("The load balancer stack must exist to create load balancer!", ise);
+            String environmentName = environmentMetadata.getName();
+            cloudFormationService.getStackId(StackName.LOAD_BALANCER.getFullName(environmentName));
+        } catch (IllegalArgumentException iae) {
+            throw new IllegalStateException("The load balancer stack must exist to create the WAF!", iae);
         }
 
         return true;
