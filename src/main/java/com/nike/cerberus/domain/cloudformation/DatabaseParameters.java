@@ -37,6 +37,8 @@ public class DatabaseParameters implements TagParameters {
 
     private String cmsDbName;
 
+    private String sgStackName;
+
     private String vpcSubnetIdForAz1;
 
     private String vpcSubnetIdForAz2;
@@ -106,6 +108,15 @@ public class DatabaseParameters implements TagParameters {
 
     public DatabaseParameters setCmsDbName(String cmsDbName) {
         this.cmsDbName = cmsDbName;
+        return this;
+    }
+
+    public String getSgStackName() {
+        return sgStackName;
+    }
+
+    public DatabaseParameters setSgStackName(String sgStackName) {
+        this.sgStackName = sgStackName;
         return this;
     }
 
