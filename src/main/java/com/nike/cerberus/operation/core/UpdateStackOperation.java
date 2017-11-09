@@ -109,7 +109,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         // Make sure the given AmiId is for this component. Check if it contains required tag
         // There is no AMI for Base.
         if ( !command.isSkipAmiTagCheck() && StackName.BASE != command.getStackName() ) {
-            amiTagCheckService.validateAmiTagForStack(command.getAmiId(),command.getStackName());
+            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(),command.getStackName());
         }
 
         parameters.putAll(command.getDynamicParameters());
@@ -174,26 +174,26 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                 configStore.getStackParameters(stackName, parametersClass);
 
         launchConfigParameters.getLaunchConfigParameters().setUserData(
-                ec2UserDataService.getUserData(stackName, command.getOwnerGroup()));
+                ec2UserDataService.getUserData(stackName, command.getStackDelegate().getOwnerGroup()));
 
-        if (StringUtils.isNotBlank(command.getAmiId())) {
-            launchConfigParameters.getLaunchConfigParameters().setAmiId(command.getAmiId());
+        if (StringUtils.isNotBlank(command.getStackDelegate().getAmiId())) {
+            launchConfigParameters.getLaunchConfigParameters().setAmiId(command.getStackDelegate().getAmiId());
         }
 
-        if (StringUtils.isNotBlank(command.getInstanceSize())) {
-            launchConfigParameters.getLaunchConfigParameters().setInstanceSize(command.getInstanceSize());
+        if (StringUtils.isNotBlank(command.getStackDelegate().getInstanceSize())) {
+            launchConfigParameters.getLaunchConfigParameters().setInstanceSize(command.getStackDelegate().getInstanceSize());
         }
 
-        if (StringUtils.isNotBlank(command.getKeyPairName())) {
-            launchConfigParameters.getLaunchConfigParameters().setKeyPairName(command.getKeyPairName());
+        if (StringUtils.isNotBlank(command.getStackDelegate().getKeyPairName())) {
+            launchConfigParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         }
 
-        if (StringUtils.isNotBlank(command.getOwnerEmail())) {
-            launchConfigParameters.getTagParameters().setTagEmail(command.getOwnerEmail());
+        if (StringUtils.isNotBlank(command.getStackDelegate().getOwnerEmail())) {
+            launchConfigParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
         }
 
-        if (StringUtils.isNotBlank(command.getCostcenter())) {
-            launchConfigParameters.getTagParameters().setTagCostcenter(command.getCostcenter());
+        if (StringUtils.isNotBlank(command.getStackDelegate().getCostcenter())) {
+            launchConfigParameters.getTagParameters().setTagCostcenter(command.getStackDelegate().getCostcenter());
         }
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
@@ -203,12 +203,12 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     private Map<String, String> getUpdatedBaseStackParameters(final UpdateStackCommand command) {
         final TagParameters tagParameters = configStore.getStackParameters(command.getStackName(), SecurityGroupParameters.class);
 
-        if (StringUtils.isNotBlank(command.getOwnerEmail())) {
-            tagParameters.getTagParameters().setTagEmail(command.getOwnerEmail());
+        if (StringUtils.isNotBlank(command.getStackDelegate().getOwnerEmail())) {
+            tagParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
         }
 
-        if (StringUtils.isNotBlank(command.getCostcenter())) {
-            tagParameters.getTagParameters().setTagCostcenter(command.getCostcenter());
+        if (StringUtils.isNotBlank(command.getStackDelegate().getCostcenter())) {
+            tagParameters.getTagParameters().setTagCostcenter(command.getStackDelegate().getCostcenter());
         }
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
