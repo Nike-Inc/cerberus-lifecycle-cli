@@ -24,14 +24,12 @@ import com.amazonaws.services.ec2.model.IpPermission;
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest;
 import com.google.common.collect.Lists;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.domain.cloudformation.BaseOutputs;
-import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
+import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,13 +49,17 @@ public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCi
 
     private final AmazonEC2 ec2Client;
 
+    private final EnvironmentMetadata environmentMetadata;
+
     @Inject
     public WhitelistCidrForVpcAccessOperation(final CloudFormationService cloudFormationService,
                                               final ConfigStore configStore,
-                                              final AmazonEC2 ec2Client) {
+                                              final AmazonEC2 ec2Client,
+                                              final EnvironmentMetadata environmentMetadata) {
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
         this.ec2Client = ec2Client;
+        this.environmentMetadata = environmentMetadata;
     }
 
     @Override
@@ -98,14 +100,16 @@ public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCi
 
     @Override
     public boolean isRunnable(final WhitelistCidrForVpcAccessCommand command) {
-        boolean isRunnable = true;
-        final String baseStackId = configStore.getStackId(StackName.BASE);
+        String environmentName = environmentMetadata.getName();
 
-        if (StringUtils.isBlank(baseStackId) || !cloudFormationService.isStackPresent(baseStackId)) {
-            logger.error("No base stack defined for this environment!");
-            isRunnable = false;
+        try {
+            cloudFormationService.getStackId(StackName.BASE.getFullName(environmentName));
+        } catch (IllegalArgumentException iae) {
+            logger.error("Could not create the CMS cluster." +
+                    "Make sure the load balancer, security group, and base stacks have all been created.", iae);
+            return false;
         }
 
-        return isRunnable;
+        return true;
     }
 }
