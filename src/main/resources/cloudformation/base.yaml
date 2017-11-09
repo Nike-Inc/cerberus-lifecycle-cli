@@ -7,6 +7,8 @@ Outputs:
     Value: !Ref 'CerberusConfigBucket'
   configFileKeyId:
     Value: !Ref 'ConfigFileKey'
+  cmsIamRoleArn:
+    Value: !GetAtt 'CmsIamRole.Arn'
   cmsIamRoleName:
     Value: !Ref 'CmsIamRole'
     Export:

@@ -48,7 +48,7 @@ public class ConfigConstants {
 
     public static final String BASE_STACK_TEMPLATE_PATH = "/cloudformation/base.yaml";
 
-    public static final String CMS_STACK_TEMPLATE_PATH = "/cloudformation/cms-cluster.json";
+    public static final String CMS_STACK_TEMPLATE_PATH = "/cloudformation/cms-cluster.yaml";
 
     public static final String DATABASE_STACK_TEMPLATE_PATH = "/cloudformation/database.yaml";
 
@@ -83,6 +83,8 @@ public class ConfigConstants {
     public static final String CMK_ARNS_KEY = "cms.encryption.cmk.arns";
 
     public static final String HASH_SALT = "cms.auth.token.hash.salt";
+
+    public static final String CMS_ENV_NAME = "cms.env.name";
 
     public static final ImmutableSet<String> SYSTEM_CONFIGURED_CMS_PROPERTIES = ImmutableSet.of(
             ROOT_USER_ARN_KEY,

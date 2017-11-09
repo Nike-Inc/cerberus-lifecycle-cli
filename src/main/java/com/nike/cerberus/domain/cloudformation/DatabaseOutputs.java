@@ -21,7 +21,7 @@ package com.nike.cerberus.domain.cloudformation;
  */
 public class DatabaseOutputs {
 
-    private Integer cmsDbAddress;
+    private String cmsDbAddress;
 
     private String cmsDbInstanceId1;
 
@@ -29,11 +29,11 @@ public class DatabaseOutputs {
 
     private String cmsDbJdbcConnectionString;
 
-    public Integer getCmsDbAddress() {
+    public String getCmsDbAddress() {
         return cmsDbAddress;
     }
 
-    public DatabaseOutputs setCmsDbAddress(Integer cmsDbAddress) {
+    public DatabaseOutputs setCmsDbAddress(String cmsDbAddress) {
         this.cmsDbAddress = cmsDbAddress;
         return this;
     }

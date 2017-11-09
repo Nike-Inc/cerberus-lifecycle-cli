@@ -71,9 +71,9 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
                 .setVpcId(vpcOutputs.getVpcId())
                 .setLoadBalancerCidrBlock(command.getLoadBalancerCidr());
 
-        securityGroupParameters.getTagParameters().setTagEmail(securityGroupParameters.getTagParameters().getTagEmail());
+        securityGroupParameters.getTagParameters().setTagEmail(command.getTagParameters().getTagEmail());
         securityGroupParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        securityGroupParameters.getTagParameters().setTagCostcenter(securityGroupParameters.getTagParameters().getTagCostcenter());
+        securityGroupParameters.getTagParameters().setTagCostcenter(command.getTagParameters().getTagCostcenter());
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, typeReference);

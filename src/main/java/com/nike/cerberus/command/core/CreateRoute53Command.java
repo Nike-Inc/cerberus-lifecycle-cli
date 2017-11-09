@@ -38,11 +38,13 @@ public class CreateRoute53Command implements Command {
     public static final String HOSTED_ZONE_ID = "--hosted-zone-id";
 
     @Parameter(names = HOSTNAME_LONG_ARG,
-            description = "The hostname of the Route53 record to be created for Cerberus (e.g. <env>.cerberus.example.com)")
+            description = "The hostname of the Route53 record to be created for Cerberus (e.g. <env>.cerberus.example.com)",
+            required = true)
     private String cerberusHostname;
 
     @Parameter(names = HOSTED_ZONE_ID,
-            description = "The Route53 Hosted Zone in which to create the new Cerberus record")
+            description = "The Route53 Hosted Zone in which to create the new Cerberus record",
+            required = true)
     private String hostedZoneId;
 
     public String getCerberusHostname() {

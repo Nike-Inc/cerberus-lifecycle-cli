@@ -22,6 +22,7 @@ import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.CreateLoadBalancerOperation;
+import com.nike.cerberus.operation.core.CreateWafOperation;
 
 import static com.nike.cerberus.command.core.CreateWafCommand.COMMAND_NAME;
 
@@ -48,7 +49,7 @@ public class CreateWafCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return CreateLoadBalancerOperation.class;
+        return CreateWafOperation.class;
     }
 
 }

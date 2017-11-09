@@ -71,6 +71,7 @@ import static com.nike.cerberus.ConfigConstants.CERT_PART_CERT;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PKCS8_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
+import static com.nike.cerberus.ConfigConstants.CMS_ENV_NAME;
 import static com.nike.cerberus.ConfigConstants.CMS_ROLE_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.HASH_SALT;
 import static com.nike.cerberus.ConfigConstants.JDBC_PASSWORD_KEY;
@@ -407,7 +408,7 @@ public class ConfigStore {
         final BaseOutputs baseOutputs = getBaseStackOutputs();
         final DatabaseOutputs databaseOutputs = getDatabaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
-        final Optional<String> cmsDatabasePassword = getCmsDatabasePassword();
+        final String cmsDatabasePassword = getDatabaseStackParameters().getCmsDbMasterPassword();
 
         final GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
                 new GetCallerIdentityRequest());
@@ -419,7 +420,8 @@ public class ConfigStore {
         properties.put(CMS_ROLE_ARN_KEY, baseOutputs.getCmsIamRoleArn());
         properties.put(JDBC_URL_KEY, databaseOutputs.getCmsDbJdbcConnectionString());
         properties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
-        properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword.get());
+        properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword);
+        properties.put(CMS_ENV_NAME, environmentMetadata.getName());
 
         return properties;
     }
@@ -817,10 +819,8 @@ public class ConfigStore {
 
     private void initEncryptedConfigStoreService() {
         if (encryptedConfigStoreService == null) {
-            final Environment environment = getEnvironmentData();
-
             KMSEncryptionMaterialsProvider materialProvider =
-                    new KMSEncryptionMaterialsProvider(environment.getConfigKeyId());
+                    new KMSEncryptionMaterialsProvider(getBaseStackOutputs().getConfigFileKeyId());
 
             AmazonS3EncryptionClient encryptionClient =
                     new AmazonS3EncryptionClient(

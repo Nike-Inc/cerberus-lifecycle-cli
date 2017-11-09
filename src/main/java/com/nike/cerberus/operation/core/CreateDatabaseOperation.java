@@ -78,6 +78,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
         final DatabaseParameters databaseParameters = new DatabaseParameters()
                 .setCmsDbMasterPassword(passwordGenerator.get())
+                .setSgStackName(StackName.SECURITY_GROUPS.getFullName(environmentName))
                 .setCmsDbInstanceAz1(vpcParameters.getAz1())
                 .setCmsDbInstanceAz2(vpcParameters.getAz2())
                 .setCmsDbInstanceAz3(vpcParameters.getAz3())
@@ -98,6 +99,12 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
     @Override
     public boolean isRunnable(final CreateDatabaseCommand command) {
         String environmentName = environmentMetadata.getName();
+        try {
+            cloudFormationService.getStackId(StackName.SECURITY_GROUPS.getFullName(environmentName));
+        } catch (IllegalArgumentException iae) {
+            throw new IllegalStateException("The load balancer stack must exist to create the Route53 record!", iae);
+        }
+
         return ! cloudFormationService.isStackPresent(StackName.DATABASE.getFullName(environmentName));
     }
 }

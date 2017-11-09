@@ -25,6 +25,7 @@ import com.nike.cerberus.domain.cloudformation.BaseParameters;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
+import com.nike.cerberus.store.ConfigStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,14 +46,18 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
     private final CloudFormationService cloudFormationService;
 
+    private final ConfigStore configStore;
+
     private final ObjectMapper cloudFormationObjectMapper;
 
     @Inject
     public CreateBaseOperation(final EnvironmentMetadata environmentMetadata,
                                final CloudFormationService cloudFormationService,
+                               final ConfigStore configStore,
                                @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
+        this.configStore = configStore;
         this.cloudFormationObjectMapper = cloudformationObjectMapper;
     }
 
@@ -72,6 +77,9 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
         cloudFormationService.createStack(StackName.BASE.getFullName(environmentName),
                 parameters, ConfigConstants.BASE_STACK_TEMPLATE_PATH, true);
+
+        configStore.initEnvironmentData();
+        configStore.initSecretsData();
     }
 
     @Override

@@ -18,7 +18,9 @@ package com.nike.cerberus.command.core;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.CreateSecurityGroupsOperation;
 
@@ -39,8 +41,15 @@ public class CreateSecurityGroupsCommand implements Command {
             description = "The CIDR from which to allow traffic to the load balancer")
     private String loadBalancerCidr;
 
+    @ParametersDelegate
+    private TagParametersDelegate tagParameters = new TagParametersDelegate();
+
     public String getLoadBalancerCidr() {
         return loadBalancerCidr;
+    }
+
+    public TagParametersDelegate getTagParameters() {
+        return tagParameters;
     }
 
     @Override
