@@ -407,7 +407,7 @@ public class ConfigStore {
         final BaseOutputs baseOutputs = getBaseStackOutputs();
         final DatabaseOutputs databaseOutputs = getDatabaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
-        final Optional<String> cmsDatabasePassword = getCmsDatabasePassword();
+        final String cmsDatabasePassword = getDatabaseStackParameters().getCmsDbMasterPassword();
 
         final GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
                 new GetCallerIdentityRequest());
@@ -419,7 +419,7 @@ public class ConfigStore {
         properties.put(CMS_ROLE_ARN_KEY, baseOutputs.getCmsIamRoleArn());
         properties.put(JDBC_URL_KEY, databaseOutputs.getCmsDbJdbcConnectionString());
         properties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
-        properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword.get());
+        properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword);
 
         return properties;
     }

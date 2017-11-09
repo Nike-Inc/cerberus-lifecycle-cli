@@ -79,6 +79,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
                 parameters, ConfigConstants.BASE_STACK_TEMPLATE_PATH, true);
 
         configStore.initEnvironmentData();
+        configStore.initSecretsData();
     }
 
     @Override
