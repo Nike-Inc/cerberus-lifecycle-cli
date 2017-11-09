@@ -18,8 +18,8 @@ package com.nike.cerberus.operation.cms;
 
 import com.amazonaws.regions.Regions;
 import com.beust.jcommander.ParameterException;
-import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
