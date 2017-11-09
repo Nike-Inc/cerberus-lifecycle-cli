@@ -79,7 +79,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.toArray(new String[args.size()]);
     }
 
-    private static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
+    public static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
         switch (commandName) {
             case CreateBaseCommand.COMMAND_NAME:
                 return getCreateBaseCommandArgs(environmentConfig);
@@ -108,7 +108,9 @@ public class EnvironmentConfigToArgsMapper {
             case CreateWafCommand.COMMAND_NAME:
                 return getCreateWafCommandArgs(environmentConfig);
             default:
-                return new LinkedList<>();
+                List<String> passedArgsList = new LinkedList<>();
+                passedArgsList.addAll(Arrays.asList(passedArgs));
+                return passedArgsList;
         }
     }
 

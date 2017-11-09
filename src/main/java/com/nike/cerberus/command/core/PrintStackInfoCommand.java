@@ -33,7 +33,9 @@ public class PrintStackInfoCommand implements Command {
 
     public static final String COMMAND_NAME = "print-stack-info";
 
-    @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to print information about.")
+    public static final String STACK_NAME_LONG_ARG = "--stack-name";
+
+    @Parameter(names = {STACK_NAME_LONG_ARG}, required = true, description = "The stack name to print information about.")
     private StackName stackName;
 
     public StackName getStackName() {
