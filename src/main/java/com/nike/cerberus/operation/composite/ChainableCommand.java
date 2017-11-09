@@ -18,10 +18,20 @@ package com.nike.cerberus.operation.composite;
 
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.LinkedList;
 import java.util.List;
 
+@SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "We don't care"
+)
+/**
+ * Wrapper object to represent a chainable command.
+ *
+ * @See CompositeOperation
+ */
 public class ChainableCommand {
 
     private Command command;

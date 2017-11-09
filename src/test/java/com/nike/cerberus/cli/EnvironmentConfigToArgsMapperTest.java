@@ -62,7 +62,7 @@ public class EnvironmentConfigToArgsMapperTest {
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
 
-        assertArgsAreEqual(expected, actual,commandName);
+        assertArgsAreEqual(expected, actual, commandName);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class EnvironmentConfigToArgsMapperTest {
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
 
-        assertArgsAreEqual(expected, actual,commandName);
+        assertArgsAreEqual(expected, actual, commandName);
     }
 
 
@@ -99,7 +99,7 @@ public class EnvironmentConfigToArgsMapperTest {
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
 
-        assertArgsAreEqual(expected, actual,commandName);
+        assertArgsAreEqual(expected, actual, commandName);
     }
 
     @Test

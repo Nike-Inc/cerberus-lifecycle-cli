@@ -107,9 +107,7 @@ public class EnvironmentConfigToArgsMapper {
             case CreateWafCommand.COMMAND_NAME:
                 return getCreateWafCommandArgs(environmentConfig);
             default:
-                List<String> passedArgsList = new LinkedList<>();
-                passedArgsList.addAll(Arrays.asList(passedArgs));
-                return passedArgsList;
+                return new LinkedList<>();
         }
     }
 

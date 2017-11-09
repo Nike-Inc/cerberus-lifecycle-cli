@@ -30,6 +30,12 @@ import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * This abstract class can be extended by any composite operation to enable chaining of commands
+ * together to perform complex operations.
+ *
+ * @param <T> The command that this operation implements
+ */
 public abstract class CompositeOperation<T extends Command> implements Operation<T> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -54,6 +60,12 @@ public abstract class CompositeOperation<T extends Command> implements Operation
         return injector.getInstance(command.getOperationClass());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Runs all the chained commands in order that are defined in the runnable chained command list,
+     * which gets populated when isRunnable is executed
+     */
     @SuppressWarnings("unchecked")
     public void run(T compositeCommand) {
         runnableChainedCommands.forEach(chainableCommand -> {
@@ -70,6 +82,12 @@ public abstract class CompositeOperation<T extends Command> implements Operation
         });
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Gets the command chain from the implementing class and iterates over every chained command operation to make sure
+     * they are runnable, if any operation is not runnable this will return false
+     */
     public boolean isRunnable(T command) {
         if (getIsEnvironmentConfigRequired() && environmentConfig == null) {
             throw new RuntimeException(String.format("The %s command requires that -f or --file must be supplied as a global option with " +
@@ -84,19 +102,28 @@ public abstract class CompositeOperation<T extends Command> implements Operation
             List<String> argsList = EnvironmentConfigToArgsMapper.getArgsForCommand(
                     environmentConfig, chainedCommand.getCommandName(), additionalArgs);
 
-            // convert args list to args array
-            String[] args = argsList.toArray(new String[argsList.size()]);
+            // If the mapper doesn't have a mapping for a given command it will return an empty list
+            // in this case we will just use the args manually provided by the chainable command
+            String[] args;
+            if (argsList.size() > 0) {
+                args = argsList.toArray(new String[argsList.size()]);
+            } else {
+                args = additionalArgs;
+            }
 
-            // Bind args to object
+            // Use jcommander to bind the resolved args to the command object
             JCommander.newBuilder().addObject(chainedCommand).build().parse(args);
 
             // Get the instance of the operation from guice
             Operation operation = getOperationInstance(chainedCommand);
 
+            // If the given command is not runnable return false for the whole chain
             //noinspection unchecked
             if (! operation.isRunnable(chainedCommand)) {
                 return false;
             }
+
+            // If the given command is runnable add the guice created operation to the object and add the command to the runnable list
             log.debug("Command: {} with Args: {} is runnable, adding to runnable list", chainedCommand.getCommandName(), args);
             chainableCommand.setOperation(operation);
             runnableChainedCommands.add(chainableCommand);
@@ -104,8 +131,18 @@ public abstract class CompositeOperation<T extends Command> implements Operation
         return true;
     }
 
+    /**
+     * Implement this method to define the ordered list of chained commands that will get executed
+     *
+     * @return An ordered list of ChainableCommand's
+     */
     protected abstract List<ChainableCommand> getCompositeCommandChain();
 
+    /**
+     * If you command doesn't require that the environment yaml be supplied, you can override this to false.
+     *
+     * @return boolean of whether or not the environment yaml is required.
+     */
     public boolean getIsEnvironmentConfigRequired() {
         return true;
     }
