@@ -21,7 +21,7 @@ package com.nike.cerberus.domain.cloudformation;
  */
 public class VpcOutputs {
 
-    private Integer subnetCidrBlockForAz1;
+    private String subnetCidrBlockForAz1;
 
     private String subnetCidrBlockForAz2;
 
@@ -35,11 +35,11 @@ public class VpcOutputs {
 
     private String vpcId;
 
-    public Integer getSubnetCidrBlockForAz1() {
+    public String getSubnetCidrBlockForAz1() {
         return subnetCidrBlockForAz1;
     }
 
-    public VpcOutputs setSubnetCidrBlockForAz1(Integer subnetCidrBlockForAz1) {
+    public VpcOutputs setSubnetCidrBlockForAz1(String subnetCidrBlockForAz1) {
         this.subnetCidrBlockForAz1 = subnetCidrBlockForAz1;
         return this;
     }

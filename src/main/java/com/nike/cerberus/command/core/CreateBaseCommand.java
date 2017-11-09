@@ -24,7 +24,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.cloudformation.BaseParameters;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
+import com.nike.cerberus.domain.cloudformation.TagParameters;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
@@ -54,8 +56,15 @@ public class CreateBaseCommand implements Command {
             required = true)
     private String adminRoleArn;
 
+    @ParametersDelegate
+    private TagParametersDelegate tagParameters = new TagParametersDelegate();
+
     public String getAdminRoleArn() {
         return adminRoleArn;
+    }
+
+    public TagParametersDelegate getTagParameters() {
+        return tagParameters;
     }
 
     @Override

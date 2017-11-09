@@ -30,6 +30,7 @@ import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
+import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.input.CerberusStack;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementService;
@@ -168,11 +169,11 @@ public class EnvironmentConfigToArgsMapper {
     }
 
     private static void addTagArgs(EnvironmentConfig environmentConfig, List<String> args) {
-        args.add(StackDelegate.COST_CENTER_LONG_ARG);
+        args.add(TagParametersDelegate.COST_CENTER_LONG_ARG);
         args.add(environmentConfig.getCostCenter());
-        args.add(StackDelegate.OWNER_EMAIL_LONG_ARG);
+        args.add(TagParametersDelegate.OWNER_EMAIL_LONG_ARG);
         args.add(environmentConfig.getOwnerEmail());
-        args.add(StackDelegate.OWNER_GROUP_LONG_ARG);
+        args.add(TagParametersDelegate.OWNER_GROUP_LONG_ARG);
         args.add(environmentConfig.getOwnerGroup());
     }
 
