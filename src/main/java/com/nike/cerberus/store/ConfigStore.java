@@ -819,8 +819,6 @@ public class ConfigStore {
 
     private void initEncryptedConfigStoreService() {
         if (encryptedConfigStoreService == null) {
-            final Environment environment = getEnvironmentData();
-
             KMSEncryptionMaterialsProvider materialProvider =
                     new KMSEncryptionMaterialsProvider(getBaseStackOutputs().getConfigFileKeyId());
 
