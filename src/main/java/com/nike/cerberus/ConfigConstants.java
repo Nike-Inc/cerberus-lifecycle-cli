@@ -94,7 +94,8 @@ public class ConfigConstants {
             JDBC_USERNAME_KEY,
             JDBC_PASSWORD_KEY,
             CMK_ARNS_KEY,
-            HASH_SALT);
+            HASH_SALT,
+            CMS_ENV_NAME);
 
     public static final String CERBERUS_AMI_TAG_NAME = "tag:cerberus_component";
 
