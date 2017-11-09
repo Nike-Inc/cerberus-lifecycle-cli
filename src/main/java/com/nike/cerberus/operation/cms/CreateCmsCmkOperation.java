@@ -18,6 +18,7 @@ package com.nike.cerberus.operation.cms;
 
 import com.amazonaws.regions.Regions;
 import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.Lists;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static com.nike.cerberus.ConfigConstants.CMK_ARNS_KEY;
@@ -128,8 +130,13 @@ public class CreateCmsCmkOperation implements Operation<CreateCmsCmkCommand> {
         String policyAsJson = generateKeyPolicy(cmsConfigProperties, description);
         logger.info("Generated the following policy:\n" + policyAsJson);
 
+        Map<String,String> tags = Maps.newHashMap();
+        tags.put("created_by", "cerberus_cli");
+        tags.put("created_for", "cerberus_cms");
+        tags.put("cerberus_env", envName);
+
         List<Regions> cmkRegions = getTargetRegions(command);
-        return kmsService.createKeysAndAliases(cmkRegions, alias, policyAsJson, description);
+        return kmsService.createKeysAndAliases(cmkRegions, alias, policyAsJson, description, tags);
     }
 
     private String generateAliasName(String envName, String primaryRegion) {

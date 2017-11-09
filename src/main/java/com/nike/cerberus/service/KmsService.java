@@ -23,13 +23,17 @@ import com.amazonaws.services.kms.model.CreateKeyRequest;
 import com.amazonaws.services.kms.model.CreateKeyResult;
 import com.amazonaws.services.kms.model.EnableKeyRotationRequest;
 import com.amazonaws.services.kms.model.KeyMetadata;
+import com.amazonaws.services.kms.model.Tag;
 import com.beust.jcommander.internal.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Convenience methods for calls to KMS
@@ -46,10 +50,19 @@ public class KmsService {
         this.kmsClientFactory = kmsClientFactory;
     }
 
-    public List<String> createKeysAndAliases(List<Regions> regions, String alias, String policy, String description) {
+    /**
+     * Create keys with a shared alias in multiple regions
+     * @param regions the target regions to create CMKs in
+     * @param alias the alias for the keys
+     * @param policy the policy
+     * @param description the key description
+     * @param tags tags to apply to the keys
+     * @return the ARNs of the created CMKs
+     */
+    public List<String> createKeysAndAliases(List<Regions> regions, String alias, String policy, String description, Map<String, String> tags) {
         List<String> keyArns = Lists.newArrayList();
         for (Regions region : regions) {
-            String keyArn = createKey(region, policy, description, alias);
+            String keyArn = createKey(region, policy, description, alias, tags);
             keyArns.add(keyArn);
         }
         return keyArns;
@@ -64,13 +77,18 @@ public class KmsService {
      * @param alias       the CMK alias to generate for this key
      * @return cmkArn
      */
-    private String createKey(Regions region, String policy, String description, String alias) {
+    private String createKey(Regions region, String policy, String description, String alias, Map<String, String> tags) {
+
+        Collection<Tag> kmsTags = tags.entrySet().stream()
+                .map(entry -> new Tag().withTagKey(entry.getKey()).withTagValue(entry.getValue()))
+                .collect(Collectors.toList());
 
         AWSKMS client = kmsClientFactory.getClient(region);
 
         CreateKeyRequest request = new CreateKeyRequest();
         request.setPolicy(policy);
         request.setDescription(description);
+        request.setTags(kmsTags);
         CreateKeyResult result = client.createKey(request);
         KeyMetadata keyMetadata = result.getKeyMetadata();
 
