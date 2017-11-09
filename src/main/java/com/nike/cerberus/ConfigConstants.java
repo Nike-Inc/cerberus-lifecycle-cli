@@ -48,7 +48,7 @@ public class ConfigConstants {
 
     public static final String BASE_STACK_TEMPLATE_PATH = "/cloudformation/base.yaml";
 
-    public static final String CMS_STACK_TEMPLATE_PATH = "/cloudformation/cms-cluster.json";
+    public static final String CMS_STACK_TEMPLATE_PATH = "/cloudformation/cms-cluster.yaml";
 
     public static final String DATABASE_STACK_TEMPLATE_PATH = "/cloudformation/database.yaml";
 
