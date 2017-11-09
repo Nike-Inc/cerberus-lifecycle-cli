@@ -820,7 +820,7 @@ public class ConfigStore {
             final Environment environment = getEnvironmentData();
 
             KMSEncryptionMaterialsProvider materialProvider =
-                    new KMSEncryptionMaterialsProvider(environment.getConfigKeyId());
+                    new KMSEncryptionMaterialsProvider(getBaseStackOutputs().getConfigFileKeyId());
 
             AmazonS3EncryptionClient encryptionClient =
                     new AmazonS3EncryptionClient(
