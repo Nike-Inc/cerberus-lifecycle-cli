@@ -31,6 +31,7 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
+import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
 import com.nike.cerberus.command.core.GenerateCertsCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
@@ -99,8 +100,7 @@ public class CerberusRunner {
             } else if (cerberusCommand.isHelp() || commandName == null) {
                 cerberusHelp.print();
             } else {
-                Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
-                        cerberusCommand.getEnvironment(), cerberusCommand.getRegion()), new PropsModule());
+                Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand), new PropsModule());
 
                 // fail early if there is any problem in local environment
                 LocalEnvironmentValidator validator = injector.getInstance(LocalEnvironmentValidator.class);
@@ -170,6 +170,7 @@ public class CerberusRunner {
         registerCommand(new CreateCmsCmkCommand());
         registerCommand(new UpdateStackCommand());
         registerCommand(new PrintStackInfoCommand());
+        registerCommand(new PrintAllStackInformationCommand());
         registerCommand(new WhitelistCidrForVpcAccessCommand());
         registerCommand(new RestoreCerberusBackupCommand());
         registerCommand(new ViewConfigCommand());

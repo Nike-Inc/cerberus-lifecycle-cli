@@ -56,9 +56,12 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.util.Providers;
 import com.nike.cerberus.ConfigConstants;
+import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.ProxyDelegate;
 import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.util.TokenSupplier;
 import com.nike.cerberus.util.UuidSupplier;
 import org.apache.commons.lang3.StringUtils;
@@ -94,10 +97,13 @@ public class CerberusModule extends AbstractModule {
 
     private final String regionName;
 
-    public CerberusModule(ProxyDelegate proxyDelegate, String environmentName, String regionName) {
-        this.proxyDelegate = proxyDelegate;
-        this.environmentName = environmentName;
-        this.regionName = regionName;
+    private final EnvironmentConfig environmentConfig;
+
+    public CerberusModule(CerberusCommand cerberusCommand) {
+        proxyDelegate = cerberusCommand.getProxyDelegate();
+        environmentName = cerberusCommand.getEnvironment();
+        regionName = cerberusCommand.getRegion();
+        environmentConfig = cerberusCommand.getEnvironmentConfig();
     }
 
     /**
@@ -105,6 +111,7 @@ public class CerberusModule extends AbstractModule {
      */
     @Override
     protected void configure() {
+        bind(EnvironmentConfig.class).toProvider(Providers.of(environmentConfig));
         final Region region = Region.getRegion(Regions.fromName(regionName));
         bind(AmazonEC2.class).toInstance(createAmazonClientInstance(AmazonEC2Client.class, region));
         bind(AmazonCloudFormation.class).toInstance(createAmazonClientInstance(AmazonCloudFormationClient.class, region));
