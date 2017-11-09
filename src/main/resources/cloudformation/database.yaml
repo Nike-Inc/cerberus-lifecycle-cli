@@ -25,7 +25,7 @@ Parameters:
     Description: The second availability zone for the DB Instances
     Type: String
   cmsDbInstanceAz3:
-    Default: 'us-west-2b'
+    Default: 'us-west-2c'
     AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
     Description: The third availability zone for the DB Instances
     Type: String
@@ -101,7 +101,7 @@ Resources:
       VpcSecurityGroupIds:
         - Fn::ImportValue: !Sub "${sgStackName}-cmsDbSgId"
     Type: AWS::RDS::DBCluster
-  # Create two DB instances one primary/write instance and the other a read replica.
+  # Create two DB instances one primary/write instance, and the other a read replica.
   # The Aurora CloudFormation does not let you choose which is read or write.
   # Aurora decides automatically for you behind the scenes.
   CmsDbInstance1:
