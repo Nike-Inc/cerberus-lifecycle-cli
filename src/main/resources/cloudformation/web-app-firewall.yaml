@@ -67,7 +67,7 @@ Resources:
     Type: "AWS::WAFRegional::WebACLAssociation"
     Properties:
       ResourceArn:
-        Fn::ImportValue: !Sub "${loadBalancerStackName}-appLoadBalancerLogicalId"
+        Fn::ImportValue: !Sub "${loadBalancerStackName}-loadBalancerLogicalId"
       WebACLId:
         !Ref 'CerberusWAFWebAcl'
   CerberusWafSizeConstraintRule:
