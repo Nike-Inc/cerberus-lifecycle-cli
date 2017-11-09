@@ -71,6 +71,7 @@ import static com.nike.cerberus.ConfigConstants.CERT_PART_CERT;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PKCS8_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
+import static com.nike.cerberus.ConfigConstants.CMS_ENV_NAME;
 import static com.nike.cerberus.ConfigConstants.CMS_ROLE_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.HASH_SALT;
 import static com.nike.cerberus.ConfigConstants.JDBC_PASSWORD_KEY;
@@ -420,6 +421,7 @@ public class ConfigStore {
         properties.put(JDBC_URL_KEY, databaseOutputs.getCmsDbJdbcConnectionString());
         properties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
         properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword);
+        properties.put(CMS_ENV_NAME, environmentMetadata.getName());
 
         return properties;
     }

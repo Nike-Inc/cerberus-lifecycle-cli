@@ -84,6 +84,8 @@ public class ConfigConstants {
 
     public static final String HASH_SALT = "cms.auth.token.hash.salt";
 
+    public static final String CMS_ENV_NAME = "cms.env.name";
+
     public static final ImmutableSet<String> SYSTEM_CONFIGURED_CMS_PROPERTIES = ImmutableSet.of(
             ROOT_USER_ARN_KEY,
             ADMIN_ROLE_ARN_KEY,
