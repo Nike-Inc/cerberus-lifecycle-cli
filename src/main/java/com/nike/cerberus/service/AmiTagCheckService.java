@@ -23,12 +23,10 @@ import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.Filter;
 
 import javax.inject.Inject;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.ConfigConstants;
 
 /**
@@ -38,14 +36,14 @@ public class AmiTagCheckService {
 
     private final AmazonEC2 ec2Client;
 
-    private final Map<StackName, String> stackAmiTagValueMap;
+    private final Map<Stack, String> stackAmiTagValueMap;
 
     @Inject
     public AmiTagCheckService(final AmazonEC2 ec2Client) {
         this.ec2Client = ec2Client;
 
         stackAmiTagValueMap = new HashMap<>();
-        stackAmiTagValueMap.put(StackName.CMS, ConfigConstants.CMS_AMI_TAG_VALUE);
+        stackAmiTagValueMap.put(Stack.CMS, ConfigConstants.CMS_AMI_TAG_VALUE);
     }
 
     /**
@@ -76,8 +74,8 @@ public class AmiTagCheckService {
      *
      * @return void
      */
-    public void validateAmiTagForStack(final String amiId, final StackName stackName) {
-        if (!isAmiWithTagExist(amiId, ConfigConstants.CERBERUS_AMI_TAG_NAME, stackAmiTagValueMap.get(stackName) )) {
+    public void validateAmiTagForStack(final String amiId, final Stack stack) {
+        if (!isAmiWithTagExist(amiId, ConfigConstants.CERBERUS_AMI_TAG_NAME, stackAmiTagValueMap.get(stack) )) {
             throw new IllegalStateException(ConfigConstants.AMI_TAG_CHECK_ERROR_MESSAGE);
         }
     }

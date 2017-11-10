@@ -19,7 +19,7 @@ package com.nike.cerberus.command.core;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.RollingRebootWithHealthCheckOperation;
 
@@ -38,10 +38,10 @@ public class RollingRebootWithHealthCheckCommand implements Command {
     public static final String COMMAND_NAME = "rolling-reboot";
 
     @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to reboot.")
-    private StackName stackName = StackName.CMS;
+    private Stack stack = Stack.CMS;
 
-    public StackName getStackName() {
-        return stackName;
+    public Stack getStack() {
+        return stack;
     }
 
     @Override

@@ -19,11 +19,10 @@ package com.nike.cerberus.operation.core;
 import com.beust.jcommander.internal.Maps;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2Service;
@@ -66,7 +65,6 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
 
     @Override
     public void run(final CreateVpcCommand command) {
-        final String environmentName = environmentMetadata.getName();
         final Map<Integer, String> azByIdentifier = mapAvailabilityZones();
 
         final VpcParameters vpcParameters = new VpcParameters()
@@ -77,15 +75,13 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.VPC.getFullName(environmentName),
-                parameters, ConfigConstants.VPC_STACK_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(Stack.VPC, parameters, true, command.getTagsDelegate().getTags());
     }
 
     @Override
     public boolean isRunnable(final CreateVpcCommand command) {
         String environmentName = environmentMetadata.getName();
-        return ! cloudFormationService.isStackPresent(StackName.VPC.getFullName(environmentName));
+        return ! cloudFormationService.isStackPresent(Stack.VPC.getFullName(environmentName));
     }
 
     private Map<Integer, String> mapAvailabilityZones() {

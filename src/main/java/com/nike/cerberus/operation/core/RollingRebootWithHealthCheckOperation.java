@@ -22,7 +22,7 @@ import com.github.tomaslanger.chalk.Chalk;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.AutoScalingService;
 import com.nike.cerberus.service.CloudFormationService;
@@ -56,7 +56,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final static ImmutableMap<String, String> HEALTH_CHECK_MAP = ImmutableMap.of(
-            StackName.CMS.getName(),     "http://%s:8080/healthcheck"
+            Stack.CMS.getName(),     "http://%s:8080/healthcheck"
     );
 
     private final static int DEFAULT_HTTP_TIMEOUT = 15;
@@ -103,8 +103,8 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
                 "If this command fails: the minimum instance size may need to be increased and an EC2 instance" +
                 " may need to be set to 'in-service' state on the auto scaling group").yellow().toString());
 
-        final StackName stackName = command.getStackName();
-        final String stackId = configStore.getStackId(stackName);
+        final Stack stack = command.getStack();
+        final String stackId = configStore.getStackId(stack);
         final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(stackId);
 
         final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
@@ -121,7 +121,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
         autoScalingService.updateMinInstancesForAutoScalingGroup(autoScalingGroupId, minInstances - 1);
 
         instances.forEach(instance -> {
-            rebootInstance(stackName, autoScalingGroupId, instance);
+            rebootInstance(stack, autoScalingGroupId, instance);
         });
 
         logger.info("Increasing min instances for ASG: {}", autoScalingGroupId);
@@ -131,9 +131,9 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
     /**
      * Reboot an instance and make sure it comes back healthy
      */
-    private void rebootInstance(StackName stackName, String autoScalingGroupId, Instance instance) {
+    private void rebootInstance(Stack stack, String autoScalingGroupId, Instance instance) {
 
-        final String healthCheckUrlTmpl = HEALTH_CHECK_MAP.get(stackName.getName());
+        final String healthCheckUrlTmpl = HEALTH_CHECK_MAP.get(stack.getName());
         final String healthCheckUrl = String.format(healthCheckUrlTmpl, instance.getPublicDnsName());
 
         logger.info("Checking that instance health check is reachable...");
@@ -229,13 +229,13 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
     @Override
     public boolean isRunnable(final RollingRebootWithHealthCheckCommand command) {
 
-        final StackName stackName = command.getStackName();
-        final String stackNameStr = stackName.getName();
-        final String stackId = configStore.getStackId(stackName);
+        final Stack stack = command.getStack();
+        final String stackNameStr = stack.getName();
+        final String stackId = configStore.getStackId(stack);
         final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
 
         if (! HEALTH_CHECK_MAP.containsKey(stackNameStr)) {
-            logger.error("Cannot reboot cluster: {}. Allowed stacks: {}", stackName, HEALTH_CHECK_MAP.keySet());
+            logger.error("Cannot reboot cluster: {}. Allowed stacks: {}", stack, HEALTH_CHECK_MAP.keySet());
             return false;
         } else if (! stackParameters.containsKey(MIN_INSTANCES_STACK_PARAMETER_KEY)) {
             logger.error("Could not find parameter 'minInstances' on stack: {}", stackId);

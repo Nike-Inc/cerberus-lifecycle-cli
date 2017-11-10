@@ -19,20 +19,20 @@ package com.nike.cerberus.command.validator;
 import com.beust.jcommander.IValueValidator;
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.Sets;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 
 import java.util.Set;
 
 /**
  * Validates that the stack name specified actually requires a certificate to be uploaded.
  */
-public class UploadCertFilesStackNameValidator implements IValueValidator<StackName> {
+public class UploadCertFilesStackNameValidator implements IValueValidator<Stack> {
 
-    private final Set<StackName> stackNamesWithCerts = Sets.newHashSet(StackName.CMS);
+    private final Set<Stack> stackNamesWithCerts = Sets.newHashSet(Stack.CMS);
 
     @Override
-    public void validate(final String name, final StackName stackName) throws ParameterException {
-        if (!stackNamesWithCerts.contains(stackName)) {
+    public void validate(final String name, final Stack stack) throws ParameterException {
+        if (!stackNamesWithCerts.contains(stack)) {
             throw new ParameterException("Stack specified doesn't require a certificate to be uploaded.");
         }
     }

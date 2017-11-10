@@ -22,7 +22,7 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.Route53Parameters;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Route53Service;
@@ -70,15 +70,13 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
         final Route53Parameters route53Parameters = new Route53Parameters()
                 .setHostedZoneId(command.getHostedZoneId())
                 .setLoadBalancerDomainName(getLoadBalancerDomainName(command.getBaseDomainName(), command.getLoadBalancerDomainNameOverride()))
-                .setLoadBalancerStackName(StackName.LOAD_BALANCER.getFullName(environmentName))
+                .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setOriginDomainName(getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride()));
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, typeReference);
 
-        cloudFormationService.createStack(StackName.ROUTE53.getFullName(environmentName),
-                parameters, ConfigConstants.ROUTE53_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(Stack.ROUTE53, parameters, true, command.getTagsDelegate().getTags());
     }
 
     @Override
@@ -87,10 +85,10 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
         final String loadBalancerDomainName = getLoadBalancerDomainName(command.getBaseDomainName(), command.getLoadBalancerDomainNameOverride());
         final String originDomainName = getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride());
 
-        if (!cloudFormationService.isStackPresent(StackName.LOAD_BALANCER.getFullName(environmentName))) {
+        if (!cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
             throw new IllegalStateException("The load balancer stack must exist to create the Route53 record!");
         }
-        if (cloudFormationService.isStackPresent(StackName.ROUTE53.getFullName(environmentName))) {
+        if (cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName))) {
             throw new IllegalStateException("Route53 stack already exists.");
         }
 

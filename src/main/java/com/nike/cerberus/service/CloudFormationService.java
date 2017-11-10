@@ -27,7 +27,6 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.Tag;
@@ -39,7 +38,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import org.apache.commons.io.IOUtils;
+import com.nike.cerberus.domain.environment.Stack;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -48,8 +47,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -85,22 +82,19 @@ public class CloudFormationService {
     /**
      * Creates a new stack.
      *
-     * @param name Stack name.
      * @param parameters Input parameters.
-     * @param templatePath Classpath to the JSON template of the stack.
      * @return Stack ID
      */
-    public String createStack(final String name,
+    public String createStack(final Stack stack,
                               final Map<String, String> parameters,
-                              final String templatePath,
                               final boolean iamCapabilities,
                               final Map<String, String> globalTags) {
-        logger.info(String.format("Executing the Cloud Formation: %s, Stack Name: %s", templatePath, name));
+        logger.info(String.format("Executing the Cloud Formation: %s, Stack Name: %s", stack.getTemplatePath(), stack.getFullName(environmentMetadata.getName())));
 
         final CreateStackRequest request = new CreateStackRequest()
-                .withStackName(name)
+                .withStackName(stack.getFullName(environmentMetadata.getName()))
                 .withParameters(convertParameters(parameters))
-                .withTemplateBody(getTemplateText(templatePath))
+                .withTemplateBody(stack.getTemplateText())
                 .withTags(getTags(globalTags));
 
         if (iamCapabilities) {
@@ -111,40 +105,22 @@ public class CloudFormationService {
         return result.getStackId();
     }
 
-    /**
-     * Updates an existing stack by name.
-     *
-     * @param stackId
-     * @param parameters
-     * @param iamCapabilities
-     */
-    public void updateStack(final String stackId,
-                            final Map<String, String> parameters,
-                            final boolean iamCapabilities,
-                            final Map<String, String> globalTags) {
-
-        updateStack(stackId, parameters, null, iamCapabilities, globalTags);
-    }
 
     /**
-     * Updates an existing stack by name.
-     *
-     * @param stackId Stack ID.
-     * @param parameters Input parameters.
-     * @param templatePath Path to the JSON template of the stack.
+     * Updates an existing stack
      */
-    public void updateStack(final String stackId,
+    public void updateStack(final Stack stack,
                             final Map<String, String> parameters,
-                            final String templatePath,
                             final boolean iamCapabilities,
+                            final boolean overwrite,
                             final Map<String, String> globalTags) {
 
         final UpdateStackRequest request = new UpdateStackRequest()
-                .withStackName(stackId)
+                .withStackName(stack.getFullName(environmentMetadata.getName()))
                 .withParameters(convertParameters(parameters));
 
-        if (StringUtils.isNotBlank(templatePath)) {
-            request.withTemplateBody(getTemplateText(templatePath));
+        if (overwrite) {
+            request.withTemplateBody(stack.getTemplateText());
         } else {
             request.withUsePreviousTemplate(true);
         }
@@ -272,7 +248,7 @@ public class CloudFormationService {
                 new DescribeStacksRequest()
                         .withStackName(stackName));
 
-        List<Stack> stacks = result.getStacks();
+        List<com.amazonaws.services.cloudformation.model.Stack> stacks = result.getStacks();
         if (stacks.isEmpty()) {
             throw new IllegalArgumentException("No stack found with name: " + stackName);
         } else if (stacks.size() > 1) {
@@ -315,28 +291,7 @@ public class CloudFormationService {
         return parameterList;
     }
 
-    /**
-     * Gets the template contents from the file on the classpath.
-     *
-     * @param templatePath Classpath for the template to be read
-     * @return Template contents
-     */
-    public String getTemplateText(final String templatePath) {
-        final InputStream templateStream = getClass().getResourceAsStream(templatePath);
 
-        if (templateStream == null) {
-            throw new IllegalStateException(
-                    String.format("The CloudFormation JSON template doesn't exist on the classpath. path: %s", templatePath));
-        }
-
-        try {
-            return IOUtils.toString(templateStream, ConfigConstants.DEFAULT_ENCODING);
-        } catch (final IOException e) {
-            final String errorMessage = String.format("Unable to read input stream from %s", templatePath);
-            logger.error(errorMessage);
-            throw new RuntimeException(errorMessage, e);
-        }
-    }
 
     /**
      * Since there doesn't appear to be a first class way through the SDK at this time to get a CF export. We can
@@ -352,7 +307,7 @@ public class CloudFormationService {
                 request.withNextToken(describeStacksResult.getNextToken());
             }
             describeStacksResult = cloudFormationClient.describeStacks();
-            for (Stack stack : describeStacksResult.getStacks()) {
+            for (com.amazonaws.services.cloudformation.model.Stack stack : describeStacksResult.getStacks()) {
                 for (Output output : stack.getOutputs()) {
                     if (StringUtils.equals(output.getOutputKey(), outputKey)) {
                         return Optional.of(output.getOutputValue());

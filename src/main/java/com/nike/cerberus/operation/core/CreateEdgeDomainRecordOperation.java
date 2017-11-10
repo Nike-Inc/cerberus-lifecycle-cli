@@ -19,7 +19,7 @@ package com.nike.cerberus.operation.core;
 import com.amazonaws.services.route53.model.RRType;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Route53Service;
@@ -76,7 +76,7 @@ public class CreateEdgeDomainRecordOperation implements Operation<CreateEdgeDoma
         final String recordSetName = getEdgeDomainName(command.getBaseDomainName(), command.getEdgeDomainNameOverride());
 
         try {
-            cloudFormationService.getStackId(StackName.ROUTE53.getFullName(environmentName));
+            cloudFormationService.getStackId(Stack.ROUTE53.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             throw new IllegalStateException("The load balancer stack must exist to create the Route53 record!", iae);
         }

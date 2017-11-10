@@ -18,13 +18,12 @@ package com.nike.cerberus.operation.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.DatabaseParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
@@ -75,7 +74,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
         final DatabaseParameters databaseParameters = new DatabaseParameters()
                 .setCmsDbMasterPassword(databasePassword)
-                .setSgStackName(StackName.SECURITY_GROUPS.getFullName(environmentName))
+                .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName))
                 .setCmsDbInstanceAz1(vpcParameters.getAz1())
                 .setCmsDbInstanceAz2(vpcParameters.getAz2())
                 .setCmsDbInstanceAz3(vpcParameters.getAz3())
@@ -86,9 +85,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.DATABASE.getFullName(environmentName),
-                parameters, ConfigConstants.DATABASE_STACK_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(Stack.DATABASE, parameters, true, command.getTagsDelegate().getTags());
 
         configStore.storeCmsDatabasePassword(databasePassword);
 
@@ -98,11 +95,11 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
     public boolean isRunnable(final CreateDatabaseCommand command) {
         String environmentName = environmentMetadata.getName();
         try {
-            cloudFormationService.getStackId(StackName.SECURITY_GROUPS.getFullName(environmentName));
+            cloudFormationService.getStackId(Stack.SECURITY_GROUPS.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             throw new IllegalStateException("The load balancer stack must exist to create the Route53 record!", iae);
         }
 
-        return !cloudFormationService.isStackPresent(StackName.DATABASE.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(Stack.DATABASE.getFullName(environmentName));
     }
 }

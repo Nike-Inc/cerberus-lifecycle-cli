@@ -26,7 +26,7 @@ import com.google.common.collect.Lists;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
@@ -103,7 +103,7 @@ public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCi
         String environmentName = environmentMetadata.getName();
 
         try {
-            cloudFormationService.getStackId(StackName.BASE.getFullName(environmentName));
+            cloudFormationService.getStackId(Stack.BASE.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             logger.error("Could not create the CMS cluster." +
                     "Make sure the load balancer, security group, and base stacks have all been created.", iae);

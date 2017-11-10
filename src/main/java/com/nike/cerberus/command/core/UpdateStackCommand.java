@@ -22,10 +22,10 @@ import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.StackDelegate;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UpdateStackOperation;
+import com.nike.cerberus.util.StackConverter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,8 +45,8 @@ public class UpdateStackCommand implements Command {
     public static final String OVERWRITE_TEMPLATE_LONG_ARG = "--overwrite-template";
     public static final String PARAMETER_SHORT_ARG = "-P";
 
-    @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.")
-    private StackName stackName;
+    @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.", converter = StackConverter.class)
+    private Stack stack;
 
     @ParametersDelegate
     private StackDelegate stackDelegate = new StackDelegate();
@@ -62,8 +62,8 @@ public class UpdateStackCommand implements Command {
     @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
     private Map<String, String> dynamicParameters = new HashMap<>();
 
-    public StackName getStackName() {
-        return stackName;
+    public Stack getStack() {
+        return stack;
     }
 
     public StackDelegate getStackDelegate() {

@@ -18,11 +18,10 @@ package com.nike.cerberus.operation.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.WafParameters;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
@@ -66,26 +65,24 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
         final String environmentName = environmentMetadata.getName();
 
         final WafParameters wafParameters = new WafParameters()
-                .setLoadBalancerStackName(StackName.LOAD_BALANCER.getFullName(environmentName))
+                .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setWafName("cerberus-" + environmentName + "-waf");
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.WAF.getFullName(environmentName),
-                parameters, ConfigConstants.WAF_STACK_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(Stack.WAF, parameters, true, command.getTagsDelegate().getTags());
     }
 
     @Override
     public boolean isRunnable(final CreateWafCommand command) {
         String environmentName = environmentMetadata.getName();
         try {
-            cloudFormationService.getStackId(StackName.LOAD_BALANCER.getFullName(environmentName));
+            cloudFormationService.getStackId(Stack.LOAD_BALANCER.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             throw new IllegalStateException("The load balancer stack must exist to create the WAF!", iae);
         }
 
-        return ! cloudFormationService.isStackPresent(StackName.ROUTE53.getFullName(environmentName));
+        return ! cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName));
     }
 }

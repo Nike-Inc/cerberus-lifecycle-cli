@@ -19,9 +19,10 @@ package com.nike.cerberus.command.core;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.PrintStackInfoOperation;
+import com.nike.cerberus.util.StackConverter;
 
 import static com.nike.cerberus.command.core.PrintStackInfoCommand.COMMAND_NAME;
 
@@ -35,11 +36,11 @@ public class PrintStackInfoCommand implements Command {
 
     public static final String STACK_NAME_LONG_ARG = "--stack-name";
 
-    @Parameter(names = {STACK_NAME_LONG_ARG}, required = true, description = "The stack name to print information about.")
-    private StackName stackName;
+    @Parameter(names = {STACK_NAME_LONG_ARG}, required = true, description = "The stack name to print information about.", converter = StackConverter.class)
+    private Stack stack;
 
-    public StackName getStackName() {
-        return stackName;
+    public Stack getStack() {
+        return stack;
     }
 
     @Override

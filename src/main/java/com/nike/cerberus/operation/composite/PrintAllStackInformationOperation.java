@@ -18,7 +18,7 @@ package com.nike.cerberus.operation.composite;
 
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,12 +32,12 @@ public class PrintAllStackInformationOperation extends CompositeOperation<PrintA
     protected List<ChainableCommand> getCompositeCommandChain() {
         List<ChainableCommand> commandList = new LinkedList<>();
 
-        for (StackName stackName : StackName.values()) {
+        for (Stack stack : Stack.ALL_STACKS) {
             commandList.add(
                     ChainableCommand.Builder.create()
                             .withCommand(new PrintStackInfoCommand())
                             .withAdditionalArg(PrintStackInfoCommand.STACK_NAME_LONG_ARG)
-                            .withAdditionalArg(stackName.toString())
+                            .withAdditionalArg(stack.toString())
                             .build()
             );
         }

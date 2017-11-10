@@ -20,9 +20,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.service.CertificateService;
 import com.nike.cerberus.service.IdentityManagementService;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.UuidSupplier;
@@ -80,23 +79,23 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
 
     @Override
     public void run(final UploadCertFilesCommand command) {
-        final StackName stackName = command.getStackName();
+        final Stack stack = command.getStack();
         final Path certPath = command.getCertPath();
         final String caContents = getFileContents(certPath, DOMAIN_CERT_CHAIN_FILE);
         final String certContents = getFileContents(certPath, DOMAIN_CERT_FILE);
         final String keyContents = getFileContents(certPath, DOMAIN_PKCS1_KEY_FILE);
         final String pkcs8KeyContents = getFileContents(certPath, DOMAIN_PKCS8_KEY_FILE);
         final String pubKeyContents = getFileContents(certPath, DOMAIN_PUBLIC_KEY_FILE);
-        final String certificateName = stackName.getName() + "_" + uuidSupplier.get();
+        final String certificateName = stack.getName() + "_" + uuidSupplier.get();
 
-        logger.info("Uploading certificate to IAM for {}, with name of {}.", stackName.getName(), certificateName);
+        logger.info("Uploading certificate to IAM for {}, with name of {}.", stack.getName(), certificateName);
         String id = identityManagementService.uploadServerCertificate(certificateName, getPath(),
                 certContents, caContents, keyContents);
 
         logger.info("Cert ID: {}", id);
 
         logger.info("Uploading certificate parts to the configuration bucket.");
-        configStore.storeCert(stackName, certificateName, caContents, certContents, keyContents, pkcs8KeyContents, pubKeyContents);
+        configStore.storeCert(stack, certificateName, caContents, certContents, keyContents, pkcs8KeyContents, pubKeyContents);
 
         logger.info("Uploading certificate completed.");
     }
@@ -108,7 +107,7 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
             return false;
         }
 
-        final String serverCertificateName = configStore.getServerCertificateName(command.getStackName());
+        final String serverCertificateName = configStore.getServerCertificateName(command.getStack());
         if (StringUtils.isNotBlank(serverCertificateName) && !command.isOverwrite()) {
             logger.error("Certificate already uploaded for this stack and environment.  Use --overwrite flag to force upload.");
             return false;

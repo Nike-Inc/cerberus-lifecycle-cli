@@ -18,12 +18,11 @@ package com.nike.cerberus.operation.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
@@ -64,7 +63,6 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
 
     @Override
     public void run(final CreateSecurityGroupsCommand command) {
-        final String environmentName = environmentMetadata.getName();
         final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
 
         final SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
@@ -74,15 +72,13 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.SECURITY_GROUPS.getFullName(environmentName),
-                parameters, ConfigConstants.SECURITY_GROUPS_STACK_TEMPLATE_PATH, true,
-                command.getTagParameters().getTags());
+        cloudFormationService.createStack(Stack.SECURITY_GROUPS, parameters, true, command.getTagParameters().getTags());
     }
 
     @Override
     public boolean isRunnable(final CreateSecurityGroupsCommand command) {
         String environmentName = environmentMetadata.getName();
-        return ! cloudFormationService.isStackPresent(StackName.SECURITY_GROUPS.getFullName(environmentName));
+        return ! cloudFormationService.isStackPresent(Stack.SECURITY_GROUPS.getFullName(environmentName));
     }
 
 }
