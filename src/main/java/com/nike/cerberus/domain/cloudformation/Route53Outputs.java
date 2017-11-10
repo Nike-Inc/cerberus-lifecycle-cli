@@ -21,14 +21,23 @@ package com.nike.cerberus.domain.cloudformation;
  */
 public class Route53Outputs {
 
-    private String recordSet;
+    private String loadBalancerDomainName;
 
-    public String getRecordSet() {
-        return recordSet;
+    private String originDomainName;
+
+    public String getLoadBalancerDomainName() {
+        return loadBalancerDomainName;
     }
 
-    public Route53Outputs setRecordSet(String recordSet) {
-        this.recordSet = recordSet;
-        return this;
+    public void setLoadBalancerDomainName(String loadBalancerDomainName) {
+        this.loadBalancerDomainName = loadBalancerDomainName;
+    }
+
+    public String getOriginDomainName() {
+        return originDomainName;
+    }
+
+    public void setOriginDomainName(String originDomainName) {
+        this.originDomainName = originDomainName;
     }
 }

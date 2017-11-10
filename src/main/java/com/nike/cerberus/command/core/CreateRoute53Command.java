@@ -27,17 +27,21 @@ import com.nike.cerberus.operation.core.CreateRoute53Operation;
 import static com.nike.cerberus.command.core.CreateRoute53Command.COMMAND_NAME;
 
 /**
- * Command to create the Route53 record for Cerberus.
+ * Creates the origin and load balancer Route53 records for Cerberus
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the Route53 record for use by Cerberus")
 public class CreateRoute53Command implements Command {
 
-    public static final String COMMAND_NAME = "create-route53-record";
+    public static final String COMMAND_NAME = "create-route53-stack";
 
-    public static final String HOSTNAME_LONG_ARG = "--hostname";
+    public static final String BASE_DOMAIN_NAME_LONG_ARG = "--base-domain-name";
 
-    public static final String HOSTED_ZONE_ID = "--hosted-zone-id";
+    public static final String HOSTED_ZONE_ID_LONG_ARG = "--hosted-zone-id";
+
+    public static final String ORIGIN_DOMAIN_NAME_OVERRIDE = "--origin-domain-name-override";
+
+    public static final String LOAD_BALANCER_DOMAIN_NAME_OVERRIDE = "--load-balancer-domain-name-override";
 
     @ParametersDelegate
     private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
@@ -46,22 +50,38 @@ public class CreateRoute53Command implements Command {
         return tagsDelegate;
     }
 
-    @Parameter(names = HOSTNAME_LONG_ARG,
-            description = "The hostname of the Route53 record to be created for Cerberus (e.g. <env>.cerberus.example.com)",
+    @Parameter(names = BASE_DOMAIN_NAME_LONG_ARG,
+            description = "The base hostname for Cerberus (e.g. url: https://env.cerberus.example.com => base hostname: cerberus.example.com)",
             required = true)
-    private String cerberusHostname;
+    private String baseDomainName;
 
-    @Parameter(names = HOSTED_ZONE_ID,
+    @Parameter(names = HOSTED_ZONE_ID_LONG_ARG,
             description = "The Route53 Hosted Zone in which to create the new Cerberus record",
             required = true)
     private String hostedZoneId;
 
-    public String getCerberusHostname() {
-        return cerberusHostname;
+    @Parameter(names = LOAD_BALANCER_DOMAIN_NAME_OVERRIDE,
+            description = "The full load balancer domain name for Cerberus. Default: env.region.example.domain.com")
+    private String loadBalancerDomainNameOverride;
+
+    @Parameter(names = ORIGIN_DOMAIN_NAME_OVERRIDE,
+            description = "The full origin domain name for Cerberus. Default: origin.env.example.domain.com")
+    private String originDomainNameOverride;
+
+    public String getBaseDomainName() {
+        return baseDomainName;
+    }
+
+    public String getOriginDomainNameOverride() {
+        return originDomainNameOverride;
     }
 
     public String getHostedZoneId() {
         return hostedZoneId;
+    }
+
+    public String getLoadBalancerDomainNameOverride() {
+        return loadBalancerDomainNameOverride;
     }
 
     @Override
