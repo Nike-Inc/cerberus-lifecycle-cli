@@ -432,7 +432,7 @@ public class ConfigStore {
     }
 
     public String getCerberusBaseUrl() {
-        return String.format("https://%s", getRoute53Parameters().getHostname());
+        throw new UnsupportedOperationException("Not yet implemented");  // will implement this in next PR
     }
 
     /**
