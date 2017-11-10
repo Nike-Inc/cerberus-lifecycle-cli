@@ -37,6 +37,7 @@ import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
 import com.nike.cerberus.domain.cloudformation.DatabaseParameters;
 import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.LoadBalancerOutputs;
+import com.nike.cerberus.domain.cloudformation.Route53Outputs;
 import com.nike.cerberus.domain.cloudformation.Route53Parameters;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
@@ -284,6 +285,15 @@ public class ConfigStore {
         }
     }
 
+    public void storeEnvDomainName(final String domainName) {
+        synchronized (envDataLock) {
+            final Environment environment = getEnvironmentData();
+
+            environment.setDomainName(domainName);
+            saveEnvironmentData(environment);
+        }
+    }
+
     /**
      * Retrieves the CMS Vault token from the config store.
      *
@@ -432,7 +442,7 @@ public class ConfigStore {
     }
 
     public String getCerberusBaseUrl() {
-        throw new UnsupportedOperationException("Not yet implemented");  // will implement this in next PR
+        return String.format("https://%s", getEnvironmentData().getDomainName());
     }
 
     /**
@@ -569,8 +579,17 @@ public class ConfigStore {
      *
      * @return Base parameters
      */
-    public Route53Parameters getRoute53Parameters() {
+    public Route53Parameters getRoute53StackParameters() {
         return getStackParameters(getStackLogicalId(StackName.ROUTE53), Route53Parameters.class);
+    }
+
+    /**
+     * Get the base stack parameters.
+     *
+     * @return Base parameters
+     */
+    public Route53Outputs getRoute53StackOutputs() {
+        return getStackOutputs(getStackLogicalId(StackName.ROUTE53), Route53Outputs.class);
     }
 
     /**
