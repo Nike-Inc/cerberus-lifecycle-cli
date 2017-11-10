@@ -33,20 +33,6 @@ Parameters:
     MaxLength: '20'
     MinLength: '9'
     Type: String
-  tagClassification:
-    Default: Gold
-    Description: Denotes which category of Data Classification the instance is grouped
-      under.
-    Type: String
-  tagCostcenter:
-    Description: Represents the Cost Center associated with the team/project.
-    Type: String
-  tagEmail:
-    Description: E-mail address for group or person responsible for the stack.
-    Type: String
-  tagName:
-    Description: 'Environment name, e.g. "cerberus-{environment}"'
-    Type: String
   vpcId:
     Description: ID of the VPC to associate with the security groups
     Type: String
@@ -57,12 +43,6 @@ Resources:
       Tags:
         - Key: AutoUpdate
           Value: 'true'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
       VpcId:
         Ref: 'vpcId'
     Type: AWS::EC2::SecurityGroup
@@ -86,14 +66,6 @@ Resources:
     Properties:
       GroupDescription: Management Server Database Security Group
       Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
       VpcId:
         Ref: 'vpcId'
     Type: AWS::EC2::SecurityGroup
@@ -116,30 +88,12 @@ Resources:
   CmsSg:
     Properties:
       GroupDescription: Management Server Instance Security Group
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
       VpcId:
         Ref: 'vpcId'
     Type: AWS::EC2::SecurityGroup
   WhitelistIngressSg:
     Properties:
       GroupDescription: Administration ingress from tools NAT boxes
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
       VpcId:
         Ref: 'vpcId'
     Type: AWS::EC2::SecurityGroup

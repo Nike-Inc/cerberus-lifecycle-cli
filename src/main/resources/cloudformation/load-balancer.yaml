@@ -24,20 +24,6 @@ Parameters:
   sslCertificateArn:
     Description: TLS certificate ARN for CMS
     Type: String
-  tagClassification:
-    Default: Gold
-    Description: Denotes which category of Data Classification the instance is grouped
-      under.
-    Type: String
-  tagCostcenter:
-    Description: Represents the Cost Center associated with the team/project.
-    Type: String
-  tagEmail:
-    Description: E-mail address for group or person responsible for the stack.
-    Type: String
-  tagName:
-    Description: 'Environment name, e.g. "cerberus-{environment}"'
-    Type: String
   vpcId:
     Description: The VPC in which the EC2 instances will be run
     Type: String
@@ -66,16 +52,6 @@ Resources:
   ALBLogBucket:
     Properties:
       AccessControl: BucketOwnerFullControl
-
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
-        - Key: email
-          Value: !Ref 'tagEmail'
     Type: AWS::S3::Bucket
   ALBLogBucketPolicy:
     Properties:
@@ -107,15 +83,6 @@ Resources:
         - Ref: 'vpcSubnetIdForAz1'
         - Ref: 'vpcSubnetIdForAz2'
         - Ref: 'vpcSubnetIdForAz3'
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
   CmsTargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
@@ -128,15 +95,6 @@ Resources:
       HealthyThresholdCount: 2
       Port: 8443
       Protocol: HTTPS
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
       TargetGroupAttributes:
         - Key: deregistration_delay.timeout_seconds
           Value: 10

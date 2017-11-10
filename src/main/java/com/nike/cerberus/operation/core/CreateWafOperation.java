@@ -66,7 +66,8 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
         final String environmentName = environmentMetadata.getName();
 
         final WafParameters wafParameters = new WafParameters()
-                .setLoadBalancerStackName(StackName.LOAD_BALANCER.getFullName(environmentName));
+                .setLoadBalancerStackName(StackName.LOAD_BALANCER.getFullName(environmentName))
+                .setWafName("cerberus-" + environmentName + "-waf");
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafParameters, typeReference);

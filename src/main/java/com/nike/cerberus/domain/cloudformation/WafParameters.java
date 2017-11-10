@@ -23,6 +23,8 @@ public class WafParameters {
 
     private String loadBalancerStackName;
 
+    private String wafName;
+
     public String getLoadBalancerStackName() {
         return loadBalancerStackName;
     }
@@ -32,4 +34,12 @@ public class WafParameters {
         return this;
     }
 
+    public String getWafName() {
+        return wafName;
+    }
+
+    public WafParameters setWafName(String wafName) {
+        this.wafName = wafName;
+        return this;
+    }
 }

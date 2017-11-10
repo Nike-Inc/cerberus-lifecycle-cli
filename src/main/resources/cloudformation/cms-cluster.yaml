@@ -43,19 +43,6 @@ Parameters:
   sgStackName:
     Description: The name of the Cerberus Security Groups CloudFormation stack
     Type: String
-  tagClassification:
-    Default: Gold
-    Description: Denotes which category of Data Classification the instance is grouped under.
-    Type: String
-  tagCostcenter:
-    Description: Represents the Cost Center associated with the team/project.
-    Type: String
-  tagEmail:
-    Description: E-mail address for group or person responsible for the stack.
-    Type: String
-  tagName:
-    Description: 'Name assigned to the stack. Format: "cerberus-{environment}"'
-    Type: String
   userData:
     Description: CMS user data
     Type: String
@@ -84,19 +71,6 @@ Resources:
         - Fn::ImportValue: !Sub "${loadBalancerStackName}-cmsTargetGroupArn"
       MaxSize: !Ref 'maximumInstances'
       MinSize: !Ref 'minimumInstances'
-      Tags:
-        - Key: Name
-          PropagateAtLaunch: true
-          Value: !Ref 'tagName'
-        - Key: email
-          PropagateAtLaunch: true
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          PropagateAtLaunch: true
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          PropagateAtLaunch: true
-          Value: !Ref 'tagCostcenter'
       VPCZoneIdentifier:
         - Ref: 'vpcSubnetIdForAz1'
         - Ref: 'vpcSubnetIdForAz2'
