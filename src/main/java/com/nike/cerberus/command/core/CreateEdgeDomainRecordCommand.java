@@ -45,7 +45,7 @@ public class CreateEdgeDomainRecordCommand implements Command {
     private String baseDomainName;
 
     @Parameter(names = EDGE_DOMAIN_NAME_OVERRIDE,
-            description = "The full edge domain name for Cerberus. Default: env.example.domain.com")
+            description = "Override the edge domain name for Cerberus. Default: env.example.domain.com")
     private String edgeDomainNameOverride;
 
     @Parameter(names = HOSTED_ZONE_ID_LONG_ARG,

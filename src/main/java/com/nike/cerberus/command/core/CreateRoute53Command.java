@@ -61,11 +61,11 @@ public class CreateRoute53Command implements Command {
     private String hostedZoneId;
 
     @Parameter(names = LOAD_BALANCER_DOMAIN_NAME_OVERRIDE,
-            description = "The full load balancer domain name for Cerberus. Default: env.region.example.domain.com")
+            description = "Override the load balancer domain name for Cerberus. Default: env.region.example.domain.com")
     private String loadBalancerDomainNameOverride;
 
     @Parameter(names = ORIGIN_DOMAIN_NAME_OVERRIDE,
-            description = "The full origin domain name for Cerberus. Default: origin.env.example.domain.com")
+            description = "Override the origin domain name for Cerberus. Default: origin.env.example.domain.com")
     private String originDomainNameOverride;
 
     public String getBaseDomainName() {
