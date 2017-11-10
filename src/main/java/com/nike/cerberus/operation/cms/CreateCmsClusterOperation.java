@@ -25,7 +25,7 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.AmiTagCheckService;
@@ -80,8 +80,8 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
     public void run(final CreateCmsClusterCommand command) {
         final String environmentName = environmentMetadata.getName();
         final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
-        final Optional<String> cmsServerCertificateArn = configStore.getServerCertificateArn(StackName.CMS);
-        final Optional<String> pubKey = configStore.getCertPart(StackName.CMS, ConfigConstants.CERT_PART_PUBKEY);
+        final Optional<String> cmsServerCertificateArn = configStore.getServerCertificateArn(Stack.CMS);
+        final Optional<String> pubKey = configStore.getCertPart(Stack.CMS, ConfigConstants.CERT_PART_PUBKEY);
 
         if (!cmsServerCertificateArn.isPresent() || !pubKey.isPresent()) {
             throw new IllegalStateException("CMS certificate has not been uploaded!");
@@ -89,21 +89,21 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
         // Make sure the given AmiId is for CMS component. Check if it contains required tag
         if ( ! command.isSkipAmiTagCheck() ) {
-            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), StackName.CMS);
+            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), Stack.CMS);
         }
 
         final CmsParameters cmsParameters = new CmsParameters()
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
-                .setBaseStackName(StackName.BASE.getFullName(environmentName))
-                .setLoadBalancerStackName(StackName.LOAD_BALANCER.getFullName(environmentName))
-                .setSgStackName(StackName.SECURITY_GROUPS.getFullName(environmentName));
+                .setBaseStackName(Stack.BASE.getFullName(environmentName))
+                .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
+                .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName));
 
         cmsParameters.getLaunchConfigParameters().setAmiId(command.getStackDelegate().getAmiId());
         cmsParameters.getLaunchConfigParameters().setInstanceSize(command.getStackDelegate().getInstanceSize());
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
-        cmsParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(StackName.CMS));
+        cmsParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(Stack.CMS));
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters, typeReference);
@@ -111,7 +111,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         // allow user to overwrite CloudFormation parameters with -P option
         parameters.putAll(command.getStackDelegate().getDynamicParameters());
 
-        final String stackId = cloudFormationService.createStack(StackName.CMS,
+        final String stackId = cloudFormationService.createStack(Stack.CMS,
                 parameters, true,
                 command.getStackDelegate().getTagParameters().getTags());
 
@@ -132,9 +132,9 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         String environmentName = environmentMetadata.getName();
 
         try {
-            cloudFormationService.getStackId(StackName.LOAD_BALANCER.getFullName(environmentName));
-            cloudFormationService.getStackId(StackName.SECURITY_GROUPS.getFullName(environmentName));
-            cloudFormationService.getStackId(StackName.BASE.getFullName(environmentName));
+            cloudFormationService.getStackId(Stack.LOAD_BALANCER.getFullName(environmentName));
+            cloudFormationService.getStackId(Stack.SECURITY_GROUPS.getFullName(environmentName));
+            cloudFormationService.getStackId(Stack.BASE.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             logger.error("Could not create the CMS cluster." +
                     "Make sure the load balancer, security group, and base stacks have all been created.", iae);
@@ -142,6 +142,6 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         }
 
         return configStore.getCmsEnvConfig().isPresent() &&
-                ! cloudFormationService.isStackPresent(StackName.CMS.getFullName(environmentName));
+                ! cloudFormationService.isStackPresent(Stack.CMS.getFullName(environmentName));
     }
 }

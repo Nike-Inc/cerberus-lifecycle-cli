@@ -27,7 +27,7 @@ import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.LaunchConfigParameters;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.AmiTagCheckService;
@@ -57,7 +57,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Map<StackName, Class<? extends LaunchConfigParameters>> stackParameterMap;
+    private final Map<Stack, Class<? extends LaunchConfigParameters>> stackParameterMap;
 
     private final ConfigStore configStore;
 
@@ -82,20 +82,20 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         this.amiTagCheckService = amiTagCheckService;
 
         stackParameterMap = new HashMap<>();
-        stackParameterMap.put(StackName.CMS, CmsParameters.class);
-        stackParameterMap.put(StackName.GATEWAY, GatewayParameters.class);
+        stackParameterMap.put(Stack.CMS, CmsParameters.class);
+        stackParameterMap.put(Stack.GATEWAY, GatewayParameters.class);
 
     }
 
     @Override
     public void run(final UpdateStackCommand command) {
-        final String stackId = configStore.getStackId(command.getStackName());
-        final Class<? extends LaunchConfigParameters> parametersClass = stackParameterMap.get(command.getStackName());
+        final String stackId = configStore.getStackId(command.getStack());
+        final Class<? extends LaunchConfigParameters> parametersClass = stackParameterMap.get(command.getStack());
         final Map<String, String> parameters;
 
         if (parametersClass != null) {
-            parameters = getUpdateLaunchConfigParameters(command.getStackName(), command, parametersClass);
-        } else if (StackName.BASE == command.getStackName()) {
+            parameters = getUpdateLaunchConfigParameters(command.getStack(), command, parametersClass);
+        } else if (Stack.BASE == command.getStack()) {
             parameters = getUpdatedBaseStackParameters(command);
         } else {
             throw new IllegalArgumentException("The specified stack does not support the update stack command!");
@@ -103,16 +103,16 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
         // Make sure the given AmiId is for this component. Check if it contains required tag
         // There is no AMI for Base.
-        if (!command.isSkipAmiTagCheck() && StackName.BASE != command.getStackName()) {
-            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), command.getStackName());
+        if (!command.isSkipAmiTagCheck() && Stack.BASE != command.getStack()) {
+            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), command.getStack());
         }
 
         parameters.putAll(command.getDynamicParameters());
 
         try {
-            logger.info("Starting the update for {}.", command.getStackName().getName());
+            logger.info("Starting the update for {}.", command.getStack().getName());
 
-            cloudFormationService.updateStack(command.getStackName(), parameters,
+            cloudFormationService.updateStack(command.getStack(), parameters,
                     true, command.isOverwriteTemplate(), command.getStackDelegate().getTagParameters().getTags());
 
             final StackStatus endStatus =
@@ -146,7 +146,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     @Override
     public boolean isRunnable(final UpdateStackCommand command) {
         boolean isRunnable = true;
-        final String stackId = configStore.getStackId(command.getStackName());
+        final String stackId = configStore.getStackId(command.getStack());
 
         if (StringUtils.isBlank(stackId)) {
             logger.error("The stack name specified has not been created for this environment yet!");
@@ -159,13 +159,13 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         return isRunnable;
     }
 
-    private Map<String, String> getUpdateLaunchConfigParameters(final StackName stackName,
+    private Map<String, String> getUpdateLaunchConfigParameters(final Stack stack,
                                                                 final UpdateStackCommand command,
                                                                 final Class<? extends LaunchConfigParameters> parametersClass) {
         final LaunchConfigParameters launchConfigParameters =
-                configStore.getStackParameters(stackName, parametersClass);
+                configStore.getStackParameters(stack, parametersClass);
 
-        launchConfigParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(stackName));
+        launchConfigParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(stack));
 
         if (StringUtils.isNotBlank(command.getStackDelegate().getAmiId())) {
             launchConfigParameters.getLaunchConfigParameters().setAmiId(command.getStackDelegate().getAmiId());

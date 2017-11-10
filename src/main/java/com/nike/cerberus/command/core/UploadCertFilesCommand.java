@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.validator.UploadCertFilesPathValidator;
 import com.nike.cerberus.command.validator.UploadCertFilesStackNameValidator;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UploadCertFilesOperation;
 import com.nike.cerberus.util.StackNameConverter;
@@ -47,7 +47,7 @@ public class UploadCertFilesCommand implements Command {
             description = "Stack name the certificate is for.",
             validateValueWith = UploadCertFilesStackNameValidator.class,
             converter = StackNameConverter.class)
-    private StackName stackName;
+    private Stack stack;
 
     @Parameter(
             names = {CERT_PATH_LONG_ARG},
@@ -62,8 +62,8 @@ public class UploadCertFilesCommand implements Command {
     )
     private boolean overwrite;
 
-    public StackName getStackName() {
-        return stackName;
+    public Stack getStack() {
+        return stack;
     }
 
     public Path getCertPath() {

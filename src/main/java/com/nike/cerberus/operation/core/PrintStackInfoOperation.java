@@ -66,10 +66,10 @@ public class PrintStackInfoOperation implements Operation<PrintStackInfoCommand>
 
     @Override
     public void run(final PrintStackInfoCommand command) {
-        final String stackId = configStore.getStackId(command.getStackName());
+        final String stackId = configStore.getStackId(command.getStack());
 
         if (StringUtils.isBlank(stackId) || !cloudFormationService.isStackPresent(stackId)) {
-            logger.error("The specified environment doesn't contain a stack for " + command.getStackName().getName());
+            logger.error("The specified environment doesn't contain a stack for " + command.getStack().getName());
             return;
         }
 

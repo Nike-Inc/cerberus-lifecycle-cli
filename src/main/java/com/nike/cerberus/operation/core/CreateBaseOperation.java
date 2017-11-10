@@ -18,11 +18,10 @@ package com.nike.cerberus.operation.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
@@ -63,7 +62,6 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
     @Override
     public void run(final CreateBaseCommand command) {
-        final String environmentName = environmentMetadata.getName();
         final BaseParameters baseParameters = new BaseParameters()
                 .setAccountAdminArn(command.getAdminRoleArn());
 
@@ -71,7 +69,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.BASE, parameters, true, command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(Stack.BASE, parameters, true, command.getTagsDelegate().getTags());
 
         configStore.initEnvironmentData();
         configStore.initSecretsData();
@@ -80,7 +78,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
     @Override
     public boolean isRunnable(final CreateBaseCommand command) {
         String environmentName = environmentMetadata.getName();
-        return ! cloudFormationService.isStackPresent(StackName.BASE.getFullName(environmentName));
+        return ! cloudFormationService.isStackPresent(Stack.BASE.getFullName(environmentName));
     }
 
 }

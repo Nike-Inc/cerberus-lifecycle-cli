@@ -19,7 +19,7 @@ package com.nike.cerberus.service;
 import com.google.common.collect.Maps;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.store.ConfigStore;
 
 import javax.inject.Inject;
@@ -42,18 +42,18 @@ public class Ec2UserDataService {
         this.configStore = configStore;
     }
 
-    public String getUserData(final StackName stackName) {
-        if (stackName.equals(StackName.CMS)) {
+    public String getUserData(final Stack stack) {
+        if (stack.equals(Stack.CMS)) {
             return getCmsUserData();
         } else {
             throw new IllegalArgumentException("The stack specified does not support user data. stack: "
-                    + stackName.getName());
+                    + stack.getName());
         }
     }
 
     private String getCmsUserData() {
         final Map<String, String> userDataMap = Maps.newHashMap();
-        addStandardEnvironmentVariables(userDataMap, StackName.CMS.getName());
+        addStandardEnvironmentVariables(userDataMap, Stack.CMS.getName());
 
         return encodeUserData(writeExportEnvVars(userDataMap));
     }

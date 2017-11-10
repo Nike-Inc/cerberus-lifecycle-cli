@@ -27,7 +27,6 @@ import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
 import com.amazonaws.services.cloudformation.model.Output;
 import com.amazonaws.services.cloudformation.model.Parameter;
-import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.Tag;
@@ -39,8 +38,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.environment.StackName;
-import org.apache.commons.io.IOUtils;
+import com.nike.cerberus.domain.environment.Stack;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -49,8 +47,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -89,7 +85,7 @@ public class CloudFormationService {
      * @param parameters Input parameters.
      * @return Stack ID
      */
-    public String createStack(final StackName stack,
+    public String createStack(final Stack stack,
                               final Map<String, String> parameters,
                               final boolean iamCapabilities,
                               final Map<String, String> globalTags) {
@@ -113,7 +109,7 @@ public class CloudFormationService {
     /**
      * Updates an existing stack
      */
-    public void updateStack(final StackName stack,
+    public void updateStack(final Stack stack,
                             final Map<String, String> parameters,
                             final boolean iamCapabilities,
                             final boolean overwrite,
@@ -252,7 +248,7 @@ public class CloudFormationService {
                 new DescribeStacksRequest()
                         .withStackName(stackName));
 
-        List<Stack> stacks = result.getStacks();
+        List<com.amazonaws.services.cloudformation.model.Stack> stacks = result.getStacks();
         if (stacks.isEmpty()) {
             throw new IllegalArgumentException("No stack found with name: " + stackName);
         } else if (stacks.size() > 1) {
@@ -311,7 +307,7 @@ public class CloudFormationService {
                 request.withNextToken(describeStacksResult.getNextToken());
             }
             describeStacksResult = cloudFormationClient.describeStacks();
-            for (Stack stack : describeStacksResult.getStacks()) {
+            for (com.amazonaws.services.cloudformation.model.Stack stack : describeStacksResult.getStacks()) {
                 for (Output output : stack.getOutputs()) {
                     if (StringUtils.equals(output.getOutputKey(), outputKey)) {
                         return Optional.of(output.getOutputValue());

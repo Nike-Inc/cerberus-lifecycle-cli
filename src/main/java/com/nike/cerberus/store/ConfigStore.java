@@ -46,7 +46,7 @@ import com.nike.cerberus.domain.cloudformation.VpcParameters;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
 import com.nike.cerberus.domain.environment.Environment;
 import com.nike.cerberus.domain.environment.Secrets;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.IdentityManagementService;
 import com.nike.cerberus.service.S3StoreService;
@@ -163,13 +163,13 @@ public class ConfigStore {
     /**
      * Stores the stack ID for a specific component.
      *
-     * @param stackName Stack component
+     * @param stack Stack component
      * @param stackId   Stack ID
      */
-    public void storeStackId(final StackName stackName, final String stackId) {
+    public void storeStackId(final Stack stack, final String stackId) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            environment.getStackMap().put(stackName, stackId);
+            environment.getStackMap().put(stack, stackId);
             saveEnvironmentData(environment);
         }
     }
@@ -177,41 +177,41 @@ public class ConfigStore {
     /**
      * Get the specific stack ID by component name.
      *
-     * @param stackName Stack name
+     * @param stack Stack name
      * @return Stack ID
      */
-    public String getStackId(final StackName stackName) {
+    public String getStackId(final Stack stack) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            return environment.getStackMap().get(stackName);
+            return environment.getStackMap().get(stack);
         }
     }
 
     /**
      * Gets the server certificate name from the config store.
      *
-     * @param stackName Stack name
+     * @param stack Stack name
      */
-    public String getServerCertificateName(final StackName stackName) {
+    public String getServerCertificateName(final Stack stack) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            return environment.getServerCertificateIdMap().get(stackName);
+            return environment.getServerCertificateIdMap().get(stack);
         }
     }
 
     /**
      * Gets the server certificate ARN for the stack name.
      *
-     * @param stackName Stack name
+     * @param stack Stack name
      * @return ARN
      */
-    public Optional<String> getServerCertificateArn(final StackName stackName) {
-        final String certificateName = getServerCertificateName(stackName);
+    public Optional<String> getServerCertificateArn(final Stack stack) {
+        final String certificateName = getServerCertificateName(stack);
         return iamService.getServerCertificateArn(certificateName);
     }
 
-    public Optional<String> getServerCertificateId(final StackName stackName) {
-        final String certificateName = getServerCertificateName(stackName);
+    public Optional<String> getServerCertificateId(final Stack stack) {
+        final String certificateName = getServerCertificateName(stack);
         return iamService.getServerCertificateId(certificateName);
     }
 
@@ -325,40 +325,40 @@ public class ConfigStore {
     /**
      * Returns the contents of a specific certificate part that's been uploaded for a stack.
      *
-     * @param stackName
+     * @param stack
      * @param part
      * @return
      */
-    public Optional<String> getCertPart(final StackName stackName, final String part) {
-        return getEncryptedObject(buildCertFilePath(stackName, part));
+    public Optional<String> getCertPart(final Stack stack, final String part) {
+        return getEncryptedObject(buildCertFilePath(stack, part));
     }
 
     /**
      * Stores the certificate files encrypted and adds the certificate name to the environment data.
      *
-     * @param stackName       Stack that the cert is for
+     * @param stack       Stack that the cert is for
      * @param certificateName Certificate name in IAM
      * @param caContents      CA chain
      * @param certContents    Certificate body
      * @param keyContents     Certificate key
      * @param pubKeyContents  Certificate public key
      */
-    public void storeCert(final StackName stackName,
+    public void storeCert(final Stack stack,
                           final String certificateName,
                           final String caContents,
                           final String certContents,
                           final String keyContents,
                           final String pkcs8KeyContents,
                           final String pubKeyContents) {
-        saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_CA), caContents);
-        saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_CERT), certContents);
-        saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_KEY), keyContents);
-        saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_PKCS8_KEY), pkcs8KeyContents);
-        saveEncryptedObject(buildCertFilePath(stackName, CERT_PART_PUBKEY), pubKeyContents);
+        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_CA), caContents);
+        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_CERT), certContents);
+        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_KEY), keyContents);
+        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_PKCS8_KEY), pkcs8KeyContents);
+        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_PUBKEY), pubKeyContents);
 
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            environment.getServerCertificateIdMap().put(stackName, certificateName);
+            environment.getServerCertificateIdMap().put(stack, certificateName);
             saveEnvironmentData(environment);
         }
     }
@@ -488,8 +488,8 @@ public class ConfigStore {
         return getEncryptedObject(path);
     }
 
-    public String getStackLogicalId(StackName stackName) {
-        return stackName.getFullName(environmentMetadata.getName());
+    public String getStackLogicalId(Stack stack) {
+        return stack.getFullName(environmentMetadata.getName());
     }
 
     /**
@@ -498,7 +498,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public BaseParameters getBaseStackParameters() {
-        return getStackParameters(getStackLogicalId(StackName.BASE), BaseParameters.class);
+        return getStackParameters(getStackLogicalId(Stack.BASE), BaseParameters.class);
     }
 
     /**
@@ -507,7 +507,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public BaseOutputs getBaseStackOutputs() {
-        return getStackOutputs(getStackLogicalId(StackName.BASE), BaseOutputs.class);
+        return getStackOutputs(getStackLogicalId(Stack.BASE), BaseOutputs.class);
     }
 
     /**
@@ -516,7 +516,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public VpcParameters getVpcStackParameters() {
-        return getStackParameters(getStackLogicalId(StackName.VPC), VpcParameters.class);
+        return getStackParameters(getStackLogicalId(Stack.VPC), VpcParameters.class);
     }
 
     /**
@@ -525,7 +525,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public VpcOutputs getVpcStackOutputs() {
-        return getStackOutputs(getStackLogicalId(StackName.VPC), VpcOutputs.class);
+        return getStackOutputs(getStackLogicalId(Stack.VPC), VpcOutputs.class);
     }
 
     /**
@@ -534,7 +534,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public SecurityGroupParameters getSecurityGroupStackParameters() {
-        return getStackParameters(getStackLogicalId(StackName.SECURITY_GROUPS), SecurityGroupParameters.class);
+        return getStackParameters(getStackLogicalId(Stack.SECURITY_GROUPS), SecurityGroupParameters.class);
     }
 
     /**
@@ -543,7 +543,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public SecurityGroupOutputs getSecurityGroupStackOutputs() {
-        return getStackOutputs(getStackLogicalId(StackName.SECURITY_GROUPS), SecurityGroupOutputs.class);
+        return getStackOutputs(getStackLogicalId(Stack.SECURITY_GROUPS), SecurityGroupOutputs.class);
     }
 
     /**
@@ -552,7 +552,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public LoadBalancerOutputs getLoadBalancerStackOutputs() {
-        return getStackOutputs(getStackLogicalId(StackName.LOAD_BALANCER), LoadBalancerOutputs.class);
+        return getStackOutputs(getStackLogicalId(Stack.LOAD_BALANCER), LoadBalancerOutputs.class);
     }
 
     /**
@@ -561,7 +561,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public DatabaseParameters getDatabaseStackParameters() {
-        return getStackParameters(getStackLogicalId(StackName.DATABASE), DatabaseParameters.class);
+        return getStackParameters(getStackLogicalId(Stack.DATABASE), DatabaseParameters.class);
     }
 
     /**
@@ -570,7 +570,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public Route53Parameters getRoute53Parameters() {
-        return getStackParameters(getStackLogicalId(StackName.ROUTE53), Route53Parameters.class);
+        return getStackParameters(getStackLogicalId(Stack.ROUTE53), Route53Parameters.class);
     }
 
     /**
@@ -579,7 +579,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public DatabaseOutputs getDatabaseStackOutputs() {
-        return getStackOutputs(getStackLogicalId(StackName.DATABASE), DatabaseOutputs.class);
+        return getStackOutputs(getStackLogicalId(Stack.DATABASE), DatabaseOutputs.class);
     }
 
     /**
@@ -588,7 +588,7 @@ public class ConfigStore {
      * @return Vault outputs
      */
     public VaultOutputs getVaultStackOutputs() {
-        return getStackOutputs(StackName.VAULT, VaultOutputs.class);
+        return getStackOutputs(Stack.VAULT, VaultOutputs.class);
     }
 
     /**
@@ -597,7 +597,7 @@ public class ConfigStore {
      * @return CMS parameters
      */
     public CmsParameters getCmsStackParamters() {
-        return getStackParameters(getStackLogicalId(StackName.CMS), CmsParameters.class);
+        return getStackParameters(getStackLogicalId(Stack.CMS), CmsParameters.class);
     }
 
     /**
@@ -606,7 +606,7 @@ public class ConfigStore {
      * @return CMS outputs
      */
     public CmsOutputs getCmsStackOutputs() {
-        return getStackOutputs(getStackLogicalId(StackName.CMS), CmsOutputs.class);
+        return getStackOutputs(getStackLogicalId(Stack.CMS), CmsOutputs.class);
     }
 
     /**
@@ -615,21 +615,21 @@ public class ConfigStore {
      * @return Gateway parameters
      */
     public GatewayParameters getGatewayStackParamters() {
-        return getStackParameters(StackName.GATEWAY, GatewayParameters.class);
+        return getStackParameters(Stack.GATEWAY, GatewayParameters.class);
     }
 
     /**
      * Get the stack outputs for a specific stack name.
      *
-     * @param stackName   Stack name
+     * @param stack   Stack name
      * @param outputClass Outputs class
      * @param <M>         Outputs type
      * @return Outputs
      */
-    public <M> M getStackOutputs(final StackName stackName, final Class<M> outputClass) {
+    public <M> M getStackOutputs(final Stack stack, final Class<M> outputClass) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            final String stackId = environment.getStackMap().get(stackName);
+            final String stackId = environment.getStackMap().get(stack);
 
             if (!cloudFormationService.isStackPresent(stackId)) {
                 throw new IllegalStateException("The specified stack doesn't exist for specified environment.");
@@ -662,15 +662,15 @@ public class ConfigStore {
     /**
      * Get the stack parameters for a specific stack name.
      *
-     * @param stackName      Stack name
+     * @param stack      Stack name
      * @param parameterClass Parameters class
      * @param <M>            Parameters type
      * @return Parameters
      */
-    public <M> M getStackParameters(final StackName stackName, final Class<M> parameterClass) {
+    public <M> M getStackParameters(final Stack stack, final Class<M> parameterClass) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            final String stackId = environment.getStackMap().get(stackName);
+            final String stackId = environment.getStackMap().get(stack);
 
             if (!cloudFormationService.isStackPresent(stackId)) {
                 throw new IllegalStateException("The specified stack doesn't exist for the specified environment");
@@ -840,8 +840,8 @@ public class ConfigStore {
         }
     }
 
-    private String buildCertFilePath(final StackName stackName, final String suffix) {
-        return "data/" + stackName.getName() + "/" + stackName.getName() + "-" + suffix;
+    private String buildCertFilePath(final Stack stack, final String suffix) {
+        return "data/" + stack.getName() + "/" + stack.getName() + "-" + suffix;
     }
 
     /**

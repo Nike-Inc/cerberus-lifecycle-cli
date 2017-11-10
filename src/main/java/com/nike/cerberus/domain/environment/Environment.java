@@ -32,9 +32,9 @@ public class Environment {
 
     private String az3;
 
-    private Map<StackName, String> stackMap;
+    private Map<Stack, String> stackMap;
 
-    private Map<StackName, String> serverCertificateIdMap;
+    private Map<Stack, String> serverCertificateIdMap;
 
     private String configKeyId;
 
@@ -51,12 +51,12 @@ public class Environment {
 
     public Environment() {
         stackMap = new HashMap<>();
-        for (StackName stackName : StackName.ALL_STACKS) {
-            stackMap.put(stackName, "");
+        for (Stack stack : Stack.ALL_STACKS) {
+            stackMap.put(stack, "");
         }
 
         serverCertificateIdMap = new HashMap<>();
-        serverCertificateIdMap.put(StackName.CMS, "");
+        serverCertificateIdMap.put(Stack.CMS, "");
     }
 
     public String getAz1() {
@@ -86,20 +86,20 @@ public class Environment {
         return this;
     }
 
-    public Map<StackName, String> getStackMap() {
+    public Map<Stack, String> getStackMap() {
         return stackMap;
     }
 
-    public Environment setStackMap(Map<StackName, String> stackMap) {
+    public Environment setStackMap(Map<Stack, String> stackMap) {
         this.stackMap = stackMap;
         return this;
     }
 
-    public Map<StackName, String> getServerCertificateIdMap() {
+    public Map<Stack, String> getServerCertificateIdMap() {
         return serverCertificateIdMap;
     }
 
-    public Environment setServerCertificateIdMap(Map<StackName, String> serverCertificateIdMap) {
+    public Environment setServerCertificateIdMap(Map<Stack, String> serverCertificateIdMap) {
         this.serverCertificateIdMap = serverCertificateIdMap;
         return this;
     }

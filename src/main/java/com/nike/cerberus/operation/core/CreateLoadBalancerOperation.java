@@ -18,12 +18,11 @@ package com.nike.cerberus.operation.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.LoadBalancerParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
@@ -67,13 +66,13 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
         final String environmentName = environmentMetadata.getName();
         final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
 
-        final String sslCertificateArn = configStore.getServerCertificateArn(StackName.CMS)
+        final String sslCertificateArn = configStore.getServerCertificateArn(Stack.CMS)
                 .orElseThrow(() -> new IllegalStateException("Could not retrieve SSL certificate ARN!"));
 
         final LoadBalancerParameters loadBalancerParameters = new LoadBalancerParameters()
                 .setVpcId(vpcOutputs.getVpcId())
                 .setSslCertificateArn(sslCertificateArn)
-                .setSgStackName(StackName.SECURITY_GROUPS.getFullName(environmentName))
+                .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName))
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
@@ -81,18 +80,18 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.LOAD_BALANCER, parameters, true, command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(Stack.LOAD_BALANCER, parameters, true, command.getTagsDelegate().getTags());
     }
 
     @Override
     public boolean isRunnable(final CreateLoadBalancerCommand command) {
         String environmentName = environmentMetadata.getName();
         try {
-            cloudFormationService.getStackId(StackName.SECURITY_GROUPS.getFullName(environmentName));
+            cloudFormationService.getStackId(Stack.SECURITY_GROUPS.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             throw new IllegalStateException("The security group stack must exist to create the load balancer!", iae);
         }
 
-        return ! cloudFormationService.isStackPresent(StackName.LOAD_BALANCER.getFullName(environmentName));
+        return ! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName));
     }
 }
