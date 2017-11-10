@@ -104,10 +104,6 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
                 environmentMetadata.getRegionName(),
                 baseDomainName);
 
-        if (!(loadBalancerDomainNameOverride == null || loadBalancerDomainNameOverride.isEmpty())) {
-            return loadBalancerDomainNameOverride;
-        }
-
         return StringUtils.isBlank(loadBalancerDomainNameOverride) ?
                 defaultLoadBalancerDomainName : loadBalancerDomainNameOverride;
     }
