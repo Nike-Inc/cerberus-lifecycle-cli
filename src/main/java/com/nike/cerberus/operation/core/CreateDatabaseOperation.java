@@ -57,9 +57,9 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
     @Inject
     public CreateDatabaseOperation(final EnvironmentMetadata environmentMetadata,
-                                       final CloudFormationService cloudFormationService,
-                                       final ConfigStore configStore,
-                                       @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+                                   final CloudFormationService cloudFormationService,
+                                   final ConfigStore configStore,
+                                   @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
@@ -71,9 +71,10 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
         final String environmentName = environmentMetadata.getName();
         final VpcParameters vpcParameters = configStore.getVpcStackParameters();
         final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
+        final String databasePassword = passwordGenerator.get();
 
         final DatabaseParameters databaseParameters = new DatabaseParameters()
-                .setCmsDbMasterPassword(passwordGenerator.get())
+                .setCmsDbMasterPassword(databasePassword)
                 .setSgStackName(StackName.SECURITY_GROUPS.getFullName(environmentName))
                 .setCmsDbInstanceAz1(vpcParameters.getAz1())
                 .setCmsDbInstanceAz2(vpcParameters.getAz2())
@@ -88,6 +89,9 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
         cloudFormationService.createStack(StackName.DATABASE.getFullName(environmentName),
                 parameters, ConfigConstants.DATABASE_STACK_TEMPLATE_PATH, true,
                 command.getTagsDelegate().getTags());
+
+        configStore.storeCmsDatabasePassword(databasePassword);
+
     }
 
     @Override
@@ -99,6 +103,6 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
             throw new IllegalStateException("The load balancer stack must exist to create the Route53 record!", iae);
         }
 
-        return ! cloudFormationService.isStackPresent(StackName.DATABASE.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(StackName.DATABASE.getFullName(environmentName));
     }
 }

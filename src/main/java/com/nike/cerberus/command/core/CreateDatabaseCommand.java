@@ -16,7 +16,6 @@
 
 package com.nike.cerberus.command.core;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;

@@ -84,14 +84,8 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
     @Override
     public boolean isRunnable(final UpdateCmsConfigCommand command) {
-        boolean isRunnable = true;
-        final Optional<String> cmsVaultToken = configStore.getCmsVaultToken();
+        boolean isRunnable = configStore.getCmsEnvConfig().isPresent();
         final Optional<String> cmsDatabasePassword = configStore.getCmsDatabasePassword();
-
-        if (!cmsVaultToken.isPresent()) {
-            logger.error("CMS Vault token not present for specified environment.");
-            isRunnable = false;
-        }
 
         if (!cmsDatabasePassword.isPresent()) {
             logger.error("CMS database password not present for specified environment.");

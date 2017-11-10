@@ -408,7 +408,7 @@ public class ConfigStore {
         final BaseOutputs baseOutputs = getBaseStackOutputs();
         final DatabaseOutputs databaseOutputs = getDatabaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
-        final String cmsDatabasePassword = getDatabaseStackParameters().getCmsDbMasterPassword();
+        final String cmsDatabasePassword = getSecretsData().getCms().getDatabasePassword();
 
         final GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
                 new GetCallerIdentityRequest());

@@ -69,15 +69,7 @@ Resources:
       VpcId:
         Ref: 'vpcId'
     Type: AWS::EC2::SecurityGroup
-  CmsIngressFromAlb8077:
-    Properties:
-      FromPort: 8077
-      GroupId: !Ref 'CmsSg'
-      IpProtocol: tcp
-      SourceSecurityGroupId: !Ref 'AlbSg'
-      ToPort: 8077
-    Type: AWS::EC2::SecurityGroupIngress
-  CmsIngressFromCmsElb8443:
+  CmsIngressFromAlb8443:
     Properties:
       FromPort: 8443
       GroupId: !Ref 'CmsSg'
