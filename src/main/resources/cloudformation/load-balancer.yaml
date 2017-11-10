@@ -48,7 +48,7 @@ Resources:
       LoadBalancerArn: !Ref 'ApplicationLoadBalancer'
       Port: 443
       Protocol: HTTPS
-      SslPolicy: ELBSecurityPolicy-TLS-1-2-2017-01
+      SslPolicy: ELBSecurityPolicy-2016-08
   ALBLogBucket:
     Properties:
       AccessControl: BucketOwnerFullControl
