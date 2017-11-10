@@ -27,6 +27,7 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Route53Service;
 import com.nike.cerberus.store.ConfigStore;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +108,8 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
             return loadBalancerDomainNameOverride;
         }
 
-        return defaultLoadBalancerDomainName;
+        return StringUtils.isBlank(loadBalancerDomainNameOverride) ?
+                defaultLoadBalancerDomainName : loadBalancerDomainNameOverride;
     }
 
     private String getOriginDomainName(final String baseDomainName, final String originDomainNameOverride) {
@@ -115,10 +117,7 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
                 environmentMetadata.getName(),
                 baseDomainName);
 
-        if (!(originDomainNameOverride == null || originDomainNameOverride.isEmpty())) {
-            return originDomainNameOverride;
-        }
-
-        return defaultOriginDomainName;
+        return StringUtils.isBlank(originDomainNameOverride) ?
+                defaultOriginDomainName : originDomainNameOverride;
     }
 }
