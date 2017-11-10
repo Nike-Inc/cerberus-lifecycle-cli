@@ -58,7 +58,7 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
         // update existing custom properties, add new ones
         command.getAdditionalProperties().forEach((k, v) -> {
-            if (! SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(k)) {
+            if (! SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(k) || command.isForce()) {
                 newProperties.put(k, v);
             } else {
                 logger.warn("Ignoring additional property that would override system configured property, " + k);
