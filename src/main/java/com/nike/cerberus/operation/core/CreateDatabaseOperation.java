@@ -83,17 +83,15 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
 
-        databaseParameters.getTagParameters().setTagEmail(command.getTagsDelegate().getTagEmail());
-        databaseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        databaseParameters.getTagParameters().setTagCostcenter(command.getTagsDelegate().getTagCostcenter());
-
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters, typeReference);
 
         cloudFormationService.createStack(StackName.DATABASE.getFullName(environmentName),
-                parameters, ConfigConstants.DATABASE_STACK_TEMPLATE_PATH, true);
+                parameters, ConfigConstants.DATABASE_STACK_TEMPLATE_PATH, true,
+                command.getTagsDelegate().getTags());
 
         configStore.storeCmsDatabasePassword(databasePassword);
+
     }
 
     @Override

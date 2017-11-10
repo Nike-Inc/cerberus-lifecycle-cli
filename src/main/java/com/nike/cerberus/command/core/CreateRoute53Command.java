@@ -18,7 +18,9 @@ package com.nike.cerberus.command.core;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.CreateRoute53Operation;
 
@@ -36,6 +38,13 @@ public class CreateRoute53Command implements Command {
     public static final String HOSTNAME_LONG_ARG = "--hostname";
 
     public static final String HOSTED_ZONE_ID = "--hosted-zone-id";
+
+    @ParametersDelegate
+    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
+
+    public TagParametersDelegate getTagsDelegate() {
+        return tagsDelegate;
+    }
 
     @Parameter(names = HOSTNAME_LONG_ARG,
             description = "The hostname of the Route53 record to be created for Cerberus (e.g. <env>.cerberus.example.com)",

@@ -16,17 +16,14 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 /**
  * Represents the waf stack inputs.
  */
-public class WafParameters implements TagParameters {
+public class WafParameters {
 
     private String loadBalancerStackName;
 
-    @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
+    private String wafName;
 
     public String getLoadBalancerStackName() {
         return loadBalancerStackName;
@@ -37,13 +34,12 @@ public class WafParameters implements TagParameters {
         return this;
     }
 
-    @Override
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
+    public String getWafName() {
+        return wafName;
     }
 
-    public WafParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
+    public WafParameters setWafName(String wafName) {
+        this.wafName = wafName;
         return this;
     }
 }

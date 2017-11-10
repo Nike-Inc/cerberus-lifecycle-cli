@@ -167,12 +167,12 @@ public class EnvironmentConfigToArgsMapper {
     }
 
     private static void addTagArgs(EnvironmentConfig environmentConfig, List<String> args) {
-        args.add(TagParametersDelegate.COST_CENTER_LONG_ARG);
-        args.add(environmentConfig.getCostCenter());
-        args.add(TagParametersDelegate.OWNER_EMAIL_LONG_ARG);
-        args.add(environmentConfig.getOwnerEmail());
-        args.add(TagParametersDelegate.OWNER_GROUP_LONG_ARG);
-        args.add(environmentConfig.getOwnerGroup());
+//        args.add(TagParametersDelegate.COST_CENTER_LONG_ARG);
+//        args.add(environmentConfig.getCostCenter());
+//        args.add(TagParametersDelegate.OWNER_EMAIL_LONG_ARG);
+//        args.add(environmentConfig.getOwnerEmail());
+//        args.add(TagParametersDelegate.OWNER_GROUP_LONG_ARG);
+//        args.add(environmentConfig.getOwnerGroup());
     }
 
     private static List<String> getUploadCertFilesCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {

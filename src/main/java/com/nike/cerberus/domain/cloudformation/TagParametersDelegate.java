@@ -16,55 +16,29 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.beust.jcommander.Parameter;
+import com.beust.jcommander.DynamicParameter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * CloudFormation input parameters common to all Cerberus CloudFormation stacks.
  */
 public class TagParametersDelegate {
 
-    public static final String OWNER_EMAIL_LONG_ARG = "--owner-email";
-    public static final String OWNER_GROUP_LONG_ARG = "--owner-group";
-    public static final String COST_CENTER_LONG_ARG = "--costcenter";
+    public static final String TAG_LONG_ARG = "--TAG";
+    public static final String TAG_SHORT_ARG = "-T";
 
-    @Parameter(names = "--tag-name",
-            description = "The environment name (e.g. 'cerberus-demo', 'cerberus-preprod')")
-    private String tagName;
+    @DynamicParameter(
+            names = {
+                    TAG_LONG_ARG,
+                    TAG_SHORT_ARG
+            },
+            description = "Dynamic parameters for setting tags to be used on generated aws resources."
+    )
+    private Map<String, String> tags = new HashMap<>();
 
-    @Parameter(names = OWNER_EMAIL_LONG_ARG,
-            description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.",
-            required = true)
-    private String tagEmail;
-
-    @Parameter(names = COST_CENTER_LONG_ARG,
-            description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.",
-            required = true)
-    private String tagCostcenter;
-
-    public String getTagName() {
-        return tagName;
-    }
-
-    public TagParametersDelegate setTagName(String tagName) {
-        this.tagName = tagName;
-        return this;
-    }
-
-    public String getTagEmail() {
-        return tagEmail;
-    }
-
-    public TagParametersDelegate setTagEmail(String tagEmail) {
-        this.tagEmail = tagEmail;
-        return this;
-    }
-
-    public String getTagCostcenter() {
-        return tagCostcenter;
-    }
-
-    public TagParametersDelegate setTagCostcenter(String tagCostcenter) {
-        this.tagCostcenter = tagCostcenter;
-        return this;
+    public Map<String, String> getTags() {
+        return tags;
     }
 }

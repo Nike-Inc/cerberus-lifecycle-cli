@@ -21,10 +21,8 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.store.ConfigStore;
-import org.apache.commons.io.IOUtils;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map;
@@ -44,30 +42,28 @@ public class Ec2UserDataService {
         this.configStore = configStore;
     }
 
-    public String getUserData(final StackName stackName, final String ownerGroup) {
+    public String getUserData(final StackName stackName) {
         switch (stackName) {
             case CMS:
-                return getCmsUserData(ownerGroup);
+                return getCmsUserData();
             default:
                 throw new IllegalArgumentException("The stack specified does not support user data. stack: "
                         + stackName.getName());
         }
     }
 
-    private String getCmsUserData(final String ownerGroup) {
+    private String getCmsUserData() {
         final Map<String, String> userDataMap = Maps.newHashMap();
-        addStandardEnvironmentVariables(userDataMap, StackName.CMS.getName(), ownerGroup);
+        addStandardEnvironmentVariables(userDataMap, StackName.CMS.getName());
 
         return encodeUserData(writeExportEnvVars(userDataMap));
     }
 
     private void addStandardEnvironmentVariables(final Map<String, String> userDataMap,
-                                                 final String appName,
-                                                 final String ownerGroup) {
+                                                 final String appName) {
         userDataMap.put("CLOUD_ENVIRONMENT", ConfigConstants.ENV_PREFIX + environmentMetadata.getName());
         userDataMap.put("CLOUD_MONITOR_BUCKET", appName);
         userDataMap.put("CLOUD_APP", appName);
-        userDataMap.put("CLOUD_APP_GROUP", ownerGroup);
         userDataMap.put("CLOUD_CLUSTER", appName);
         userDataMap.put("CLASSIFICATION", "Gold");
         userDataMap.put("EC2_REGION", environmentMetadata.getRegionName());

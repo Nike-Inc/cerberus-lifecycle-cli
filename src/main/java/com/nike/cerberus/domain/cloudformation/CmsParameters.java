@@ -104,7 +104,6 @@ public class CmsParameters implements LaunchConfigParameters {
         return this;
     }
 
-    @Override
     public TagParametersDelegate getTagParameters() {
         return tagParameters;
     }

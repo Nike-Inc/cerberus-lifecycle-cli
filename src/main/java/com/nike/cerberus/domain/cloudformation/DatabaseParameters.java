@@ -16,12 +16,10 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 /**
  * Represents the database stack inputs.
  */
-public class DatabaseParameters implements TagParameters {
+public class DatabaseParameters {
 
     private String cmsDbInstanceAz1;
 
@@ -44,9 +42,6 @@ public class DatabaseParameters implements TagParameters {
     private String vpcSubnetIdForAz2;
 
     private String vpcSubnetIdForAz3;
-
-    @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
     public String getCmsDbInstanceAz1() {
         return cmsDbInstanceAz1;
@@ -147,13 +142,4 @@ public class DatabaseParameters implements TagParameters {
         return this;
     }
 
-    @Override
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
-    }
-
-    public DatabaseParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
-        return this;
-    }
 }

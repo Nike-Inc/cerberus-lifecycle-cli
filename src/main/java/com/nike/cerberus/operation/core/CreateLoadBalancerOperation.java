@@ -78,15 +78,13 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
 
-        loadBalancerParameters.getTagParameters().setTagEmail(command.getTagsDelegate().getTagEmail());
-        loadBalancerParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        loadBalancerParameters.getTagParameters().setTagCostcenter(command.getTagsDelegate().getTagCostcenter());
-
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters, typeReference);
 
         cloudFormationService.createStack(StackName.LOAD_BALANCER.getFullName(environmentName),
-                parameters, ConfigConstants.LOAD_BALANCER_STACK_TEMPLATE_PATH, true);    }
+                parameters, ConfigConstants.LOAD_BALANCER_STACK_TEMPLATE_PATH, true,
+                command.getTagsDelegate().getTags());
+    }
 
     @Override
     public boolean isRunnable(final CreateLoadBalancerCommand command) {

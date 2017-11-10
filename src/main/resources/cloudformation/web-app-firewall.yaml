@@ -13,19 +13,8 @@ Parameters:
   loadBalancerStackName:
     Description: The name of the Cerberus load balancer CloudFormation stack
     Type: String
-  tagClassification:
-    Default: Gold
-    Description: Denotes which category of Data Classification the instance is grouped
-      under.
-    Type: String
-  tagCostcenter:
-    Description: Represents the Cost Center associated with the team/project.
-    Type: String
-  tagEmail:
-    Description: E-mail address for group or person responsible for the stack.
-    Type: String
-  tagName:
-    Description: 'Environment name, e.g. "cerberus-{environment}"'
+  wafName:
+    Description: The name for the Web Application Firewall that will be created
     Type: String
 Resources:
   CerberusWAFWebAcl:
@@ -36,7 +25,7 @@ Resources:
       DefaultAction:
         Type: ALLOW
       MetricName: CerberusWAF
-      Name: !Join [-, [waf, !Ref 'tagName']]
+      Name: !Ref 'wafName'
       Rules:
         - Action:
             Type: BLOCK

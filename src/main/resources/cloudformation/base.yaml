@@ -20,33 +20,10 @@ Parameters:
   accountAdminArn:
     Description: The ARN for a IAM user, group or role that can create this stack.
     Type: String
-  tagClassification:
-    Default: Gold
-    Description: Denotes which category of Data Classification the instance is grouped
-      under.
-    Type: String
-  tagCostcenter:
-    Description: Represents the Cost Center associated with the team/project.
-    Type: String
-  tagEmail:
-    Description: E-mail address for group or person responsible for the stack.
-    Type: String
-  tagName:
-    Description: 'Environment name, e.g. "cerberus-{environment}"'
-    Type: String
 Resources:
   CerberusConfigBucket:
     Properties:
       AccessControl: Private
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
-        - Key: email
-          Value: !Ref 'tagEmail'
       VersioningConfiguration:
         Status: Enabled
     Type: AWS::S3::Bucket

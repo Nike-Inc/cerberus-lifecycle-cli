@@ -16,17 +16,12 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 /**
  * Represents the base stack inputs.
  */
-public class BaseParameters implements TagParameters {
+public class BaseParameters {
 
     private String accountAdminArn;
-
-    @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
     public String getAccountAdminArn() {
         return accountAdminArn;
@@ -37,13 +32,4 @@ public class BaseParameters implements TagParameters {
         return this;
     }
 
-    @Override
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
-    }
-
-    public BaseParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
-        return this;
-    }
 }
