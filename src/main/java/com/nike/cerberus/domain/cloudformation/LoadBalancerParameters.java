@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 /**
  * Represents the load balancer stack inputs.
  */
-public class LoadBalancerParameters implements TagParameters {
+public class LoadBalancerParameters {
 
     private String sgStackName;
 
@@ -92,7 +92,6 @@ public class LoadBalancerParameters implements TagParameters {
         return this;
     }
 
-    @Override
     public TagParametersDelegate getTagParameters() {
         return tagParameters;
     }

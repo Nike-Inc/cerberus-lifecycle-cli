@@ -48,20 +48,6 @@ Parameters:
   sgStackName:
     Description: The name of the Cerberus Security Groups CloudFormation stack
     Type: String
-  tagClassification:
-    Default: Gold
-    Description: Denotes which category of Data Classification the instance is grouped
-      under.
-    Type: String
-  tagCostcenter:
-    Description: Represents the Cost Center associated with the team/project.aaa
-    Type: String
-  tagEmail:
-    Description: E-mail address for group or person responsible for the stack.
-    Type: String
-  tagName:
-    Description: 'Environment name, e.g. "cerberus-{environment}"'
-    Type: String
   vpcSubnetIdForAz1:
     Description: The subnet for the first availability zone
     Type: String
@@ -89,15 +75,6 @@ Resources:
       PreferredBackupWindow: 13:14-13:44
       PreferredMaintenanceWindow: tue:06:48-tue:07:18
       StorageEncrypted: 'true'
-      Tags:
-        - Key: Name
-          Value: !Ref 'tagName'
-        - Key: email
-          Value: !Ref 'tagEmail'
-        - Key: classification
-          Value: !Ref 'tagClassification'
-        - Key: costcenter
-          Value: !Ref 'tagCostcenter'
       VpcSecurityGroupIds:
         - Fn::ImportValue: !Sub "${sgStackName}-cmsDbSgId"
     Type: AWS::RDS::DBCluster

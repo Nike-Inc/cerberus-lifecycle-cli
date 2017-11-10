@@ -21,21 +21,19 @@ import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.GatewayParameters;
 import com.nike.cerberus.domain.cloudformation.LaunchConfigParameters;
-import com.nike.cerberus.domain.cloudformation.SslConfigParametersDelegate;
-import com.nike.cerberus.domain.cloudformation.TagParameters;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
+import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
-import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -46,8 +44,11 @@ import javax.inject.Named;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.amazonaws.services.cloudformation.model.StackStatus.*;
-import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
+import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_COMPLETE;
+import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_COMPLETE_CLEANUP_IN_PROGRESS;
+import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_ROLLBACK_COMPLETE;
+import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS;
+import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_ROLLBACK_FAILED;
 import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
@@ -118,9 +119,11 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
             logger.info("Starting the update for {}.", command.getStackName().getName());
 
             if (command.isOverwriteTemplate()) {
-                cloudFormationService.updateStack(stackId, parameters, stackTemplatePathMap.get(command.getStackName()), true);
+                cloudFormationService.updateStack(stackId, parameters, stackTemplatePathMap.get(command.getStackName()),
+                        true, command.getStackDelegate().getTagParameters().getTags());
             } else {
-                cloudFormationService.updateStack(stackId, parameters, true);
+                cloudFormationService.updateStack(stackId, parameters, true,
+                        command.getStackDelegate().getTagParameters().getTags());
             }
 
             final StackStatus endStatus =
@@ -173,8 +176,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         final LaunchConfigParameters launchConfigParameters =
                 configStore.getStackParameters(stackName, parametersClass);
 
-        launchConfigParameters.getLaunchConfigParameters().setUserData(
-                ec2UserDataService.getUserData(stackName, command.getStackDelegate().getOwnerGroup()));
+        launchConfigParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(stackName));
 
         if (StringUtils.isNotBlank(command.getStackDelegate().getAmiId())) {
             launchConfigParameters.getLaunchConfigParameters().setAmiId(command.getStackDelegate().getAmiId());
@@ -188,30 +190,12 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
             launchConfigParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         }
 
-        if (StringUtils.isNotBlank(command.getStackDelegate().getOwnerEmail())) {
-            launchConfigParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
-        }
-
-        if (StringUtils.isNotBlank(command.getStackDelegate().getCostcenter())) {
-            launchConfigParameters.getTagParameters().setTagCostcenter(command.getStackDelegate().getCostcenter());
-        }
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         return cloudformationObjectMapper.convertValue(launchConfigParameters, typeReference);
     }
 
     private Map<String, String> getUpdatedBaseStackParameters(final UpdateStackCommand command) {
-        final TagParameters tagParameters = configStore.getStackParameters(command.getStackName(), SecurityGroupParameters.class);
-
-        if (StringUtils.isNotBlank(command.getStackDelegate().getOwnerEmail())) {
-            tagParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
-        }
-
-        if (StringUtils.isNotBlank(command.getStackDelegate().getCostcenter())) {
-            tagParameters.getTagParameters().setTagCostcenter(command.getStackDelegate().getCostcenter());
-        }
-
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
-        return cloudformationObjectMapper.convertValue(tagParameters, typeReference);
+        return Maps.newHashMap();
     }
 }

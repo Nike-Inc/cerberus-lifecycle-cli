@@ -16,8 +16,6 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 /**
  * Represents the base stack inputs.
  *
@@ -25,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  *             use {@link com.nike.cerberus.domain.cloudformation.BaseOutputs} for new environments
  */
 @Deprecated
-public class DeprecatedBaseParameters implements TagParameters {
+public class DeprecatedBaseParameters {
 
     private String accountAdminArn;
 
@@ -34,9 +32,6 @@ public class DeprecatedBaseParameters implements TagParameters {
     private String az2;
 
     private String az3;
-
-    @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
     public String getAz1() {
         return az1;
@@ -71,16 +66,6 @@ public class DeprecatedBaseParameters implements TagParameters {
 
     public DeprecatedBaseParameters setAccountAdminArn(String accountAdminArn) {
         this.accountAdminArn = accountAdminArn;
-        return this;
-    }
-
-    @Override
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
-    }
-
-    public DeprecatedBaseParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
         return this;
     }
 }

@@ -19,26 +19,12 @@ package com.nike.cerberus.command.core;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.cloudformation.BaseParameters;
-import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
-import com.nike.cerberus.domain.cloudformation.TagParameters;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
-import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.CreateBaseOperation;
-import com.nike.cerberus.service.CloudFormationService;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.Map;
 
 import static com.nike.cerberus.command.core.CreateBaseCommand.COMMAND_NAME;
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
  * Command for creating the base components for Cerberus.
@@ -63,7 +49,7 @@ public class CreateBaseCommand implements Command {
         return adminRoleArn;
     }
 
-    public TagParametersDelegate getTagParameters() {
+    public TagParametersDelegate getTagsDelegate() {
         return tagParameters;
     }
 

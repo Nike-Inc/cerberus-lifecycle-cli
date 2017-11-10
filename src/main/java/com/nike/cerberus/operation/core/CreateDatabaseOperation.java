@@ -18,7 +18,6 @@ package com.nike.cerberus.operation.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Maps;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
@@ -28,7 +27,6 @@ import com.nike.cerberus.domain.cloudformation.VpcParameters;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
-import com.nike.cerberus.service.Ec2Service;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.RandomStringGenerator;
 import org.slf4j.Logger;
@@ -36,10 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.List;
 import java.util.Map;
 
-import static com.nike.cerberus.ConfigConstants.MINIMUM_AZS;
 import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
@@ -86,15 +82,13 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
 
-        databaseParameters.getTagParameters().setTagEmail(command.getTagsDelegate().getTagEmail());
-        databaseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        databaseParameters.getTagParameters().setTagCostcenter(command.getTagsDelegate().getTagCostcenter());
-
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters, typeReference);
 
         cloudFormationService.createStack(StackName.DATABASE.getFullName(environmentName),
-                parameters, ConfigConstants.DATABASE_STACK_TEMPLATE_PATH, true);    }
+                parameters, ConfigConstants.DATABASE_STACK_TEMPLATE_PATH, true,
+                command.getTagsDelegate().getTags());
+    }
 
     @Override
     public boolean isRunnable(final CreateDatabaseCommand command) {

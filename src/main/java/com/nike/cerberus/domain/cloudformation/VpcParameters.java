@@ -16,12 +16,10 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 /**
  * Represents the vpc stack inputs.
  */
-public class VpcParameters implements TagParameters {
+public class VpcParameters {
 
     private String az1;
 
@@ -38,9 +36,6 @@ public class VpcParameters implements TagParameters {
     private String subnetCidrBlockForAz3;
 
     private String vpcCidrBlock;
-
-    @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
     public String getAz1() {
         return az1;
@@ -111,16 +106,6 @@ public class VpcParameters implements TagParameters {
 
     public VpcParameters setVpcCidrBlock(String vpcCidrBlock) {
         this.vpcCidrBlock = vpcCidrBlock;
-        return this;
-    }
-
-    @Override
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
-    }
-
-    public VpcParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
         return this;
     }
 }
