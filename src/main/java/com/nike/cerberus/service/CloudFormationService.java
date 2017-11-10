@@ -431,7 +431,7 @@ public class CloudFormationService {
         });
 
         tags.add(new Tag()
-                .withKey("name")
+                .withKey("Name")
                 .withValue(ConfigConstants.ENV_PREFIX + environmentMetadata.getName())
         );
 
