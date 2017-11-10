@@ -52,9 +52,9 @@ public class Stack {
     private final String name;
     private final String templatePath;
 
-    private Stack(final String name, final String yamlFileName) {
+    private Stack(final String name, final String cloudFormationFileName) {
         this.name = name;
-        this.templatePath = TEMPLATE_PATH_ROOT + yamlFileName;
+        this.templatePath = TEMPLATE_PATH_ROOT + cloudFormationFileName;
     }
 
     public String getName() {
