@@ -24,7 +24,7 @@ import com.nike.cerberus.command.validator.UploadCertFilesStackNameValidator;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UploadCertFilesOperation;
-import com.nike.cerberus.util.StackNameConverter;
+import com.nike.cerberus.util.StackConverter;
 
 import java.nio.file.Path;
 
@@ -46,7 +46,7 @@ public class UploadCertFilesCommand implements Command {
             required = true,
             description = "Stack name the certificate is for.",
             validateValueWith = UploadCertFilesStackNameValidator.class,
-            converter = StackNameConverter.class)
+            converter = StackConverter.class)
     private Stack stack;
 
     @Parameter(

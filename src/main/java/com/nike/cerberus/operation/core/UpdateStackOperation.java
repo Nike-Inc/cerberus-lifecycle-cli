@@ -178,7 +178,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         if (StringUtils.isNotBlank(command.getStackDelegate().getKeyPairName())) {
             launchConfigParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         }
-        
+
         return cloudformationObjectMapper.convertValue(launchConfigParameters, new TypeReference<Map<String, String>>() {});
     }
 
