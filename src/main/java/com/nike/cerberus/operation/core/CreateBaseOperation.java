@@ -67,16 +67,13 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
         final BaseParameters baseParameters = new BaseParameters()
                 .setAccountAdminArn(command.getAdminRoleArn());
 
-        baseParameters.getTagParameters().setTagEmail(command.getTagParameters().getTagEmail());
-        baseParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        baseParameters.getTagParameters().setTagCostcenter(command.getTagParameters().getTagCostcenter());
-
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
 
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
         cloudFormationService.createStack(StackName.BASE.getFullName(environmentName),
-                parameters, ConfigConstants.BASE_STACK_TEMPLATE_PATH, true);
+                parameters, ConfigConstants.BASE_STACK_TEMPLATE_PATH, true,
+                command.getTagsDelegate().getTags());
 
         configStore.initEnvironmentData();
         configStore.initSecretsData();

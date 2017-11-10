@@ -30,6 +30,7 @@ import com.amazonaws.services.cloudformation.model.Parameter;
 import com.amazonaws.services.cloudformation.model.Stack;
 import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackStatus;
+import com.amazonaws.services.cloudformation.model.Tag;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
 import com.beust.jcommander.internal.Maps;
 import com.github.tomaslanger.chalk.Chalk;
@@ -92,13 +93,15 @@ public class CloudFormationService {
     public String createStack(final String name,
                               final Map<String, String> parameters,
                               final String templatePath,
-                              final boolean iamCapabilities) {
+                              final boolean iamCapabilities,
+                              final Map<String, String> globalTags) {
         logger.info(String.format("Executing the Cloud Formation: %s, Stack Name: %s", templatePath, name));
 
         final CreateStackRequest request = new CreateStackRequest()
                 .withStackName(name)
                 .withParameters(convertParameters(parameters))
-                .withTemplateBody(getTemplateText(templatePath));
+                .withTemplateBody(getTemplateText(templatePath))
+                .withTags(getTags(globalTags));
 
         if (iamCapabilities) {
             request.getCapabilities().add("CAPABILITY_IAM");
@@ -117,8 +120,10 @@ public class CloudFormationService {
      */
     public void updateStack(final String stackId,
                             final Map<String, String> parameters,
-                            final boolean iamCapabilities) {
-        updateStack(stackId, parameters, null, iamCapabilities);
+                            final boolean iamCapabilities,
+                            final Map<String, String> globalTags) {
+
+        updateStack(stackId, parameters, null, iamCapabilities, globalTags);
     }
 
     /**
@@ -131,7 +136,9 @@ public class CloudFormationService {
     public void updateStack(final String stackId,
                             final Map<String, String> parameters,
                             final String templatePath,
-                            final boolean iamCapabilities) {
+                            final boolean iamCapabilities,
+                            final Map<String, String> globalTags) {
+
         final UpdateStackRequest request = new UpdateStackRequest()
                 .withStackName(stackId)
                 .withParameters(convertParameters(parameters));
@@ -145,6 +152,8 @@ public class CloudFormationService {
         if (iamCapabilities) {
             request.getCapabilities().add("CAPABILITY_IAM");
         }
+
+        request.setTags(getTags(globalTags));
 
         cloudFormationClient.updateStack(request);
     }
@@ -407,6 +416,26 @@ public class CloudFormationService {
         }
 
         return stackStatus;
+    }
+
+    /**
+     * Takes a map of key values and converts them to a collection of tags adding more global tags
+     *
+     * @param globalTags a map of user supplied global tags
+     * @return a collection of user and global tags
+     */
+    private Collection<Tag> getTags(Map<String, String> globalTags) {
+        Set<Tag> tags = new HashSet<>();
+        globalTags.forEach((k,v) -> {
+            tags.add(new Tag().withKey(k).withValue(v));
+        });
+
+        tags.add(new Tag()
+                .withKey("name")
+                .withValue(ConfigConstants.ENV_PREFIX + environmentMetadata.getName())
+        );
+
+        return tags;
     }
 
     private String getStatusColor(String status) {

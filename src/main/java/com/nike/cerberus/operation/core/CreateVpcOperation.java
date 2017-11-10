@@ -74,15 +74,13 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
                 .setAz2(azByIdentifier.get(2))
                 .setAz3(azByIdentifier.get(3));
 
-        vpcParameters.getTagParameters().setTagEmail(command.getTagsDelegate().getTagEmail());
-        vpcParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        vpcParameters.getTagParameters().setTagCostcenter(command.getTagsDelegate().getTagCostcenter());
-
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters, typeReference);
 
         cloudFormationService.createStack(StackName.VPC.getFullName(environmentName),
-                parameters, ConfigConstants.VPC_STACK_TEMPLATE_PATH, true);    }
+                parameters, ConfigConstants.VPC_STACK_TEMPLATE_PATH, true,
+                command.getTagsDelegate().getTags());
+    }
 
     @Override
     public boolean isRunnable(final CreateVpcCommand command) {

@@ -16,21 +16,16 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
 /**
  * Represents the security group stack inputs.
  */
-public class SecurityGroupParameters implements TagParameters {
+public class SecurityGroupParameters {
 
     private Integer cmsDbPort;
 
     private String loadBalancerCidrBlock;
 
     private String vpcId;
-
-    @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
     public Integer getCmsDbPort() {
         return cmsDbPort;
@@ -59,12 +54,4 @@ public class SecurityGroupParameters implements TagParameters {
         return this;
     }
 
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
-    }
-
-    public SecurityGroupParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
-        return this;
-    }
 }

@@ -18,6 +18,7 @@ package com.nike.cerberus.command;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 
 import java.util.HashMap;
@@ -42,20 +43,8 @@ public class StackDelegate {
     @Parameter(names = KEY_PAIR_NAME_LONG_ARG, required = true, description = "SSH key pair name.")
     private String keyPairName;
 
-    @Parameter(names = TagParametersDelegate.OWNER_GROUP_LONG_ARG,
-            description = "The owning group for the provision resources. Will be tagged on all resources.",
-            required = true)
-    private String ownerGroup;
-
-    @Parameter(names = TagParametersDelegate.OWNER_EMAIL_LONG_ARG,
-            description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.",
-            required = true)
-    private String ownerEmail;
-
-    @Parameter(names = TagParametersDelegate.COST_CENTER_LONG_ARG,
-            description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.",
-            required = true)
-    private String costcenter;
+    @ParametersDelegate
+    private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
     @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
     private Map<String, String> dynamicParameters = new HashMap<>();
@@ -72,16 +61,8 @@ public class StackDelegate {
         return keyPairName;
     }
 
-    public String getOwnerGroup() {
-        return ownerGroup;
-    }
-
-    public String getOwnerEmail() {
-        return ownerEmail;
-    }
-
-    public String getCostcenter() {
-        return costcenter;
+    public TagParametersDelegate getTagParameters() {
+        return tagParameters;
     }
 
     public Map<String, String> getDynamicParameters() {

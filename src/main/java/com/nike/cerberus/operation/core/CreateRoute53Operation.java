@@ -22,7 +22,6 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.Route53Parameters;
-import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -47,18 +46,14 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
 
     private final CloudFormationService cloudFormationService;
 
-    private final ConfigStore configStore;
-
     private final ObjectMapper cloudFormationObjectMapper;
 
     @Inject
     public CreateRoute53Operation(final EnvironmentMetadata environmentMetadata,
                                        final CloudFormationService cloudFormationService,
-                                       final ConfigStore configStore,
                                        @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
-        this.configStore = configStore;
         this.cloudFormationObjectMapper = cloudformationObjectMapper;
     }
 
@@ -75,7 +70,8 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, typeReference);
 
         cloudFormationService.createStack(StackName.ROUTE53.getFullName(environmentName),
-                parameters, ConfigConstants.ROUTE53_TEMPLATE_PATH, true);
+                parameters, ConfigConstants.ROUTE53_TEMPLATE_PATH, true,
+                command.getTagsDelegate().getTags());
     }
 
     @Override

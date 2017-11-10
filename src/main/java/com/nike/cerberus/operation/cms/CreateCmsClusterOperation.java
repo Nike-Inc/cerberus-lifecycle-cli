@@ -23,17 +23,15 @@ import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
+import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
-import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.store.ConfigStore;
-import com.nike.cerberus.util.UuidSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,12 +103,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         cmsParameters.getLaunchConfigParameters().setAmiId(command.getStackDelegate().getAmiId());
         cmsParameters.getLaunchConfigParameters().setInstanceSize(command.getStackDelegate().getInstanceSize());
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
-        cmsParameters.getLaunchConfigParameters().setUserData(
-                ec2UserDataService.getUserData(StackName.CMS, command.getStackDelegate().getOwnerGroup()));
-
-        cmsParameters.getTagParameters().setTagEmail(command.getStackDelegate().getOwnerEmail());
-        cmsParameters.getTagParameters().setTagName(ConfigConstants.ENV_PREFIX + environmentName);
-        cmsParameters.getTagParameters().setTagCostcenter(command.getStackDelegate().getCostcenter());
+        cmsParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(StackName.CMS));
 
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters, typeReference);
@@ -119,7 +112,8 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         parameters.putAll(command.getStackDelegate().getDynamicParameters());
 
         final String stackId = cloudFormationService.createStack(StackName.CMS.getFullName(environmentName),
-                parameters, ConfigConstants.CMS_STACK_TEMPLATE_PATH, true);
+                parameters, ConfigConstants.CMS_STACK_TEMPLATE_PATH, true,
+                command.getStackDelegate().getTagParameters().getTags());
 
         final StackStatus endStatus =
                 cloudFormationService.waitForStatus(stackId,
