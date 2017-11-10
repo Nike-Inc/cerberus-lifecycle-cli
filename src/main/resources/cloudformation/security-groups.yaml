@@ -99,11 +99,11 @@ Resources:
     Type: AWS::EC2::SecurityGroup
   CmsIngressFromAlb8443:
     Properties:
-      FromPort: 8077
+      FromPort: 8443
       GroupId: !Ref 'CmsSg'
       IpProtocol: tcp
       SourceSecurityGroupId: !Ref 'AlbSg'
-      ToPort: 8077
+      ToPort: 8443
     Type: AWS::EC2::SecurityGroupIngress
   CmsSg:
     Properties:
