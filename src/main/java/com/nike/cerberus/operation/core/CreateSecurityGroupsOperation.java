@@ -74,9 +74,7 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.SECURITY_GROUPS.getFullName(environmentName),
-                parameters, ConfigConstants.SECURITY_GROUPS_STACK_TEMPLATE_PATH, true,
-                command.getTagParameters().getTags());
+        cloudFormationService.createStack(StackName.SECURITY_GROUPS, parameters, true, command.getTagParameters().getTags());
     }
 
     @Override

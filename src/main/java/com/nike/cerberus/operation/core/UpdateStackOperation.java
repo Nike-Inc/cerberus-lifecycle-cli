@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.GatewayParameters;
@@ -60,8 +59,6 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
     private final Map<StackName, Class<? extends LaunchConfigParameters>> stackParameterMap;
 
-    private final Map<StackName, String> stackTemplatePathMap;
-
     private final ConfigStore configStore;
 
     private final CloudFormationService cloudFormationService;
@@ -88,9 +85,6 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         stackParameterMap.put(StackName.CMS, CmsParameters.class);
         stackParameterMap.put(StackName.GATEWAY, GatewayParameters.class);
 
-        stackTemplatePathMap = new HashMap<>();
-        stackTemplatePathMap.put(StackName.BASE, ConfigConstants.BASE_STACK_TEMPLATE_PATH);
-        stackTemplatePathMap.put(StackName.CMS, ConfigConstants.CMS_STACK_TEMPLATE_PATH);
     }
 
     @Override
@@ -109,8 +103,8 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
         // Make sure the given AmiId is for this component. Check if it contains required tag
         // There is no AMI for Base.
-        if ( !command.isSkipAmiTagCheck() && StackName.BASE != command.getStackName() ) {
-            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(),command.getStackName());
+        if (!command.isSkipAmiTagCheck() && StackName.BASE != command.getStackName()) {
+            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), command.getStackName());
         }
 
         parameters.putAll(command.getDynamicParameters());
@@ -118,13 +112,8 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         try {
             logger.info("Starting the update for {}.", command.getStackName().getName());
 
-            if (command.isOverwriteTemplate()) {
-                cloudFormationService.updateStack(stackId, parameters, stackTemplatePathMap.get(command.getStackName()),
-                        true, command.getStackDelegate().getTagParameters().getTags());
-            } else {
-                cloudFormationService.updateStack(stackId, parameters, true,
-                        command.getStackDelegate().getTagParameters().getTags());
-            }
+            cloudFormationService.updateStack(command.getStackName(), parameters,
+                    true, command.isOverwriteTemplate(), command.getStackDelegate().getTagParameters().getTags());
 
             final StackStatus endStatus =
                     cloudFormationService.waitForStatus(stackId,
@@ -136,7 +125,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                                     UPDATE_ROLLBACK_FAILED
                             ));
 
-            if (! ImmutableList.of(UPDATE_COMPLETE, UPDATE_COMPLETE_CLEANUP_IN_PROGRESS).contains(endStatus)) {
+            if (!ImmutableList.of(UPDATE_COMPLETE, UPDATE_COMPLETE_CLEANUP_IN_PROGRESS).contains(endStatus)) {
                 final String errorMessage = String.format("CloudFormation reports that updating the stack was not successful. end status: %s", endStatus.name());
                 logger.error(errorMessage);
 
@@ -191,7 +180,8 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         }
 
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         return cloudformationObjectMapper.convertValue(launchConfigParameters, typeReference);
     }
 

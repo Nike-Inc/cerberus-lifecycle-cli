@@ -51,7 +51,7 @@ public class Environment {
 
     public Environment() {
         stackMap = new HashMap<>();
-        for (StackName stackName : StackName.values()) {
+        for (StackName stackName : StackName.ALL_STACKS) {
             stackMap.put(stackName, "");
         }
 

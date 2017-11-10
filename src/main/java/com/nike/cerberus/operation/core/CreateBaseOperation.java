@@ -71,9 +71,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.BASE.getFullName(environmentName),
-                parameters, ConfigConstants.BASE_STACK_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(StackName.BASE, parameters, true, command.getTagsDelegate().getTags());
 
         configStore.initEnvironmentData();
         configStore.initSecretsData();

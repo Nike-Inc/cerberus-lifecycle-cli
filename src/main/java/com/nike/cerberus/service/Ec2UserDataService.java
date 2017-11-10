@@ -43,12 +43,11 @@ public class Ec2UserDataService {
     }
 
     public String getUserData(final StackName stackName) {
-        switch (stackName) {
-            case CMS:
-                return getCmsUserData();
-            default:
-                throw new IllegalArgumentException("The stack specified does not support user data. stack: "
-                        + stackName.getName());
+        if (stackName.equals(StackName.CMS)) {
+            return getCmsUserData();
+        } else {
+            throw new IllegalArgumentException("The stack specified does not support user data. stack: "
+                    + stackName.getName());
         }
     }
 

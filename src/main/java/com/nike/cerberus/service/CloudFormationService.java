@@ -39,6 +39,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.environment.StackName;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -85,22 +86,19 @@ public class CloudFormationService {
     /**
      * Creates a new stack.
      *
-     * @param name Stack name.
      * @param parameters Input parameters.
-     * @param templatePath Classpath to the JSON template of the stack.
      * @return Stack ID
      */
-    public String createStack(final String name,
+    public String createStack(final StackName stack,
                               final Map<String, String> parameters,
-                              final String templatePath,
                               final boolean iamCapabilities,
                               final Map<String, String> globalTags) {
-        logger.info(String.format("Executing the Cloud Formation: %s, Stack Name: %s", templatePath, name));
+        logger.info(String.format("Executing the Cloud Formation: %s, Stack Name: %s", stack.getTemplatePath(), stack.getFullName(environmentMetadata.getName())));
 
         final CreateStackRequest request = new CreateStackRequest()
-                .withStackName(name)
+                .withStackName(stack.getFullName(environmentMetadata.getName()))
                 .withParameters(convertParameters(parameters))
-                .withTemplateBody(getTemplateText(templatePath))
+                .withTemplateBody(stack.getTemplateText())
                 .withTags(getTags(globalTags));
 
         if (iamCapabilities) {
@@ -111,40 +109,22 @@ public class CloudFormationService {
         return result.getStackId();
     }
 
-    /**
-     * Updates an existing stack by name.
-     *
-     * @param stackId
-     * @param parameters
-     * @param iamCapabilities
-     */
-    public void updateStack(final String stackId,
-                            final Map<String, String> parameters,
-                            final boolean iamCapabilities,
-                            final Map<String, String> globalTags) {
-
-        updateStack(stackId, parameters, null, iamCapabilities, globalTags);
-    }
 
     /**
-     * Updates an existing stack by name.
-     *
-     * @param stackId Stack ID.
-     * @param parameters Input parameters.
-     * @param templatePath Path to the JSON template of the stack.
+     * Updates an existing stack
      */
-    public void updateStack(final String stackId,
+    public void updateStack(final StackName stack,
                             final Map<String, String> parameters,
-                            final String templatePath,
                             final boolean iamCapabilities,
+                            final boolean overwrite,
                             final Map<String, String> globalTags) {
 
         final UpdateStackRequest request = new UpdateStackRequest()
-                .withStackName(stackId)
+                .withStackName(stack.getFullName(environmentMetadata.getName()))
                 .withParameters(convertParameters(parameters));
 
-        if (StringUtils.isNotBlank(templatePath)) {
-            request.withTemplateBody(getTemplateText(templatePath));
+        if (overwrite) {
+            request.withTemplateBody(stack.getTemplateText());
         } else {
             request.withUsePreviousTemplate(true);
         }
@@ -315,28 +295,7 @@ public class CloudFormationService {
         return parameterList;
     }
 
-    /**
-     * Gets the template contents from the file on the classpath.
-     *
-     * @param templatePath Classpath for the template to be read
-     * @return Template contents
-     */
-    public String getTemplateText(final String templatePath) {
-        final InputStream templateStream = getClass().getResourceAsStream(templatePath);
 
-        if (templateStream == null) {
-            throw new IllegalStateException(
-                    String.format("The CloudFormation JSON template doesn't exist on the classpath. path: %s", templatePath));
-        }
-
-        try {
-            return IOUtils.toString(templateStream, ConfigConstants.DEFAULT_ENCODING);
-        } catch (final IOException e) {
-            final String errorMessage = String.format("Unable to read input stream from %s", templatePath);
-            logger.error(errorMessage);
-            throw new RuntimeException(errorMessage, e);
-        }
-    }
 
     /**
      * Since there doesn't appear to be a first class way through the SDK at this time to get a CF export. We can

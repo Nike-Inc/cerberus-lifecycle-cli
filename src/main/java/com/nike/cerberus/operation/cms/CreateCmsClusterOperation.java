@@ -111,8 +111,8 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         // allow user to overwrite CloudFormation parameters with -P option
         parameters.putAll(command.getStackDelegate().getDynamicParameters());
 
-        final String stackId = cloudFormationService.createStack(StackName.CMS.getFullName(environmentName),
-                parameters, ConfigConstants.CMS_STACK_TEMPLATE_PATH, true,
+        final String stackId = cloudFormationService.createStack(StackName.CMS,
+                parameters, true,
                 command.getStackDelegate().getTagParameters().getTags());
 
         final StackStatus endStatus =

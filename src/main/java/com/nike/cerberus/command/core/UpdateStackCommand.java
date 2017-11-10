@@ -26,6 +26,7 @@ import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UpdateStackOperation;
+import com.nike.cerberus.util.StackNameConverter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class UpdateStackCommand implements Command {
     public static final String OVERWRITE_TEMPLATE_LONG_ARG = "--overwrite-template";
     public static final String PARAMETER_SHORT_ARG = "-P";
 
-    @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.")
+    @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.", converter = StackNameConverter.class)
     private StackName stackName;
 
     @ParametersDelegate

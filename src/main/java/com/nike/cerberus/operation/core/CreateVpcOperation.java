@@ -77,9 +77,7 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.VPC.getFullName(environmentName),
-                parameters, ConfigConstants.VPC_STACK_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(StackName.VPC, parameters, true, command.getTagsDelegate().getTags());
     }
 
     @Override

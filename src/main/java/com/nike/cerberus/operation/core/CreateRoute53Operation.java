@@ -69,9 +69,7 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, typeReference);
 
-        cloudFormationService.createStack(StackName.ROUTE53.getFullName(environmentName),
-                parameters, ConfigConstants.ROUTE53_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(StackName.ROUTE53, parameters, true, command.getTagsDelegate().getTags());
     }
 
     @Override

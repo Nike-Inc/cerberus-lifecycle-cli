@@ -22,6 +22,7 @@ import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.environment.StackName;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.PrintStackInfoOperation;
+import com.nike.cerberus.util.StackNameConverter;
 
 import static com.nike.cerberus.command.core.PrintStackInfoCommand.COMMAND_NAME;
 
@@ -35,7 +36,7 @@ public class PrintStackInfoCommand implements Command {
 
     public static final String STACK_NAME_LONG_ARG = "--stack-name";
 
-    @Parameter(names = {STACK_NAME_LONG_ARG}, required = true, description = "The stack name to print information about.")
+    @Parameter(names = {STACK_NAME_LONG_ARG}, required = true, description = "The stack name to print information about.", converter = StackNameConverter.class)
     private StackName stackName;
 
     public StackName getStackName() {

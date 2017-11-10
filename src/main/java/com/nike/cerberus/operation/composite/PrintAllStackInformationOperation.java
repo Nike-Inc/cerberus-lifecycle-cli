@@ -32,7 +32,7 @@ public class PrintAllStackInformationOperation extends CompositeOperation<PrintA
     protected List<ChainableCommand> getCompositeCommandChain() {
         List<ChainableCommand> commandList = new LinkedList<>();
 
-        for (StackName stackName : StackName.values()) {
+        for (StackName stackName : StackName.ALL_STACKS) {
             commandList.add(
                     ChainableCommand.Builder.create()
                             .withCommand(new PrintStackInfoCommand())

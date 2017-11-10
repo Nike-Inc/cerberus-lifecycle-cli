@@ -72,9 +72,7 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.WAF.getFullName(environmentName),
-                parameters, ConfigConstants.WAF_STACK_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(StackName.WAF, parameters, true, command.getTagsDelegate().getTags());
     }
 
     @Override

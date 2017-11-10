@@ -81,9 +81,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters, typeReference);
 
-        cloudFormationService.createStack(StackName.LOAD_BALANCER.getFullName(environmentName),
-                parameters, ConfigConstants.LOAD_BALANCER_STACK_TEMPLATE_PATH, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStack(StackName.LOAD_BALANCER, parameters, true, command.getTagsDelegate().getTags());
     }
 
     @Override
