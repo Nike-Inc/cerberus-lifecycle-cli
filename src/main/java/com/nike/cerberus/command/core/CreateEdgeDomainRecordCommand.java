@@ -18,70 +18,51 @@ package com.nike.cerberus.command.core;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateRoute53Operation;
+import com.nike.cerberus.operation.core.CreateEdgeDomainRecordOperation;
 
-import static com.nike.cerberus.command.core.CreateRoute53Command.COMMAND_NAME;
+import static com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand.COMMAND_NAME;
 
 /**
- * Creates the origin and load balancer Route53 records for Cerberus
+ * Command to create the edge domain Route53 record for Cerberus.
  */
 @Parameters(commandNames = COMMAND_NAME,
         commandDescription = "Create the Route53 record for use by Cerberus")
-public class CreateRoute53Command implements Command {
+public class CreateEdgeDomainRecordCommand implements Command {
 
-    public static final String COMMAND_NAME = "create-route53-stack";
+    public static final String COMMAND_NAME = "create-edge-domain-record";
 
     public static final String BASE_DOMAIN_NAME_LONG_ARG = "--base-domain-name";
 
     public static final String HOSTED_ZONE_ID_LONG_ARG = "--hosted-zone-id";
 
-    public static final String ORIGIN_DOMAIN_NAME_OVERRIDE = "--origin-domain-name-override";
-
-    public static final String LOAD_BALANCER_DOMAIN_NAME_OVERRIDE = "--load-balancer-domain-name-override";
-
-    @ParametersDelegate
-    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
-
-    public TagParametersDelegate getTagsDelegate() {
-        return tagsDelegate;
-    }
+    public static final String EDGE_DOMAIN_NAME_OVERRIDE = "edge-domain-name-override";
 
     @Parameter(names = BASE_DOMAIN_NAME_LONG_ARG,
-            description = "The base hostname for Cerberus (e.g. url: https://env.cerberus.example.com => base hostname: cerberus.example.com)",
+            description = "The base domain name for Cerberus (e.g. url: https://env.cerberus.example.com => base hostname: cerberus.example.com)",
             required = true)
     private String baseDomainName;
+
+    @Parameter(names = EDGE_DOMAIN_NAME_OVERRIDE,
+            description = "Override the edge domain name for Cerberus. Default: env.example.domain.com")
+    private String edgeDomainNameOverride;
 
     @Parameter(names = HOSTED_ZONE_ID_LONG_ARG,
             description = "The Route53 Hosted Zone in which to create the new Cerberus record",
             required = true)
     private String hostedZoneId;
 
-    @Parameter(names = LOAD_BALANCER_DOMAIN_NAME_OVERRIDE,
-            description = "Override the load balancer domain name for Cerberus. Default: env.region.example.domain.com")
-    private String loadBalancerDomainNameOverride;
-
-    @Parameter(names = ORIGIN_DOMAIN_NAME_OVERRIDE,
-            description = "Override the origin domain name for Cerberus. Default: origin.env.example.domain.com")
-    private String originDomainNameOverride;
-
     public String getBaseDomainName() {
         return baseDomainName;
     }
 
-    public String getOriginDomainNameOverride() {
-        return originDomainNameOverride;
+    public String getEdgeDomainNameOverride() {
+        return edgeDomainNameOverride;
     }
 
     public String getHostedZoneId() {
         return hostedZoneId;
-    }
-
-    public String getLoadBalancerDomainNameOverride() {
-        return loadBalancerDomainNameOverride;
     }
 
     @Override
@@ -91,7 +72,7 @@ public class CreateRoute53Command implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return CreateRoute53Operation.class;
+        return CreateEdgeDomainRecordOperation.class;
     }
 
 }

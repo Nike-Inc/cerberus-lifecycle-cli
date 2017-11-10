@@ -32,6 +32,8 @@ public class Environment {
 
     private String az3;
 
+    private String domainName;
+
     private Map<Stack, String> stackMap;
 
     private Map<Stack, String> serverCertificateIdMap;
@@ -84,6 +86,14 @@ public class Environment {
     public Environment setAz3(String az3) {
         this.az3 = az3;
         return this;
+    }
+
+    public String getDomainName() {
+        return domainName;
+    }
+
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
     }
 
     public Map<Stack, String> getStackMap() {

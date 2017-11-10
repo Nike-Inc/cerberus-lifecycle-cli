@@ -20,12 +20,31 @@ package com.nike.cerberus.domain.cloudformation;
  * Represents the route53 stack inputs.
  */
 public class Route53Parameters {
+    private String hostedZoneId;
+
+    private String loadBalancerDomainName;
 
     private String loadBalancerStackName;
 
-    private String hostname;
+    private String originDomainName;
 
-    private String hostedZoneId;
+    public String getHostedZoneId() {
+        return hostedZoneId;
+    }
+
+    public Route53Parameters setHostedZoneId(String hostedZoneId) {
+        this.hostedZoneId = hostedZoneId;
+        return this;
+    }
+
+    public String getLoadBalancerDomainName() {
+        return loadBalancerDomainName;
+    }
+
+    public Route53Parameters setLoadBalancerDomainName(String loadBalancerDomainName) {
+        this.loadBalancerDomainName = loadBalancerDomainName;
+        return this;
+    }
 
     public String getLoadBalancerStackName() {
         return loadBalancerStackName;
@@ -36,21 +55,12 @@ public class Route53Parameters {
         return this;
     }
 
-    public String getHostname() {
-        return hostname;
+    public String getOriginDomainName() {
+        return originDomainName;
     }
 
-    public Route53Parameters setHostname(String hostname) {
-        this.hostname = hostname;
-        return this;
-    }
-
-    public String getHostedZoneId() {
-        return hostedZoneId;
-    }
-
-    public Route53Parameters setHostedZoneId(String hostedZoneId) {
-        this.hostedZoneId = hostedZoneId;
+    public Route53Parameters setOriginDomainName(String originDomainName) {
+        this.originDomainName = originDomainName;
         return this;
     }
 }

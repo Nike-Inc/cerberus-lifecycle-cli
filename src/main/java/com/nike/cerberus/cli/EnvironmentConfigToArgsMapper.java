@@ -294,9 +294,9 @@ public class EnvironmentConfigToArgsMapper {
     private static List<String> getCreateRoute53CommandArgs(EnvironmentConfig config) {
         List<String> args = new LinkedList<>();
 
-        args.add(CreateRoute53Command.HOSTNAME_LONG_ARG);
+        args.add(CreateRoute53Command.BASE_DOMAIN_NAME_LONG_ARG);
         args.add(config.getHostname());
-        args.add(CreateRoute53Command.HOSTED_ZONE_ID);
+        args.add(CreateRoute53Command.HOSTED_ZONE_ID_LONG_ARG);
         args.add(config.getHostedZoneId());
 
         return args;
