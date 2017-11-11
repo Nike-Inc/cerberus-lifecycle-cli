@@ -106,4 +106,22 @@ public class Stack {
         throw new IllegalArgumentException("Unknown stack name: " + name);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Stack stack = (Stack) o;
+
+        if (!name.equals(stack.name)) return false;
+        return templatePath.equals(stack.templatePath);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + templatePath.hashCode();
+        return result;
+    }
 }
