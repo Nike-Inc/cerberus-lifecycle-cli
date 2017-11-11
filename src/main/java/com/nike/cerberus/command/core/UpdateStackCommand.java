@@ -21,7 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.command.StackDelegate;
+import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UpdateStackOperation;
@@ -31,8 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.nike.cerberus.command.core.UpdateStackCommand.COMMAND_NAME;
-import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
-import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
+import static com.nike.cerberus.domain.environment.Stack.ALL_STACK_NAMES;
 
 
 /**
@@ -49,15 +48,15 @@ public class UpdateStackCommand implements Command {
     private Stack stack;
 
     @ParametersDelegate
-    private StackDelegate stackDelegate = new StackDelegate();
+    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
+
+    public TagParametersDelegate getTagsDelegate() {
+        return tagsDelegate;
+    }
 
     @Parameter(names = OVERWRITE_TEMPLATE_LONG_ARG,
             description = "Flag for overwriting existing CloudFormation template")
     private boolean overwriteTemplate;
-
-    @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
-            description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
-    private boolean skipAmiTagCheck;
 
     @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
     private Map<String, String> dynamicParameters = new HashMap<>();
@@ -66,20 +65,12 @@ public class UpdateStackCommand implements Command {
         return stack;
     }
 
-    public StackDelegate getStackDelegate() {
-        return stackDelegate;
-    }
-
     public boolean isOverwriteTemplate() {
         return overwriteTemplate;
     }
 
     public Map<String, String> getDynamicParameters() {
         return dynamicParameters;
-    }
-
-    public boolean isSkipAmiTagCheck() {
-        return skipAmiTagCheck;
     }
 
     @Override
