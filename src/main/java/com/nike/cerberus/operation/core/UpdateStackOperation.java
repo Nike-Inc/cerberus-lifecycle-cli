@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
@@ -71,6 +72,13 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         // only some stacks need user data
         if (command.getStack().needsUserData()) {
             parameters.put("userData", ec2UserDataService.getUserData(command.getStack()));
+        }
+
+        if (Stack.CMS.equals(command.getStack())) {
+            // TODO: tag check
+        } else if (Stack.DATABASE.equals(command.getStack())) {
+            // TODO: implement storing password if it was changed
+            //configStore.storeCmsDatabasePassword(databasePassword);
         }
         parameters.putAll(command.getDynamicParameters());
 
