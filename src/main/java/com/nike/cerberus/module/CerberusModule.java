@@ -62,7 +62,6 @@ import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.ProxyDelegate;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
-import com.nike.cerberus.util.TokenSupplier;
 import com.nike.cerberus.util.UuidSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -184,12 +183,6 @@ public class CerberusModule extends AbstractModule {
     @Singleton
     public MustacheFactory mustacheFactory() {
         return new DefaultMustacheFactory();
-    }
-
-    @Provides
-    @Singleton
-    public TokenSupplier tokenSupplier() {
-        return new TokenSupplier();
     }
 
     @Provides
