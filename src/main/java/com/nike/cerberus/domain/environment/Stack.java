@@ -25,24 +25,27 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.stream.Collectors;
 
 /**
  * Describes the stacks that make up Cerberus.
  */
 public class Stack {
 
-    public static final Stack BASE = new Stack("base", "base.yaml");
-    public static final Stack VAULT = new Stack("vault", null);
-    public static final Stack CMS = new Stack("cms", "cms-cluster.yaml");
-    public static final Stack GATEWAY = new Stack("gateway", null);
-    public static final Stack VPC = new Stack("vpc", "vpc.yaml");
-    public static final Stack DATABASE = new Stack("database", "database.yaml");
-    public static final Stack SECURITY_GROUPS = new Stack("security-groups", "security-groups.yaml");
-    public static final Stack LOAD_BALANCER = new Stack("load-balancer", "load-balancer.yaml");
-    public static final Stack ROUTE53 = new Stack("route53", "route53.yaml");
-    public static final Stack WAF = new Stack("web-app-firewall", "web-app-firewall.yaml");
+    public static final Stack BASE = new Stack("base", "base.yaml", false);
+    public static final Stack VAULT = new Stack("vault", null, false);
+    public static final Stack CMS = new Stack("cms", "cms-cluster.yaml", true);
+    public static final Stack GATEWAY = new Stack("gateway", null, false);
+    public static final Stack VPC = new Stack("vpc", "vpc.yaml", false);
+    public static final Stack DATABASE = new Stack("database", "database.yaml", false);
+    public static final Stack SECURITY_GROUPS = new Stack("security-groups", "security-groups.yaml", false);
+    public static final Stack LOAD_BALANCER = new Stack("load-balancer", "load-balancer.yaml", false);
+    public static final Stack ROUTE53 = new Stack("route53", "route53.yaml", false);
+    public static final Stack WAF = new Stack("web-app-firewall", "web-app-firewall.yaml", false);
 
     public static final ImmutableList<Stack> ALL_STACKS = ImmutableList.of(BASE, VAULT, CMS, GATEWAY, VPC, DATABASE, SECURITY_GROUPS, LOAD_BALANCER, ROUTE53, WAF);
+
+    public static final ImmutableList<String> ALL_STACK_NAMES = ImmutableList.copyOf(ALL_STACKS.stream().map(Stack::getName).collect(Collectors.toList()));
 
     private static final String TEMPLATE_PATH_ROOT = "/cloudformation/";
 
@@ -51,19 +54,30 @@ public class Stack {
 
     private final String name;
     private final String templatePath;
+    private final boolean needsUserData;
 
-    private Stack(final String name, final String cloudFormationFileName) {
+
+    private Stack(final String name,
+                  final String cloudFormationFileName,
+                  final boolean needsUserData) {
         this.name = name;
         this.templatePath = TEMPLATE_PATH_ROOT + cloudFormationFileName;
+        this.needsUserData = needsUserData;
     }
 
     public String getName() {
         return name;
     }
 
+
     public String getTemplatePath() {
         return templatePath;
     }
+
+    public boolean needsUserData() {
+        return needsUserData;
+    }
+
     /**
      * Gets the template contents from the file on the classpath.
      *
@@ -74,7 +88,7 @@ public class Stack {
 
         if (templateStream == null) {
             throw new IllegalStateException(
-                    String.format("The CloudFormation JSON template doesn't exist on the classpath. path: %s", templatePath));
+                    String.format("The CloudFormation JSON template doesn't exist on the classpath for stack %s, path: %s", name, templatePath));
         }
 
         try {
@@ -98,12 +112,12 @@ public class Stack {
 
     public static Stack fromName(final String name) {
         for (Stack stack : ALL_STACKS) {
+            // ignore case and all enum style stack names
             if (stack.getName().equalsIgnoreCase(StringUtils.replaceAll(name,"_", "-"))) {
                 return stack;
             }
         }
-
-        throw new IllegalArgumentException("Unknown stack name: " + name);
+        throw new IllegalArgumentException("Unknown stack name '" + name + "', please choose from " + ALL_STACK_NAMES);
     }
 
     @Override
