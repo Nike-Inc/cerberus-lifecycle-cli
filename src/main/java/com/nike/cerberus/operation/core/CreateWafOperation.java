@@ -92,7 +92,8 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
         try {
             cloudFormationService.getStackId(Stack.LOAD_BALANCER.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
-            throw new IllegalStateException("The load balancer stack must exist to create the WAF!", iae);
+            logger.error("The load balancer stack must exist to create the WAF!");
+            return false;
         }
 
         return ! cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName));

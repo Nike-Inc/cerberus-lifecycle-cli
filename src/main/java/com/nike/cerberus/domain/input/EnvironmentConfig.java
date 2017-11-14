@@ -17,25 +17,33 @@
 package com.nike.cerberus.domain.input;
 
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Stores all YAML data for a given Cerberus environment
  */
 public class EnvironmentConfig {
 
     private String version;
-    private ProxyConfig proxyConfig;
     private String environmentName;
-    private String region;
-    private String costCenter;
-    private String ownerEmail;
-    private String ownerGroup;
+    private String primaryRegion;
+    private Map<String, String> globalTags;
     private String adminRoleArn;
-    private String vpcHostedZoneName;
-    private String hostname;
+    private String baseDomainName;
+    private String edgeDomainNameOverride;
+    private String originDomainNameOverride;
+    private String loadBalancerDomainNameOverride;
+    private String loadBalancerSslPolicyOverride;
+    private List<String> additionalSubjectNames;
     private String hostedZoneId;
     private VpcAccessWhitelist vpcAccessWhitelist;
+    private boolean generateKeysAndCerts;
+    private String acmeApiUrl;
+    private boolean enableLeCertFix;
+    private String acmeContactEmail;
+    private String localFolderToStoreCerts;
     private ManagementService managementService;
-    private SecurityGroups securityGroups;
 
     public String getVersion() {
         return version;
@@ -43,14 +51,6 @@ public class EnvironmentConfig {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public ProxyConfig getProxyConfig() {
-        return proxyConfig;
-    }
-
-    public void setProxyConfig(ProxyConfig proxyConfig) {
-        this.proxyConfig = proxyConfig;
     }
 
     public String getEnvironmentName() {
@@ -61,36 +61,20 @@ public class EnvironmentConfig {
         this.environmentName = environmentName;
     }
 
-    public String getRegion() {
-        return region;
+    public String getPrimaryRegion() {
+        return primaryRegion;
     }
 
-    public void setRegion(String region) {
-        this.region = region;
+    public void setPrimaryRegion(String primaryRegion) {
+        this.primaryRegion = primaryRegion;
     }
 
-    public String getCostCenter() {
-        return costCenter;
+    public Map<String, String> getGlobalTags() {
+        return globalTags;
     }
 
-    public void setCostCenter(String costCenter) {
-        this.costCenter = costCenter;
-    }
-
-    public String getOwnerEmail() {
-        return ownerEmail;
-    }
-
-    public void setOwnerEmail(String ownerEmail) {
-        this.ownerEmail = ownerEmail;
-    }
-
-    public String getOwnerGroup() {
-        return ownerGroup;
-    }
-
-    public void setOwnerGroup(String ownerGroup) {
-        this.ownerGroup = ownerGroup;
+    public void setGlobalTags(Map<String, String> globalTags) {
+        this.globalTags = globalTags;
     }
 
     public String getAdminRoleArn() {
@@ -101,20 +85,52 @@ public class EnvironmentConfig {
         this.adminRoleArn = adminRoleArn;
     }
 
-    public String getVpcHostedZoneName() {
-        return vpcHostedZoneName;
+    public String getBaseDomainName() {
+        return baseDomainName;
     }
 
-    public void setVpcHostedZoneName(String vpcHostedZoneName) {
-        this.vpcHostedZoneName = vpcHostedZoneName;
+    public void setBaseDomainName(String baseDomainName) {
+        this.baseDomainName = baseDomainName;
     }
 
-    public String getHostname() {
-        return hostname;
+    public String getEdgeDomainNameOverride() {
+        return edgeDomainNameOverride;
     }
 
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
+    public void setEdgeDomainNameOverride(String edgeDomainNameOverride) {
+        this.edgeDomainNameOverride = edgeDomainNameOverride;
+    }
+
+    public String getOriginDomainNameOverride() {
+        return originDomainNameOverride;
+    }
+
+    public void setOriginDomainNameOverride(String originDomainNameOverride) {
+        this.originDomainNameOverride = originDomainNameOverride;
+    }
+
+    public String getLoadBalancerDomainNameOverride() {
+        return loadBalancerDomainNameOverride;
+    }
+
+    public void setLoadBalancerDomainNameOverride(String loadBalancerDomainNameOverride) {
+        this.loadBalancerDomainNameOverride = loadBalancerDomainNameOverride;
+    }
+
+    public String getLoadBalancerSslPolicyOverride() {
+        return loadBalancerSslPolicyOverride;
+    }
+
+    public void setLoadBalancerSslPolicyOverride(String loadBalancerSslPolicyOverride) {
+        this.loadBalancerSslPolicyOverride = loadBalancerSslPolicyOverride;
+    }
+
+    public List<String> getAdditionalSubjectNames() {
+        return additionalSubjectNames;
+    }
+
+    public void setAdditionalSubjectNames(List<String> additionalSubjectNames) {
+        this.additionalSubjectNames = additionalSubjectNames;
     }
 
     public String getHostedZoneId() {
@@ -133,19 +149,51 @@ public class EnvironmentConfig {
         this.vpcAccessWhitelist = vpcAccessWhitelist;
     }
 
+    public boolean isGenerateKeysAndCerts() {
+        return generateKeysAndCerts;
+    }
+
+    public void setGenerateKeysAndCerts(boolean generateKeysAndCerts) {
+        this.generateKeysAndCerts = generateKeysAndCerts;
+    }
+
+    public String getAcmeApiUrl() {
+        return acmeApiUrl;
+    }
+
+    public void setAcmeApiUrl(String acmeApiUrl) {
+        this.acmeApiUrl = acmeApiUrl;
+    }
+
+    public boolean isEnableLeCertFix() {
+        return enableLeCertFix;
+    }
+
+    public void setEnableLeCertFix(boolean enableLeCertFix) {
+        this.enableLeCertFix = enableLeCertFix;
+    }
+
+    public String getAcmeContactEmail() {
+        return acmeContactEmail;
+    }
+
+    public void setAcmeContactEmail(String acmeContactEmail) {
+        this.acmeContactEmail = acmeContactEmail;
+    }
+
+    public String getLocalFolderToStoreCerts() {
+        return localFolderToStoreCerts;
+    }
+
+    public void setLocalFolderToStoreCerts(String localFolderToStoreCerts) {
+        this.localFolderToStoreCerts = localFolderToStoreCerts;
+    }
+
     public ManagementService getManagementService() {
         return managementService;
     }
 
     public void setManagementService(ManagementService managementService) {
         this.managementService = managementService;
-    }
-
-    public SecurityGroups getSecurityGroups() {
-        return securityGroups;
-    }
-
-    public void setSecurityGroups(SecurityGroups securityGroups) {
-        this.securityGroups = securityGroups;
     }
 }

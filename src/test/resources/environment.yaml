@@ -1,59 +1,138 @@
 version: 1
-# proxy information
-# You only need to configure this, if you plan on white listing proxy boxes and will need to jump
-# through them to talk to the instances that will live in the Cerberus VPC
-# If your not using a proxy either delete this section or make type = DIRECT for direct connecting
-proxy-config:
-  host: localhost
-  port: 9000
-  # [DIRECT, HTTP, SOCKS]
-  type: SOCKS
 
 # The name of the environment
 environment-name: demo
-# The region the environment will run in
-region: us-west-2
-# Costcenter for where to bill provisioned resources. Will be tagged on all resources.
-cost-center: 11111
-# The e-mail for who owns the provisioned resources. Will be tagged on all resources.
-owner-email: obvisouly.fake@nike.com
-# The owning group for the provision resources. Will be tagged on all resources.
-owner-group: engineering team name
 
-# A IAM role ARN that will be given elevated privileges for the KMS CMK created.,
-# If you don't separate root access from admins just use the root role here
-admin-role-arn: arn:aws:iam::111111111:role/onelogin-roles-OneLoginAdminRole-2222222222
-# The Route 53 hosted zone name that will be created for CNAME records used by internal ELBs.
-vpc-hosted-zone-name: demo.internal.cerberus-oss.io
-# The hostname that will be exposed for Cerberus
-hostname: demo.cerberis-oss.io
-# The hostedZoneId that will allow the registration of the hostname
+# The primary region the environment will run in, this is where the ASG and all region specific resources will be created.
+primary-region: us-west-2
+
+# Optional map of tags that will be applied to any resource created by the CloudFormation Service in this CLI
+global-tags:
+  # Name: cerberus-{env} is automatically added to this map
+  cost-center: 11111
+  owner-email: obvisouly.fake@nike.com
+  owner-group: engineering-team-name
+
+# A IAM role ARN that will be given elevated privileges for the KMS CMK created.
+admin-role-arn: arn:aws:iam::111111111:role/admin
+
+# This is used to create DNS records and TLS certificates
+# By default the following records will be created
+# {environment-name}.{base-domain} ex: demo.example.com
+# origin.{environment-name}.{base-domain} ex: origin.demo.example.com
+# {environment-name}.{primary-primaryRegion}.{base-domain} ex: demo.us-west-2.example.com
+# In this example:
+#      demo.example.com points to origin.demo.example.com
+#      origin.demo.example points to demo.us-west-2.example.com
+#      demo.us-west-2.example.com points to the ALB
+# This extra hop allows for more flexibility in future infrastructure operations
+base-domain-name: example.com
+
+# Edge domain name defaults to {environment}.{base-domain}
+edge-domain-name-override: new-demo.example.com
+# Origin domain name defaults to origin.{environment-name}.{base-domain} override it here
+origin-domain-name-override: origin.new-demo.demo.com
+# Load balancer domain name defaults to {environment-name}.{primary-primaryRegion}.{base-domain} override it here
+load-balancer-domain-name-override: new-demo.us-west-2.demo.com
+
+# Add additional subject names to the generated cert
+# For example if your standing up a new architecture edition of Cerberus and you still have the existing env up you can add those domains
+# here so your certificates are still valid when you cut over the edge domain name to the old domain name.
+additional-subject-names:
+  - demo.example.com
+  - origin.demo.example.com
+  - demo.us-west-2.example.com
+  - demo.us-east-1.example.com
+
+# The SSL Policy that will get applied to the application load balancer
+# see http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html
+# If this is not defined than we default to 'TLS-1-2-2017-01' in the old cerberus arch we defaulted to
+# 'ELBSecurityPolicy-2016-08' if you have clients running on deprecated Java versions and need to maintain tls 1.0 and
+# 1.1 support use ELBSecurityPolicy-2016-08
+# load-balancer-ssl-policy-override: ELBSecurityPolicy-2016-08
+
+# The hosted zone id that will allow the registration of the above domain names
 hosted-zone-id: X5CT6JROG9F2DR
 
-# Here we can define the ports and CIDRs that we want to allow ingress into the Cerberus env VPC
-# You can add your current ip or proxy boxes here and use the above proxy config
-vpc-access-whitelist:
-  ports:
-    - 443
-    - 8080
-    - 8200
-    - 8500
-    - 8400
-    - 22
-  cidrs:
-    - 50.39.106.150/32
+# If you wish to use your own certs set this to false or else fill out the ACME api information
+# Else if you are providing your own keys and certs the following files are required.
+#
+# domain-private-key-pkcs1.pem - Used by the ALB
+#       The private key in pkcs1 pem format used to sign your csr when generating your certs.
+#       PKCS #1 keys are human readable files that look like the following
+#       -----BEGIN RSA PRIVATE KEY-----
+#       ...
+#       -----END RSA PRIVATE KEY-----
+#
+# domain-private-key-pkcs8.pem - Used by CMS to secure the connection between the ALB and the Java Netty web server
+#       The same private key as above but in pkcs8 pem format
+#       PKCS #8 keys are human readable files that look like the following
+#       -----BEGIN PRIVATE KEY-----
+#       ...
+#       -----END PRIVATE KEY-----
+#
+# domain-public-key.pem - Used by the ALB
+#       The public key for the above private key in PKCS1 pem format
+#       PKCS #1 pem keys are human readable files that look like the following
+#       -----BEGIN RSA PUBLIC KEY-----
+#       ...
+#       -----END RSA PUBLIC KEY-----
+#
+# domain-cert.crt - Used by the ALB and CMS
+#       The x509 certificate
+#
+# chain.crt - Used by the ALB
+#       The x509 certificate chain
+#
+generate-keys-and-certs: true
+# API URL to an ACME provider, if not a special ACME url, should end in /directory
+# The ACME provider must support DNS-01 domain verification challenges such as the LetsEncrypt Boulder ACME V1 impl.
+# LetsEncrypt is a free, automated, and open Certificate Authority, visit https://letsencrypt.org/ for more info.
+#acme-api-url: acme://letsencrypt.org/staging #For testing.
+acme-api-url: acme://letsencrypt.org
+# If you use LetsEncrypt and don't have their certs installed in your trust store you can set this
+# to true to use a hardcoded cert provided by the acme4j client, or visit https://letsencrypt.org/certificates/
+enable-le-cert-fix: true
+# Contact email to send to ACME provider when creating certs
+acme-contact-email: justin.field@example.com
+# Folder to save generated files
+local-folder-to-store-certs: /path/to/saved/certs/demo/certs/
 
+# Cerberus Management Service Config
 management-service:
-  cert-path: /home/fieldju/development/cerberus_environments/demo/certs/
+  # The path to the certs, if you are generating the certs using an ACME provider
+  # just simply make this the same value as local-folder-to-store-certs or use the path to the certs you
+  # created outside this CLI. See the comment header above generate-keys-and-certs for required files.
+  cert-path: /path/to/saved/certs/demo/certs/
+  # The ami id for CMS, see https://github.com/Nike-Inc/cerberus-util-scripts to bake an ami
   ami-id: ami-3333
   instance-size: m3.medium
   key-pair-name: cerberus-test
   # Group that has admin privileges in CMS.
-  admin-group: lst-cerberus-admins
+  admin-group: cerberus-admins
+  # Cerberus uses the Amazon encryption library backed by KMS to encrypt secure data, this library supports encrypting
+  # data with data keys created by multiple KMS CMKs to make the data more highly available in case of region outage.
+  # Cerberus requires at least 1 additional region for CMK creation, the primary region is used automatically
+  additional-encryption-cmk-regions:
+    - us-east-1
   # Dynamic parameters for setting additional properties in the CMS
+  # See https://github.com/Nike-Inc/cerberus-management-service#configurable-properties
+  # Also see https://github.com/Nike-Inc/cerberus-management-service/blob/master/src/main/resources/cms.conf
+  # In general any property can be overridden here for the initial setup, some of the config in cms.conf cannot be overridden.
+  # Future changes can be made with the update-cms-config command.
+  # To view the current config you can use cerberus -e env -r us-west-2 view-config --config-path data/cms/environment.properties
   properties:
     - cms.auth.connector=com.nike.cerberus.auth.connector.onelogin.OneLoginAuthConnector
     - auth.connector.onelogin.api_region=us
     - auth.connector.onelogin.client_id=123
     - auth.connector.onelogin.client_secret=312
-    - auth.connector.onelogin.subdomain=nike
+    - auth.connector.onelogin.subdomain=example
+
+# Here we can define the ports and CIDRs that we want to allow ingress into the Cerberus VPC for this environment
+# You can add your current ip or proxy boxes here and use the above proxy config
+vpc-access-whitelist:
+  ports:
+    - 8443 #CMS SSL Port for health check rolling reboot command
+    - 22 #SSH
+  cidrs:
+    - 50.39.106.150/32

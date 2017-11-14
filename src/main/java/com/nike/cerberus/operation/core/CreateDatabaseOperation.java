@@ -108,7 +108,8 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
         try {
             cloudFormationService.getStackId(Stack.SECURITY_GROUPS.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
-            throw new IllegalStateException("The load balancer stack must exist to create the Route53 record!", iae);
+            logger.error("The security group stack must exist to create the the data base stack!");
+            return false;
         }
 
         return !cloudFormationService.isStackPresent(Stack.DATABASE.getFullName(environmentName));

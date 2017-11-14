@@ -31,6 +31,7 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
+import com.nike.cerberus.command.composite.CreateCerberusEnvironmentCommand;
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
@@ -186,6 +187,7 @@ public class CerberusRunner {
         registerCommand(new CreateSecurityGroupsCommand());
         registerCommand(new CreateLoadBalancerCommand());
         registerCommand(new CreateEdgeDomainRecordCommand());
+        registerCommand(new CreateCerberusEnvironmentCommand());
     }
 
     /**

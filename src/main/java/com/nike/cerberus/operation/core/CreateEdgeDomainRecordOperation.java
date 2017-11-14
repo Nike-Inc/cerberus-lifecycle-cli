@@ -75,10 +75,8 @@ public class CreateEdgeDomainRecordOperation implements Operation<CreateEdgeDoma
         final String environmentName = environmentMetadata.getName();
         final String recordSetName = getEdgeDomainName(command.getBaseDomainName(), command.getEdgeDomainNameOverride());
 
-        try {
-            cloudFormationService.getStackId(Stack.ROUTE53.getFullName(environmentName));
-        } catch (IllegalArgumentException iae) {
-            throw new IllegalStateException("The load balancer stack must exist to create the Route53 record!", iae);
+        if (cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName))) {
+            return false;
         }
 
         return !route53Service.recordSetWithNameAlreadyExists(recordSetName, command.getHostedZoneId());
