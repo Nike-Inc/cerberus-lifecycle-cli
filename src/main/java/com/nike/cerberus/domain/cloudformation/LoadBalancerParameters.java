@@ -34,6 +34,8 @@ public class LoadBalancerParameters {
 
     private String vpcSubnetIdForAz3;
 
+    private String sslPolicy;
+
     public String getSgStackName() {
         return sgStackName;
     }
@@ -88,4 +90,12 @@ public class LoadBalancerParameters {
         return this;
     }
 
+    public String getSslPolicy() {
+        return sslPolicy;
+    }
+
+    public LoadBalancerParameters setSslPolicy(String sslPolicy) {
+        this.sslPolicy = sslPolicy;
+        return this;
+    }
 }

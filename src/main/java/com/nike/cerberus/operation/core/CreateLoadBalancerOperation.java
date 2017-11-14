@@ -81,6 +81,10 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
 
+        if (StringUtils.isNotBlank(command.getLoadBalancerSslPolicyOverride())) {
+            loadBalancerParameters.setSslPolicy(command.getLoadBalancerSslPolicyOverride());
+        }
+
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters, typeReference);
 
@@ -101,7 +105,8 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
         try {
             cloudFormationService.getStackId(Stack.SECURITY_GROUPS.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
-            throw new IllegalStateException("The security group stack must exist to create the load balancer!", iae);
+            logger.error("The security group stack must exist to create the load balancer!");
+            return false;
         }
 
         return ! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName));
