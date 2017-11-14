@@ -28,9 +28,9 @@ public class Environment {
 
     private String domainName;
 
-    private Map<String, String> stackMap;
+    private Map<Stack, String> stackMap;
 
-    private Map<String, String> serverCertificateIdMap;
+    private Map<Stack, String> serverCertificateIdMap;
 
     private String configKeyId;
 
@@ -43,11 +43,11 @@ public class Environment {
     public Environment() {
         stackMap = new HashMap<>();
         for (Stack stack : Stack.ALL_STACKS) {
-            stackMap.put(stack.getName(), "");
+            stackMap.put(stack, "");
         }
 
         serverCertificateIdMap = new HashMap<>();
-        serverCertificateIdMap.put(Stack.CMS.getName(), "");
+        serverCertificateIdMap.put(Stack.CMS, "");
     }
 
     public String getDomainName() {
@@ -58,11 +58,11 @@ public class Environment {
         this.domainName = domainName;
     }
 
-    public Map<String, String> getStackMap() {
+    public Map<Stack, String> getStackMap() {
         return stackMap;
     }
 
-    public Map<String, String> getServerCertificateIdMap() {
+    public Map<Stack, String> getServerCertificateIdMap() {
         return serverCertificateIdMap;
     }
 
