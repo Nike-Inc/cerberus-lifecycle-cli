@@ -68,30 +68,9 @@ public abstract class CompositeOperation<T extends Command> implements Operation
      */
     @SuppressWarnings("unchecked")
     public void run(T compositeCommand) {
-        runnableChainedCommands.forEach(chainableCommand -> {
-            Command chainedCommand = chainableCommand.getCommand();
-            Operation chainedOperation = chainableCommand.getOperation();
-            log.info("Attempting to run command: {}", chainedCommand.getCommandName());
-            try {
-                chainedOperation.run(chainedCommand);
-            } catch (Throwable e) {
-                throw new RuntimeException("Failed to execute chained command: " + chainedCommand.getCommandName(), e);
-            }
-            log.info("Finished command: {}", chainedCommand.getCommandName());
-
-        });
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * Gets the command chain from the implementing class and iterates over every chained command operation to make sure
-     * they are runnable, if any operation is not runnable this will return false
-     */
-    public boolean isRunnable(T command) {
-        if (getIsEnvironmentConfigRequired() && environmentConfig == null) {
+        if (isEnvironmentConfigRequired() && environmentConfig == null) {
             throw new RuntimeException(String.format("The %s command requires that -f or --file must be supplied as a global option with " +
-                    "a path to a valid environment yaml", command.getCommandName()));
+                    "a path to a valid environment yaml", compositeCommand.getCommandName()));
         }
 
         for (ChainableCommand chainableCommand : getCompositeCommandChain()) {
@@ -119,16 +98,24 @@ public abstract class CompositeOperation<T extends Command> implements Operation
 
             // If the given command is not runnable return false for the whole chain
             //noinspection unchecked
-            if (! operation.isRunnable(chainedCommand)) {
-                return false;
+            boolean isRunnable = operation.isRunnable(chainedCommand);
+            if (! isRunnable) {
+                if (! skipOnNotRunnable()) {
+                    throw new RuntimeException("The command: " + chainedCommand.getCommandName() + " is not runnable, breaking the chain");
+                } else {
+                    log.info("The command {} reports that it is not runnable, skipping...", chainedCommand.getCommandName());
+                    continue;
+                }
             }
 
-            // If the given command is runnable add the guice created operation to the object and add the command to the runnable list
-            log.debug("Command: {} with Args: {} is runnable, adding to runnable list", chainedCommand.getCommandName(), args);
-            chainableCommand.setOperation(operation);
-            runnableChainedCommands.add(chainableCommand);
+            log.info("Attempting to run command: {}, with args: {}", chainedCommand.getCommandName(), args);
+            try {
+                operation.run(chainedCommand);
+            } catch (Throwable e) {
+                throw new RuntimeException("Failed to execute chained command: " + chainedCommand.getCommandName(), e);
+            }
+            log.info("Finished command: {}\n", chainedCommand.getCommandName());
         }
-        return true;
     }
 
     /**
@@ -143,7 +130,21 @@ public abstract class CompositeOperation<T extends Command> implements Operation
      *
      * @return boolean of whether or not the environment yaml is required.
      */
-    public boolean getIsEnvironmentConfigRequired() {
+    public boolean isEnvironmentConfigRequired() {
         return true;
+    }
+
+    /**
+     * If your chain of commands doesn't need every command to run to succeed you can override this to tru.
+     *
+     * For example you could have a chain of commands that is long and complicated and commands that have completed will
+     * return isRunnable: false on future runs, setting this to return true would just mean that the command that is
+     * already run will be skipped moving on to commands that are still needing to be ran. Allowing you to run a
+     * complicated composite command as many times as needed to succeed
+     *
+     * @return boolean of whether or not to fail the command if a command in the chain returns false for isRunnable
+     */
+    public boolean skipOnNotRunnable() {
+        return false;
     }
 }
