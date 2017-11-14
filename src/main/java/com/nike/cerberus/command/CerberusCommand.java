@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nike.cerberus.command.validator.EnvironmentNameValidator;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
-import com.nike.cerberus.domain.input.ProxyConfig;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -155,24 +154,7 @@ public class CerberusCommand {
         return version;
     }
 
-    /**
-     * Load poxy config from args first then look to replace them with yaml.
-     */
     public ProxyDelegate getProxyDelegate() {
-
-        if (getEnvironmentConfig() != null && getEnvironmentConfig().getProxyConfig() != null) {
-            ProxyConfig environmentYamlProxyConfig = getEnvironmentConfig().getProxyConfig();
-            if (StringUtils.isBlank(proxyDelegate.getProxyHost()) && StringUtils.isNotBlank(environmentYamlProxyConfig.getHost())) {
-                proxyDelegate.setProxyHost(environmentYamlProxyConfig.getHost());
-            }
-            if (proxyDelegate.getProxyPort() == null && environmentYamlProxyConfig.getPort() != null) {
-                proxyDelegate.setProxyPort(environmentYamlProxyConfig.getPort());
-            }
-            if (proxyDelegate.getProxyType() == null && environmentYamlProxyConfig.getType() != null) {
-                proxyDelegate.setProxyType(environmentYamlProxyConfig.getType());
-            }
-        }
-
         return proxyDelegate;
     }
 }

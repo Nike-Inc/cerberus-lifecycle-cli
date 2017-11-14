@@ -26,7 +26,6 @@ import java.util.Map;
 public class EnvironmentConfig {
 
     private String version;
-    private ProxyConfig proxyConfig;
     private String environmentName;
     private String primaryRegion;
     private Map<String, String> globalTags;
@@ -52,14 +51,6 @@ public class EnvironmentConfig {
 
     public void setVersion(String version) {
         this.version = version;
-    }
-
-    public ProxyConfig getProxyConfig() {
-        return proxyConfig;
-    }
-
-    public void setProxyConfig(ProxyConfig proxyConfig) {
-        this.proxyConfig = proxyConfig;
     }
 
     public String getEnvironmentName() {

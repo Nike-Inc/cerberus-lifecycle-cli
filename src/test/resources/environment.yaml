@@ -1,14 +1,4 @@
 version: 1
-# proxy information
-# You only need to configure this, if you plan on white listing proxy boxes and will need to jump
-# through them to talk to the instances that will live in the Cerberus VPC
-# If your not using a proxy either delete this section or make type = DIRECT for direct connecting
-# If you are direct connecting you need to make sure your IP is added to the VPC Whitelist CIDR's below
-proxy-config:
-  host: localhost
-  port: 9000
-  # [DIRECT, HTTP, SOCKS]
-  type: SOCKS
 
 # The name of the environment
 environment-name: demo
@@ -23,34 +13,36 @@ global-tags:
   owner-email: obvisouly.fake@nike.com
   owner-group: engineering-team-name
 
-# A IAM role ARN that will be given elevated privileges for the KMS CMK created.,
-# If you don't separate root access from admins just use the root role here.
+# A IAM role ARN that will be given elevated privileges for the KMS CMK created.
 admin-role-arn: arn:aws:iam::111111111:role/admin
 
-# This is used to create dns records and certificates
+# This is used to create DNS records and TLS certificates
 # By default the following records will be created
 # {environment-name}.{base-domain} ex: demo.example.com
 # origin.{environment-name}.{base-domain} ex: origin.demo.example.com
 # {environment-name}.{primary-primaryRegion}.{base-domain} ex: demo.us-west-2.example.com
-# In this example demo.example.com will point to origin.demo.example.com which points to demo.us-west-2.example.com which points to the ALB
+# In this example:
+#      demo.example.com points to origin.demo.example.com
+#      origin.demo.example points to demo.us-west-2.example.com
+#      demo.us-west-2.example.com points to the ALB
 # This extra hop allows for more flexibility in future infrastructure operations
 base-domain-name: example.com
 
 # Edge domain name defaults to {environment}.{base-domain}
-edge-domain-name-override: highlander-demo.example.com
+edge-domain-name-override: new-demo.example.com
 # Origin domain name defaults to origin.{environment-name}.{base-domain} override it here
-origin-domain-name-override: origin.highlander-demo.demo.com
+origin-domain-name-override: origin.new-demo.demo.com
 # Load balancer domain name defaults to {environment-name}.{primary-primaryRegion}.{base-domain} override it here
-load-balancer-domain-name-override: highlander-demo.us-west-2.demo.com
+load-balancer-domain-name-override: new-demo.us-west-2.demo.com
 
 # Add additional subject names to the generated cert
-# For example if your standing up a new highlander edition of Cerberus and you still have the existing env up you can add those domains
+# For example if your standing up a new architecture edition of Cerberus and you still have the existing env up you can add those domains
 # here so your certificates are still valid when you cut over the edge domain name to the old domain name.
 additional-subject-names:
   - demo.example.com
   - origin.demo.example.com
-  - demo.us-west-2.com
-  - demo.us-east-1.com
+  - demo.us-west-2.example.com
+  - demo.us-east-1.example.com
 
 # The SSL Policy that will get applied to the application load balancer
 # see http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html

@@ -99,7 +99,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
             boolean isRunnable = operation.isRunnable(chainedCommand);
             if (! isRunnable) {
                 if (! skipOnNotRunnable()) {
-                    throw new RuntimeException("The command: " + chainedCommand.getCommandName() + " is not runnable, breaking the chain");
+                    throw new RuntimeException("The command: " + chainedCommand.getCommandName() + " is not runnable, stopping...");
                 } else {
                     log.info("The command {} reports that it is not runnable, skipping...", chainedCommand.getCommandName());
                     continue;
