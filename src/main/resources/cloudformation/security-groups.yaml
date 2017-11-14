@@ -26,13 +26,6 @@ Parameters:
     Default: '3306'
     Description: Port for the cms DB instance
     Type: Number
-  loadBalancerCidrBlock:
-    AllowedPattern: '[0-9./]*'
-    Default: 0.0.0.0/0
-    Description: The application load balancer CIDR block for where traffic is allowed from
-    MaxLength: '20'
-    MinLength: '9'
-    Type: String
   vpcId:
     Description: ID of the VPC to associate with the security groups
     Type: String
@@ -48,7 +41,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
   AlbIngressFromInternetSg443:
     Properties:
-      CidrIp: !Ref 'loadBalancerCidrBlock'
+      CidrIp: 0.0.0.0/0
       FromPort: 443
       GroupId: !Ref 'AlbSg'
       IpProtocol: tcp
@@ -65,7 +58,6 @@ Resources:
   CmsDbSg:
     Properties:
       GroupDescription: Management Server Database Security Group
-      Tags:
       VpcId:
         Ref: 'vpcId'
     Type: AWS::EC2::SecurityGroup

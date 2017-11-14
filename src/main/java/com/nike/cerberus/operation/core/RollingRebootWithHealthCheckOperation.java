@@ -22,6 +22,7 @@ import com.github.tomaslanger.chalk.Chalk;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
+import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.AutoScalingService;
@@ -83,17 +84,20 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
 
     private final Proxy proxy;
 
+    private final EnvironmentMetadata environmentMetadata;
+
     @Inject
     public RollingRebootWithHealthCheckOperation(final ConfigStore configStore,
                                                  final CloudFormationService cloudFormationService,
                                                  final Ec2Service ec2Service,
                                                  final AutoScalingService autoScalingService,
-                                                 final Proxy proxy) {
+                                                 final Proxy proxy, EnvironmentMetadata environmentMetadata) {
         this.configStore = configStore;
         this.cloudFormationService = cloudFormationService;
         this.ec2Service = ec2Service;
         this.autoScalingService = autoScalingService;
         this.proxy = proxy;
+        this.environmentMetadata = environmentMetadata;
     }
 
     @Override
@@ -104,7 +108,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
                 " may need to be set to 'in-service' state on the auto scaling group").yellow().toString());
 
         final Stack stack = command.getStack();
-        final String stackId = configStore.getStackId(stack);
+        final String stackId = stack.getFullName(environmentMetadata.getName());
         final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(stackId);
 
         final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
@@ -231,7 +235,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
 
         final Stack stack = command.getStack();
         final String stackNameStr = stack.getName();
-        final String stackId = configStore.getStackId(stack);
+        final String stackId = stack.getFullName(environmentMetadata.getName());
         final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
 
         if (! HEALTH_CHECK_MAP.containsKey(stackNameStr)) {

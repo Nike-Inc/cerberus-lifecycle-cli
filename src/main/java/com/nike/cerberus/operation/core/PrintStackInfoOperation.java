@@ -19,11 +19,11 @@ package com.nike.cerberus.operation.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
+import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.StackInfo;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.AutoScalingService;
 import com.nike.cerberus.service.CloudFormationService;
-import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class PrintStackInfoOperation implements Operation<PrintStackInfoCommand>
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ConfigStore configStore;
+    private final EnvironmentMetadata environmentMetadata;
 
     private final CloudFormationService cloudFormationService;
 
@@ -54,11 +54,12 @@ public class PrintStackInfoOperation implements Operation<PrintStackInfoCommand>
     private final ObjectMapper objectMapper;
 
     @Inject
-    public PrintStackInfoOperation(final ConfigStore configStore,
+    public PrintStackInfoOperation(final EnvironmentMetadata environmentMetadata,
                                    final CloudFormationService cloudFormationService,
                                    final AutoScalingService autoScalingService,
                                    @Named(CONFIG_OBJECT_MAPPER) final ObjectMapper objectMapper) {
-        this.configStore = configStore;
+
+        this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.autoScalingService = autoScalingService;
         this.objectMapper = objectMapper;
@@ -66,7 +67,7 @@ public class PrintStackInfoOperation implements Operation<PrintStackInfoCommand>
 
     @Override
     public void run(final PrintStackInfoCommand command) {
-        final String stackId = configStore.getStackId(command.getStack());
+        final String stackId = command.getStack().getFullName(environmentMetadata.getName());
 
         if (StringUtils.isBlank(stackId) || !cloudFormationService.isStackPresent(stackId)) {
             logger.error("The specified environment doesn't contain a stack for " + command.getStack().getName());

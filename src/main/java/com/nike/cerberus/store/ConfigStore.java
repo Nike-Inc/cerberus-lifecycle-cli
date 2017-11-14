@@ -137,58 +137,6 @@ public class ConfigStore {
     }
 
     /**
-     * Writes the AZs to the configuration store.  This is a one time operation.  Subsequent calls will result in
-     * an {@link IllegalStateException} being thrown.
-     *
-     * @param az1 AZ 1
-     * @param az2 AZ 2
-     * @param az3 AZ 3
-     */
-    public void storeAzs(final String az1, final String az2, final String az3) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-
-            if (StringUtils.isNotBlank(environment.getAz1())
-                    || StringUtils.isNotBlank(environment.getAz2())
-                    || StringUtils.isNotBlank(environment.getAz3())) {
-                throw new IllegalStateException("AZs are already defined for this environment!  Aborting save...");
-            }
-
-            environment.setAz1(az1);
-            environment.setAz2(az2);
-            environment.setAz3(az3);
-            saveEnvironmentData(environment);
-        }
-    }
-
-    /**
-     * Stores the stack ID for a specific component.
-     *
-     * @param stack Stack component
-     * @param stackId   Stack ID
-     */
-    public void storeStackId(final Stack stack, final String stackId) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            environment.getStackMap().put(stack, stackId);
-            saveEnvironmentData(environment);
-        }
-    }
-
-    /**
-     * Get the specific stack ID by component name.
-     *
-     * @param stack Stack name
-     * @return Stack ID
-     */
-    public String getStackId(final Stack stack) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            return environment.getStackMap().get(stack);
-        }
-    }
-
-    /**
      * Gets the server certificate name from the config store.
      *
      * @param stack Stack name
@@ -196,7 +144,7 @@ public class ConfigStore {
     public String getServerCertificateName(final Stack stack) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            return environment.getServerCertificateIdMap().get(stack);
+            return environment.getServerCertificateIdMap().get(stack.getName());
         }
     }
 
@@ -209,42 +157,6 @@ public class ConfigStore {
     public Optional<String> getServerCertificateArn(final Stack stack) {
         final String certificateName = getServerCertificateName(stack);
         return iamService.getServerCertificateArn(certificateName);
-    }
-
-    public Optional<String> getServerCertificateId(final Stack stack) {
-        final String certificateName = getServerCertificateName(stack);
-        return iamService.getServerCertificateId(certificateName);
-    }
-
-    /**
-     * Stores the KMS key ID used to encrypt files in the config bucket.  This is a one time operation that will result
-     * in {@link IllegalStateException} being thrown on subsequent calls.
-     *
-     * @param configKeyId The KMS key ID
-     */
-    public void storeConfigKeyId(final String configKeyId) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-
-            if (StringUtils.isNotBlank(environment.getConfigKeyId())) {
-                throw new IllegalStateException("Config Key ID is already defined for this environment!  Aborting save...");
-            }
-
-            environment.setConfigKeyId(configKeyId);
-            saveEnvironmentData(environment);
-        }
-    }
-
-    /**
-     * Retrieves the CMS adming group from the config store.
-     *
-     * @return CMS admin group
-     */
-    public Optional<String> getCmsAdminGroup() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            return Optional.ofNullable(secrets.getCms().getAdminGroup());
-        }
     }
 
     /**
@@ -281,40 +193,6 @@ public class ConfigStore {
         synchronized (secretsDataLock) {
             final Secrets secrets = getSecretsData();
             secrets.getCms().setDatabasePassword(databasePassword);
-            saveSecretsData(secrets);
-        }
-    }
-
-    public void storeEnvDomainName(final String domainName) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-
-            environment.setDomainName(domainName);
-            saveEnvironmentData(environment);
-        }
-    }
-
-    /**
-     * Retrieves the CMS Vault token from the config store.
-     *
-     * @return CMS Vault token
-     */
-    public Optional<String> getCmsVaultToken() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            return Optional.ofNullable(secrets.getCms().getVaultToken());
-        }
-    }
-
-    /**
-     * Stores the CMS Vault token.
-     *
-     * @param cmsVaultToken CMS Vault token
-     */
-    public void storeCmsVaultToken(final String cmsVaultToken) {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            secrets.getCms().setVaultToken(cmsVaultToken);
             saveSecretsData(secrets);
         }
     }
@@ -360,6 +238,7 @@ public class ConfigStore {
                           final String keyContents,
                           final String pkcs8KeyContents,
                           final String pubKeyContents) {
+
         saveEncryptedObject(buildCertFilePath(stack, CERT_PART_CA), caContents);
         saveEncryptedObject(buildCertFilePath(stack, CERT_PART_CERT), certContents);
         saveEncryptedObject(buildCertFilePath(stack, CERT_PART_KEY), keyContents);
@@ -368,7 +247,7 @@ public class ConfigStore {
 
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            environment.getServerCertificateIdMap().put(stack, certificateName);
+            environment.getServerCertificateIdMap().put(stack.getName(), certificateName);
             saveEnvironmentData(environment);
         }
     }
@@ -648,7 +527,7 @@ public class ConfigStore {
     public <M> M getStackOutputs(final Stack stack, final Class<M> outputClass) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            final String stackId = environment.getStackMap().get(stack);
+            final String stackId = environment.getStackMap().get(stack.getName());
 
             if (!cloudFormationService.isStackPresent(stackId)) {
                 throw new IllegalStateException("The specified stack doesn't exist for specified environment.");
@@ -668,7 +547,7 @@ public class ConfigStore {
      * @return Outputs
      */
     public <M> M getStackOutputs(final String stackName, final Class<M> outputClass) {
-        final String stackId = cloudFormationService.getStackId(stackName);
+        final String stackId = Stack.fromName(stackName).getFullName(environmentMetadata.getName());
 
         if (!cloudFormationService.isStackPresent(stackId)) {
             throw new IllegalStateException("Failed to get CloudFormation output for stack: '" + stackName + "'. Stack does not exist.");
@@ -688,8 +567,7 @@ public class ConfigStore {
      */
     public <M> M getStackParameters(final Stack stack, final Class<M> parameterClass) {
         synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            final String stackId = environment.getStackMap().get(stack);
+            final String stackId = stack.getFullName(environmentMetadata.getName());
 
             if (!cloudFormationService.isStackPresent(stackId)) {
                 throw new IllegalStateException("The specified stack doesn't exist for the specified environment");
@@ -709,7 +587,7 @@ public class ConfigStore {
      * @return Parameters
      */
     public <M> M getStackParameters(final String stackName, final Class<M> parameterClass) {
-        final String stackId = cloudFormationService.getStackId(stackName);
+        final String stackId = Stack.fromName(stackName).getFullName(environmentMetadata.getName());
 
         if (!cloudFormationService.isStackPresent(stackId)) {
             throw new IllegalStateException("Failed to get CloudFormation parameters for stack: '" + stackName + "'. Stack does not exist.");

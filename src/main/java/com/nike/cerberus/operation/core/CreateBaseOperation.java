@@ -16,13 +16,16 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
+import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
 import org.slf4j.Logger;
@@ -69,10 +72,22 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
-        cloudFormationService.createStack(Stack.BASE, parameters, true, command.getTagsDelegate().getTags());
+        final String stackId = cloudFormationService.createStack(Stack.BASE, parameters, true,
+                command.getTagsDelegate().getTags());
 
-        configStore.initEnvironmentData();
-        configStore.initSecretsData();
+        final StackStatus endStatus =
+                cloudFormationService.waitForStatus(stackId,
+                        Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
+
+        if (StackStatus.CREATE_COMPLETE == endStatus) {
+            logger.info("Stack creation complete, initializing the configuration bucket.");
+            environmentMetadata.setBucketName(configStore.getBaseStackOutputs().getConfigBucketName());
+            configStore.initEnvironmentData();
+            configStore.initSecretsData();
+            logger.info("Initialization complete.");
+        } else {
+            throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
+        }
     }
 
     @Override
