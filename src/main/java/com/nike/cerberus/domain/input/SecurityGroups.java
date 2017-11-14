@@ -19,7 +19,7 @@ package com.nike.cerberus.domain.input;
 /**
  * Stores Management Service-specific parameters parsed from YAML
  */
-public class SecurityGroups extends CerberusStack {
+public class SecurityGroups {
 
     private String loadBalancerCidrBlock;
 

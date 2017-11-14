@@ -16,7 +16,6 @@
 
 package com.nike.cerberus.cli;
 
-import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
@@ -27,11 +26,8 @@ import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
-import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
-import com.nike.cerberus.domain.input.CerberusStack;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementService;
 import com.nike.cerberus.domain.input.VpcAccessWhitelist;
@@ -91,8 +87,6 @@ public class EnvironmentConfigToArgsMapper {
                 return getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
             case CreateCmsConfigCommand.COMMAND_NAME:
                 return getCreateCmsConfigCommandArgs(environmentConfig);
-            case UpdateStackCommand.COMMAND_NAME:
-                return getUpdateStackCommandArgs(environmentConfig, passedArgs);
             case UpdateCmsConfigCommand.COMMAND_NAME:
                 return getCreateCmsConfigCommandArgs(environmentConfig);
             case CreateVpcCommand.COMMAND_NAME:
@@ -149,20 +143,12 @@ public class EnvironmentConfigToArgsMapper {
     private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig environmentConfig) {
         List<String> args = new LinkedList<>();
 
-        ManagementService component = environmentConfig.getManagementService();
-        addCommonStackArgs(environmentConfig, args, component);
+        addCommonStackArgs(environmentConfig, args);
 
         return args;
     }
 
-    private static void addCommonStackArgs(EnvironmentConfig environmentConfig, List<String> args, CerberusStack stack) {
-        args.add(StackDelegate.AMI_ID_LONG_ARG);
-        args.add(stack.getAmiId());
-        args.add(StackDelegate.INSTANCE_SIZE_LONG_ARG);
-        args.add(stack.getInstanceSize());
-        args.add(StackDelegate.KEY_PAIR_NAME_LONG_ARG);
-        args.add(stack.getKeyPairName());
-
+    private static void addCommonStackArgs(EnvironmentConfig environmentConfig, List<String> args) {
         addTagArgs(environmentConfig, args);
     }
 
@@ -188,9 +174,6 @@ public class EnvironmentConfigToArgsMapper {
 
         args.add(UploadCertFilesCommand.CERT_PATH_LONG_ARG);
         switch (stackName) {
-            case "vault":
-                args.add(environmentConfig.getVault().getCertPath());
-                break;
             case "cms":
                 args.add(environmentConfig.getManagementService().getCertPath());
                 break;
@@ -218,47 +201,6 @@ public class EnvironmentConfigToArgsMapper {
         return args;
     }
 
-    private static List<String> getUpdateStackCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
-        String stackName = getStackName(passedArgs);
-        List<String> args = new LinkedList<>();
-
-        if (StringUtils.isBlank(stackName)) {
-            return args;
-        }
-
-        args.add(STACK_NAME_KEY);
-        args.add(stackName);
-
-        CerberusStack cerberusStack;
-        switch (stackName) {
-            case "vault":
-                cerberusStack = environmentConfig.getVault();
-                break;
-            case "cms":
-                cerberusStack = environmentConfig.getManagementService();
-                break;
-            default:
-                cerberusStack = null;
-        }
-
-        if (cerberusStack != null) {
-            addCommonStackArgs(environmentConfig, args, cerberusStack);
-        }
-
-        for (int i = 0; i < passedArgs.length; i++) {
-            String arg = passedArgs[i];
-            if (arg.equals(UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG)) {
-                args.add(UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG);
-            }
-            if (arg.equals(UpdateStackCommand.PARAMETER_SHORT_ARG) && i < passedArgs.length -1) {
-                args.add(UpdateStackCommand.PARAMETER_SHORT_ARG);
-                args.add(passedArgs[i+1]);
-            }
-        }
-
-        return args;
-    }
-
     private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config) {
         List<String> args = new LinkedList<>();
         addTagArgs(config, args);
@@ -267,12 +209,6 @@ public class EnvironmentConfigToArgsMapper {
 
     private static List<String> getCreateSecurityGroupsCommandArgs(EnvironmentConfig config) {
         List<String> args = new LinkedList<>();
-
-        if (config.getSecurityGroups() != null &&
-                config.getSecurityGroups().getLoadBalancerCidrBlock() != null) {
-            args.add(CreateSecurityGroupsCommand.LOAD_BALANCER_CIDR_BLOCK_LONG_ARG);
-            args.add(config.getSecurityGroups().getLoadBalancerCidrBlock());
-        }
 
         addTagArgs(config, args);
 
