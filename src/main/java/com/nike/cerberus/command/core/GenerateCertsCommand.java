@@ -40,9 +40,15 @@ public class GenerateCertsCommand implements Command {
 
     public static final String BASE_DOMAIN_LONG_ARG = "--base-domain";
 
+    public static final String EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG = "--edge-domain-name-override";
+
+    public static final String ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG = "--origin-domain-name-override";
+
+    public static final String LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG = "--load-balancer-domain-name-override";
+
     public static final String HOSTED_ZONE_ID_LONG_ARG = "--hosted-zone-id";
 
-    public static final String ADDITIONAL_SUBJECT_ALT_NAME_LONG_ARG = "--additional-subject-alternative-name";
+    public static final String SUBJECT_ALT_NAME_LONG_ARG = "--subject-alternative-name";
 
     public static final String ENABLE_LE_CERTFIX_LONG_ARG = "--enable-letsecrypt-certfix";
 
@@ -75,6 +81,44 @@ public class GenerateCertsCommand implements Command {
 
     @Parameter(
             names = {
+                    EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG
+            },
+            description = "This command uses {environment}.{base-domain} as the common name, override it with this option"
+    )
+    private String edgeDomainNameOverride;
+
+    public String getEdgeDomainNameOverride() {
+        return edgeDomainNameOverride;
+    }
+
+    @Parameter(
+            names = {
+                    ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG
+            },
+            description = "origin domain name defaults to origin.{environment-name}.{base-domain}, " +
+                    "this command automatically creates a subject alternate name for this, override it with this option"
+    )
+    private String originDomainNameOverride;
+
+    public String getOriginDomainNameOverride() {
+        return originDomainNameOverride;
+    }
+
+    @Parameter(
+            names = {
+                    LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG
+            },
+            description = "the load balancer domain name defaults to {environment-name}.{primary-primaryRegion}.{base-domain}, " +
+                    "this command automatically creates a subject alternate name for this, override it with this option"
+    )
+    private String loadBalancerDomainNameOverride;
+
+    public String getLoadBalancerDomainNameOverride() {
+        return loadBalancerDomainNameOverride;
+    }
+
+    @Parameter(
+            names = {
                     HOSTED_ZONE_ID_LONG_ARG
             },
             description = "The AWS Route 53 hosted zone id that is configured to create records for the base domain",
@@ -88,7 +132,7 @@ public class GenerateCertsCommand implements Command {
 
     @Parameter(
             names = {
-                    ADDITIONAL_SUBJECT_ALT_NAME_LONG_ARG
+                    SUBJECT_ALT_NAME_LONG_ARG
             },
             description = "Alternative subject names, this should be any additional cnames that need to be secured. such as "
     )
