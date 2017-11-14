@@ -23,6 +23,7 @@ import com.nike.cerberus.service.CertificateService;
 import com.nike.cerberus.service.ConsoleService;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,15 +61,25 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
     )
     @Override
     public void run(GenerateCertsCommand command) {
-        // The common name ex: demo.cerberus.io
-        String commonName = String.format("%s.%s", environmentMetadata.getName(), command.getBaseDomainName());
-        // The region specific subject alternate name. EX demo.us-west-2.ceberus.io
-        String regionSpecificSAN = String.format("%s.%s.%s",
-                environmentMetadata.getName(), environmentMetadata.getRegionName(), command.getBaseDomainName());
+        // The common name ex: demo.example.com
+        String commonName = StringUtils.isNotBlank(command.getEdgeDomainNameOverride()) ?
+                command.getEdgeDomainNameOverride() :
+                String.format("%s.%s", environmentMetadata.getName(), command.getBaseDomainName());
+
+        // origin name san ex: origin.demo.example.com
+        String originName = StringUtils.isNotBlank(command.getOriginDomainNameOverride()) ?
+                command.getOriginDomainNameOverride() :
+                String.format("origin.%s.%s", environmentMetadata.getName(), command.getBaseDomainName());
+
+        // The region specific subject alternate name for the load balancer. EX demo.us-west-2.example.com
+        String loadBalancerName = StringUtils.isNotBlank(command.getLoadBalancerDomainNameOverride()) ?
+                command.getLoadBalancerDomainNameOverride() :
+                String.format("%s.%s.%s", environmentMetadata.getName(), environmentMetadata.getRegionName(), command.getBaseDomainName());
 
         Set<String> subjectAlternativeNames = new HashSet<>();
-        subjectAlternativeNames.addAll(command.getSubjectAlternativeNames()); // add any additional SANs to the SAN set
-        subjectAlternativeNames.add(regionSpecificSAN); // add the default region specific san
+        subjectAlternativeNames.addAll(command.getSubjectAlternativeNames());
+        subjectAlternativeNames.add(originName);
+        subjectAlternativeNames.add(loadBalancerName);
 
         // confirm with user
         consoleService.askUserToProceed(String.format("Preparing to generate certs with Common Name: %s and Subject Alternative Names: %s",
