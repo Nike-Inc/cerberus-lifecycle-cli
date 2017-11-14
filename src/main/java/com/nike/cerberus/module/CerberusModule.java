@@ -217,10 +217,11 @@ public class CerberusModule extends AbstractModule {
 
         String envBucket = null;
         for (final Bucket bucket : buckets) {
+            String bucketName = bucket.getName();
             if (StringUtils.contains(bucket.getName(), ConfigConstants.CONFIG_BUCKET_KEY)) {
-                String[] parts = bucket.getName().split("-");
-                if (StringUtils.equalsIgnoreCase(environmentName, parts[0])) {
-                    envBucket = bucket.getName();
+                String tokenizedEnvName = StringUtils.replaceAll(environmentName, "_", "-");
+                if (StringUtils.startsWith(bucketName, tokenizedEnvName)) {
+                    envBucket = bucketName;
                     break;
                 }
             }
