@@ -16,6 +16,8 @@
 
 package com.nike.cerberus.domain.environment;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ImmutableList;
 import com.nike.cerberus.ConfigConstants;
 import org.apache.commons.io.IOUtils;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 /**
  * Describes the stacks that make up Cerberus.
  */
+@JsonSerialize(using = StackSerializer.class)
+@JsonDeserialize(using = StackDeserializer.class)
 public class Stack {
 
     public static final Stack BASE = new Stack("base", "base.yaml", false);

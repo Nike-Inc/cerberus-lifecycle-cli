@@ -144,7 +144,7 @@ public class ConfigStore {
     public String getServerCertificateName(final Stack stack) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            return environment.getServerCertificateIdMap().get(stack.getName());
+            return environment.getServerCertificateIdMap().get(stack);
         }
     }
 
@@ -247,7 +247,7 @@ public class ConfigStore {
 
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            environment.getServerCertificateIdMap().put(stack.getName(), certificateName);
+            environment.getServerCertificateIdMap().put(stack, certificateName);
             saveEnvironmentData(environment);
         }
     }
@@ -527,7 +527,7 @@ public class ConfigStore {
     public <M> M getStackOutputs(final Stack stack, final Class<M> outputClass) {
         synchronized (envDataLock) {
             final Environment environment = getEnvironmentData();
-            final String stackId = environment.getStackMap().get(stack.getName());
+            final String stackId = environment.getStackMap().get(stack);
 
             if (!cloudFormationService.isStackPresent(stackId)) {
                 throw new IllegalStateException("The specified stack doesn't exist for specified environment.");
