@@ -44,8 +44,6 @@ public abstract class CompositeOperation<T extends Command> implements Operation
 
     private EnvironmentConfig environmentConfig;
 
-    private List<ChainableCommand> runnableChainedCommands = new LinkedList<>();
-
     @Inject
     public void setInjector(Injector injector) {
         this.injector = injector;

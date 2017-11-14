@@ -129,7 +129,7 @@ public class CerberusCommand {
      */
     public String getRegion() {
         String commandLinePassedRegion = region;
-        String environmentConfigFileRegion = getEnvironmentConfig() == null ? null : getEnvironmentConfig().getRegion();
+        String environmentConfigFileRegion = getEnvironmentConfig() == null ? null : getEnvironmentConfig().getPrimaryRegion();
         String EnvironmentalVarRegion = System.getenv("CERBERUS_CLI_REGION");
 
         String calculatedRegion = StringUtils.isNotBlank(commandLinePassedRegion) ? commandLinePassedRegion :
