@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.command.core;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
@@ -34,11 +35,27 @@ public class CreateLoadBalancerCommand implements Command {
 
     public static final String COMMAND_NAME = "create-load-balancer";
 
+    public static final String LOAD_BALANCER_SSL_POLICY_OVERRIDE_LONG_ARG = "--ssl-policy-override";
+
     @ParametersDelegate
     private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;
+    }
+
+    @Parameter(
+            names = {
+                    LOAD_BALANCER_SSL_POLICY_OVERRIDE_LONG_ARG
+            },
+            description = "The SSL Policy that will get applied to the application load balancer, " +
+                    "see http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html" +
+                    " for more information."
+    )
+    private String loadBalancerSslPolicyOverride;
+
+    public String getLoadBalancerSslPolicyOverride() {
+        return loadBalancerSslPolicyOverride;
     }
 
     @Override

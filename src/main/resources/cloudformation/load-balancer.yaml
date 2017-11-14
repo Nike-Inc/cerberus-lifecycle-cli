@@ -36,6 +36,13 @@ Parameters:
   vpcSubnetIdForAz3:
     Description: The subnet for the third availability zone
     Type: String
+  sslPolicy:
+    Description: >
+     The SSL Policy that will get applied to the application load balancer,
+      see http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html
+      for more information
+    Type: String
+    Default: TLS-1-2-2017-01
 Resources:
   ALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -48,7 +55,7 @@ Resources:
       LoadBalancerArn: !Ref 'ApplicationLoadBalancer'
       Port: 443
       Protocol: HTTPS
-      SslPolicy: ELBSecurityPolicy-2016-08
+      SslPolicy: !Ref 'sslPolicy'
   ALBLogBucket:
     Properties:
       AccessControl: BucketOwnerFullControl
