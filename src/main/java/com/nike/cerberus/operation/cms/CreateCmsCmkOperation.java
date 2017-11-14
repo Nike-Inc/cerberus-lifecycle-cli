@@ -69,10 +69,6 @@ public class CreateCmsCmkOperation implements Operation<CreateCmsCmkCommand> {
         logger.info("Retrieving configuration data from the configuration bucket.");
         final Properties cmsConfigProperties = configStore.getAllExistingCmsEnvProperties();
 
-        // additional argument validation
-        validateRegionsArg(command);
-        validateRotateArg(command, cmsConfigProperties);
-
         // create the CMKs
         List<String> cmkArns = createCmks(command, cmsConfigProperties);
 
@@ -90,6 +86,16 @@ public class CreateCmsCmkOperation implements Operation<CreateCmsCmkCommand> {
         if (!isRunnable) {
             logger.warn("CMS config does not exist, please use 'create-cms-config' command first.");
         }
+
+        try {
+            final Properties cmsConfigProperties = configStore.getAllExistingCmsEnvProperties();
+            // additional argument validation
+            validateRegionsArg(command);
+            validateRotateArg(command, cmsConfigProperties);
+        } catch (ParameterException e) {
+            return false;
+        }
+
 
         return isRunnable;
     }
