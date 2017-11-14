@@ -23,8 +23,6 @@ public class SecurityGroupParameters {
 
     private Integer cmsDbPort;
 
-    private String loadBalancerCidrBlock;
-
     private String vpcId;
 
     public Integer getCmsDbPort() {
@@ -33,15 +31,6 @@ public class SecurityGroupParameters {
 
     public SecurityGroupParameters setCmsDbPort(Integer cmsDbPort) {
         this.cmsDbPort = cmsDbPort;
-        return this;
-    }
-
-    public String getLoadBalancerCidrBlock() {
-        return loadBalancerCidrBlock;
-    }
-
-    public SecurityGroupParameters setLoadBalancerCidrBlock(String loadBalancerCidrBlock) {
-        this.loadBalancerCidrBlock = loadBalancerCidrBlock;
         return this;
     }
 

@@ -16,17 +16,19 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.Route53Parameters;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
+import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Route53Service;
-import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +78,16 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, typeReference);
 
-        cloudFormationService.createStack(Stack.ROUTE53, parameters, true, command.getTagsDelegate().getTags());
+        final String stackId = cloudFormationService.createStack(Stack.ROUTE53, parameters, true,
+                command.getTagsDelegate().getTags());
+
+        final StackStatus endStatus =
+                cloudFormationService.waitForStatus(stackId,
+                        Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
+
+        if (StackStatus.CREATE_COMPLETE != endStatus) {
+            throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
+        }
     }
 
     @Override

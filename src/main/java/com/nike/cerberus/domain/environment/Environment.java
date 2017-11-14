@@ -26,17 +26,11 @@ import java.util.Set;
  */
 public class Environment {
 
-    private String az1;
-
-    private String az2;
-
-    private String az3;
-
     private String domainName;
 
-    private Map<Stack, String> stackMap;
+    private Map<String, String> stackMap;
 
-    private Map<Stack, String> serverCertificateIdMap;
+    private Map<String, String> serverCertificateIdMap;
 
     private String configKeyId;
 
@@ -46,46 +40,14 @@ public class Environment {
 
     private String metricsTopicArn;
 
-    /**
-     * Is the environment configured for continuous delivery
-     */
-    private boolean isCd;
-
     public Environment() {
         stackMap = new HashMap<>();
         for (Stack stack : Stack.ALL_STACKS) {
-            stackMap.put(stack, "");
+            stackMap.put(stack.getName(), "");
         }
 
         serverCertificateIdMap = new HashMap<>();
-        serverCertificateIdMap.put(Stack.CMS, "");
-    }
-
-    public String getAz1() {
-        return az1;
-    }
-
-    public Environment setAz1(String az1) {
-        this.az1 = az1;
-        return this;
-    }
-
-    public String getAz2() {
-        return az2;
-    }
-
-    public Environment setAz2(String az2) {
-        this.az2 = az2;
-        return this;
-    }
-
-    public String getAz3() {
-        return az3;
-    }
-
-    public Environment setAz3(String az3) {
-        this.az3 = az3;
-        return this;
+        serverCertificateIdMap.put(Stack.CMS.getName(), "");
     }
 
     public String getDomainName() {
@@ -96,22 +58,12 @@ public class Environment {
         this.domainName = domainName;
     }
 
-    public Map<Stack, String> getStackMap() {
+    public Map<String, String> getStackMap() {
         return stackMap;
     }
 
-    public Environment setStackMap(Map<Stack, String> stackMap) {
-        this.stackMap = stackMap;
-        return this;
-    }
-
-    public Map<Stack, String> getServerCertificateIdMap() {
+    public Map<String, String> getServerCertificateIdMap() {
         return serverCertificateIdMap;
-    }
-
-    public Environment setServerCertificateIdMap(Map<Stack, String> serverCertificateIdMap) {
-        this.serverCertificateIdMap = serverCertificateIdMap;
-        return this;
     }
 
     public String getConfigKeyId() {
@@ -123,21 +75,8 @@ public class Environment {
         return this;
     }
 
-    public boolean isCd() {
-        return isCd;
-    }
-
-    public Environment setCd(boolean cd) {
-        isCd = cd;
-        return this;
-    }
-
     public Map<String, BackupRegionInfo> getRegionBackupBucketMap() {
         return regionBackupBucketMap == null ? new HashMap<>() : regionBackupBucketMap;
-    }
-
-    public void setRegionBackupBucketMap(Map<String, BackupRegionInfo> regionBackupBucketMap) {
-        this.regionBackupBucketMap = regionBackupBucketMap;
     }
 
     public Set<String> getBackupAdminIamPrincipals() {

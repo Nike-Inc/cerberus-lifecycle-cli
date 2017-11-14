@@ -34,9 +34,7 @@ public class EnvironmentConfig {
     private String hostname;
     private String hostedZoneId;
     private VpcAccessWhitelist vpcAccessWhitelist;
-    private Vault vault;
     private ManagementService managementService;
-    private Gateway gateway;
     private SecurityGroups securityGroups;
 
     public String getVersion() {
@@ -135,28 +133,12 @@ public class EnvironmentConfig {
         this.vpcAccessWhitelist = vpcAccessWhitelist;
     }
 
-    public Vault getVault() {
-        return vault;
-    }
-
-    public void setVault(Vault vault) {
-        this.vault = vault;
-    }
-
     public ManagementService getManagementService() {
         return managementService;
     }
 
     public void setManagementService(ManagementService managementService) {
         this.managementService = managementService;
-    }
-
-    public Gateway getGateway() {
-        return gateway;
-    }
-
-    public void setGateway(Gateway gateway) {
-        this.gateway = gateway;
     }
 
     public SecurityGroups getSecurityGroups() {

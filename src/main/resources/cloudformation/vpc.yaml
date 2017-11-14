@@ -81,7 +81,6 @@ Resources:
         - AmazonProvidedDNS
     Type: AWS::EC2::DHCPOptions
   CerberusInternetGateway:
-    Properties:
     Type: AWS::EC2::InternetGateway
   CerberusRouteInternetGateway:
     Properties:

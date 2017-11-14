@@ -38,9 +38,6 @@ public class CmsParameters implements LaunchConfigParameters {
     @JsonUnwrapped
     private LaunchConfigParametersDelegate launchConfigParameters = new LaunchConfigParametersDelegate();
 
-    @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
-
     public String getBaseStackName() {
         return baseStackName;
     }
@@ -101,15 +98,6 @@ public class CmsParameters implements LaunchConfigParameters {
 
     public CmsParameters setLaunchConfigParameters(LaunchConfigParametersDelegate launchConfigParameters) {
         this.launchConfigParameters = launchConfigParameters;
-        return this;
-    }
-
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
-    }
-
-    public CmsParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
         return this;
     }
 }

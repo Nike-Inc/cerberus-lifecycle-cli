@@ -16,7 +16,6 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
  * Represents the load balancer stack inputs.
@@ -34,9 +33,6 @@ public class LoadBalancerParameters {
     private String vpcSubnetIdForAz2;
 
     private String vpcSubnetIdForAz3;
-
-    @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
 
     public String getSgStackName() {
         return sgStackName;
@@ -92,12 +88,4 @@ public class LoadBalancerParameters {
         return this;
     }
 
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
-    }
-
-    public LoadBalancerParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
-        return this;
-    }
 }

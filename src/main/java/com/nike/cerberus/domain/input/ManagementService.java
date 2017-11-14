@@ -22,10 +22,18 @@ import java.util.List;
 /**
  * Stores Management Service-specific parameters parsed from YAML
  */
-public class ManagementService extends CerberusStack {
+public class ManagementService {
 
     private String adminGroup;
     private List<String> properties;
+    private List<String> additionalEncryptionCmkRegions;
+    private String certPath;
+    private String amiId;
+    private String instanceSize;
+    private String keyPairName;
+    private String desiredInstances;
+    private String maxInstances;
+    private String minInstances;
 
     public String getAdminGroup() {
         return adminGroup;
@@ -41,5 +49,69 @@ public class ManagementService extends CerberusStack {
 
     public void setProperties(List<String> properties) {
         this.properties = properties;
+    }
+
+    public List<String> getAdditionalEncryptionCmkRegions() {
+        return additionalEncryptionCmkRegions;
+    }
+
+    public void setAdditionalEncryptionCmkRegions(List<String> additionalEncryptionCmkRegions) {
+        this.additionalEncryptionCmkRegions = additionalEncryptionCmkRegions;
+    }
+
+    public String getCertPath() {
+        return certPath;
+    }
+
+    public void setCertPath(String certPath) {
+        this.certPath = certPath;
+    }
+
+    public String getAmiId() {
+        return amiId;
+    }
+
+    public void setAmiId(String amiId) {
+        this.amiId = amiId;
+    }
+
+    public String getInstanceSize() {
+        return instanceSize;
+    }
+
+    public void setInstanceSize(String instanceSize) {
+        this.instanceSize = instanceSize;
+    }
+
+    public String getKeyPairName() {
+        return keyPairName;
+    }
+
+    public void setKeyPairName(String keyPairName) {
+        this.keyPairName = keyPairName;
+    }
+
+    public String getDesiredInstances() {
+        return desiredInstances;
+    }
+
+    public void setDesiredInstances(String desiredInstances) {
+        this.desiredInstances = desiredInstances;
+    }
+
+    public String getMaxInstances() {
+        return maxInstances;
+    }
+
+    public void setMaxInstances(String maxInstances) {
+        this.maxInstances = maxInstances;
+    }
+
+    public String getMinInstances() {
+        return minInstances;
+    }
+
+    public void setMinInstances(String minInstances) {
+        this.minInstances = minInstances;
     }
 }
