@@ -16,6 +16,8 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.beust.jcommander.ParameterException;
+import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
@@ -25,17 +27,21 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.IdentityManagementService;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.UuidSupplier;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.StringJoiner;
 
 import static com.nike.cerberus.service.CertificateService.DOMAIN_CERT_CHAIN_FILE;
 import static com.nike.cerberus.service.CertificateService.DOMAIN_CERT_FILE;
@@ -79,6 +85,9 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
 
     @Override
     public void run(final UploadCertFilesCommand command) {
+
+        checkForRequiredFiles(command.getCertPath());
+
         final Stack stack = command.getStack();
         final Path certPath = command.getCertPath();
         final String caContents = getFileContents(certPath, DOMAIN_CERT_CHAIN_FILE);
@@ -98,6 +107,22 @@ public class UploadCertFilesOperation implements Operation<UploadCertFilesComman
         configStore.storeCert(stack, certificateName, caContents, certContents, keyContents, pkcs8KeyContents, pubKeyContents);
 
         logger.info("Uploading certificate completed.");
+    }
+
+    public void checkForRequiredFiles(final Path certDir) {
+
+        final File certDirectory = certDir.toFile();
+        final Set<String> filenames = Sets.newHashSet();
+
+        final FilenameFilter filter = new RegexFileFilter("^.*\\.(pem|crt)$");
+        final File[] files = certDirectory.listFiles(filter);
+        Arrays.stream(files).forEach(file -> filenames.add(file.getName()));
+
+        if (!filenames.containsAll(EXPECTED_FILE_NAMES)) {
+            final StringJoiner sj = new StringJoiner(", ", "[", "]");
+            EXPECTED_FILE_NAMES.stream().forEach(sj::add);
+            throw new RuntimeException("Not all expected files are present! Expected: " + sj.toString());
+        }
     }
 
     @Override
