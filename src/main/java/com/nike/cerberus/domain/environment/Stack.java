@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,7 +111,8 @@ public class Stack {
      * @return The generated CloudFormation stack name
      */
     public String getFullName(String environmentName) {
-        return String.format("%s-cerberus-%s", environmentName, name);
+        String tokenizedEnvName = StringUtils.replaceAll(environmentName, "_", "-");
+        return String.format("%s-cerberus-%s", tokenizedEnvName, name);
     }
 
     public static Stack fromName(final String name) {
