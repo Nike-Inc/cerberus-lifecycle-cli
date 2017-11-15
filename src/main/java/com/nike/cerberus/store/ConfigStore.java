@@ -224,7 +224,7 @@ public class ConfigStore {
     /**
      * Stores the certificate files encrypted and adds the certificate name to the environment data.
      *
-     * @param stack       Stack that the cert is for
+     * @param stack           Stack that the cert is for
      * @param certificateName Certificate name in IAM
      * @param caContents      CA chain
      * @param certContents    Certificate body
@@ -519,7 +519,7 @@ public class ConfigStore {
     /**
      * Get the stack outputs for a specific stack name.
      *
-     * @param stack   Stack name
+     * @param stack       Stack name
      * @param outputClass Outputs class
      * @param <M>         Outputs type
      * @return Outputs
@@ -560,7 +560,7 @@ public class ConfigStore {
     /**
      * Get the stack parameters for a specific stack name.
      *
-     * @param stack      Stack name
+     * @param stack          Stack name
      * @param parameterClass Parameters class
      * @param <M>            Parameters type
      * @return Parameters

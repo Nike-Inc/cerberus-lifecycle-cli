@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.nike.cerberus.command.core.UpdateStackCommand.COMMAND_NAME;
-import static com.nike.cerberus.domain.environment.Stack.ALL_STACK_NAMES;
 
 
 /**

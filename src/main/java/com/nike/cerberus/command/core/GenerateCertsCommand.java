@@ -174,7 +174,7 @@ public class GenerateCertsCommand implements Command {
             names = {
                     ACME_API_LONG_ARG
             },
-            description = "The ACME provider API URL to use, e.g. Let's Encrypt: "  + LETS_ENCRYPT_ACME_API_URI,
+            description = "The ACME provider API URL to use, e.g. Let's Encrypt: " + LETS_ENCRYPT_ACME_API_URI,
             required = true
     )
     private String acmeApiUrl;

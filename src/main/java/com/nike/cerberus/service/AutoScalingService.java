@@ -78,6 +78,7 @@ public class AutoScalingService {
 
     /**
      * Updates the minimum number of instances allowed in the auto scaling group
+     *
      * @param logicalId - Name of the auto scaling group
      */
     public void updateMinInstancesForAutoScalingGroup(final String logicalId, final int minInstances) {
@@ -93,7 +94,8 @@ public class AutoScalingService {
      * Set an EC2 instance to standby state, so that the desired instance count on the AutoScaling group is decreased
      * and a new instance is not spun up on instance reboot. This also removes the instance from the ELB, so that the
      * instance is not terminated when the health check fails.
-     * @param logicalId - Name of the auto scaling group
+     *
+     * @param logicalId  - Name of the auto scaling group
      * @param instanceId - ID of the EC2 instance
      */
     public void setInstanceStateToStandby(final String logicalId, final String instanceId) {
@@ -108,7 +110,8 @@ public class AutoScalingService {
     /**
      * Signify that the EC2 instance is now in service and ready to be re-added to the ELB and AutoScaling group. This
      * will also increase the desired instance count for the ASG.
-     * @param logicalId - Name of the auto scaling group
+     *
+     * @param logicalId  - Name of the auto scaling group
      * @param instanceId - ID of the EC2 instance
      */
     public void setInstanceStateToInService(final String logicalId, final String instanceId) {

@@ -15,7 +15,7 @@ apply from: file('gradle/integration.gradle')
 
 mainClassName = 'com.nike.cerberus.cli.CerberusRunner'
 
-task wrapper (type: Wrapper) {
+task wrapper(type: Wrapper) {
     gradleVersion = '3.4'
 }
 

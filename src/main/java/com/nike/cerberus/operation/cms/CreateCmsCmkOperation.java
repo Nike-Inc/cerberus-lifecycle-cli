@@ -136,7 +136,7 @@ public class CreateCmsCmkOperation implements Operation<CreateCmsCmkCommand> {
         String policyAsJson = generateKeyPolicy(cmsConfigProperties, description);
         logger.info("Generated the following policy:\n" + policyAsJson);
 
-        Map<String,String> tags = Maps.newHashMap();
+        Map<String, String> tags = Maps.newHashMap();
         tags.put("created_by", "cerberus_cli");
         tags.put("created_for", "cerberus_cms");
         tags.put("cerberus_env", envName);

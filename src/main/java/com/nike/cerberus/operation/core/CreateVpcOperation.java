@@ -75,7 +75,8 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
                 .setAz2(azByIdentifier.get(2))
                 .setAz3(azByIdentifier.get(3));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters, typeReference);
 
         cloudFormationService.createStackAndWait(Stack.VPC, parameters, true,
@@ -85,7 +86,7 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
     @Override
     public boolean isRunnable(final CreateVpcCommand command) {
         String environmentName = environmentMetadata.getName();
-        return ! cloudFormationService.isStackPresent(Stack.VPC.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(Stack.VPC.getFullName(environmentName));
     }
 
     private Map<Integer, String> mapAvailabilityZones() {

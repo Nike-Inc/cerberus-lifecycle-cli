@@ -19,11 +19,7 @@ package com.nike.cerberus.command;
 import com.beust.jcommander.JCommander;
 import org.junit.Test;
 
-import java.io.File;
 import java.net.Proxy;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Paths;
 
 import static org.junit.Assert.assertEquals;
 

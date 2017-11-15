@@ -87,7 +87,7 @@ public class CerberusAdminClient extends VaultAdminClient {
     public void restoreMetadata(String jsonPayload) {
         HttpUrl url = buildUrl("v1/", "metadata");
         Response response = execute(url, HttpMethod.PUT, jsonPayload);
-        if (! response.isSuccessful()) {
+        if (!response.isSuccessful()) {
             String body;
             try {
                 body = response.body().string();
@@ -115,7 +115,7 @@ public class CerberusAdminClient extends VaultAdminClient {
                 .build();
 
         Response response = execute(url, HttpMethod.GET, null);
-        if (! response.isSuccessful()) {
+        if (!response.isSuccessful()) {
             throw new RuntimeException(String.format("Failed to get metadata from Cerberus. Code: %s, Msg: %s",
                     response.code(), response.message()));
         }
@@ -155,7 +155,7 @@ public class CerberusAdminClient extends VaultAdminClient {
                     .addHeader(HttpHeader.ACCEPT, DEFAULT_MEDIA_TYPE.toString());
 
             requestBuilder.addHeader(HttpHeader.CONTENT_TYPE, DEFAULT_MEDIA_TYPE.toString())
-                    .method(method, json != null ? RequestBody.create(DEFAULT_MEDIA_TYPE, json) : null );
+                    .method(method, json != null ? RequestBody.create(DEFAULT_MEDIA_TYPE, json) : null);
 
             return httpClient.newCall(requestBuilder.build()).execute();
         } catch (IOException e) {
@@ -180,7 +180,7 @@ public class CerberusAdminClient extends VaultAdminClient {
      * @return Deserialized object from the response body
      */
     protected <M> M parseCmsResponseBody(final Response response, final Class<M> responseClass) {
-        try(ResponseBody body = response.body()) {
+        try (ResponseBody body = response.body()) {
             return objectMapper.readValue(body.bytes(), responseClass);
         } catch (IOException e) {
             throw new VaultClientException("Error parsing the response body from CMS", e);

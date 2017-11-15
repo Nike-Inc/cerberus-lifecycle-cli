@@ -74,7 +74,7 @@ public class S3StoreService implements StoreService {
 
     public Optional<String> get(String path) {
         Optional<S3Object> s3ObjectOptional = getS3Object(path);
-        if (! s3ObjectOptional.isPresent()) {
+        if (!s3ObjectOptional.isPresent()) {
             return Optional.empty();
         }
 
@@ -94,8 +94,7 @@ public class S3StoreService implements StoreService {
         GetObjectRequest request = new GetObjectRequest(s3Bucket, getFullPath(path));
         try {
             return Optional.of(s3Client.getObject(request));
-        }
-        catch (AmazonServiceException ase) {
+        } catch (AmazonServiceException ase) {
             if (StringUtils.equalsIgnoreCase(ase.getErrorCode(), "NoSuchKey")) {
                 logger.debug(String.format("The S3 object doesn't exist. Bucket: %s, Key: %s", s3Bucket, request.getKey()));
                 return Optional.empty();
@@ -108,7 +107,7 @@ public class S3StoreService implements StoreService {
 
     public Map<String, String> getS3ObjectUserMetaData(String path) {
         Optional<S3Object> encryptedObjectOptional = getS3Object(path);
-        if (! encryptedObjectOptional.isPresent()) {
+        if (!encryptedObjectOptional.isPresent()) {
             throw new RuntimeException("Cannot get metadata for an S3 Object that is not present");
         }
         S3Object s3Object = encryptedObjectOptional.get();
@@ -119,10 +118,10 @@ public class S3StoreService implements StoreService {
         ObjectListing objectListing = s3Client.listObjects(s3Bucket, getFullPath(path));
 
         return objectListing
-                        .getObjectSummaries()
-                        .stream()
-                        .map(objectSummary -> StringUtils.stripStart(objectSummary.getKey(), s3Prefix + "/"))
-                        .collect(Collectors.toSet());
+                .getObjectSummaries()
+                .stream()
+                .map(objectSummary -> StringUtils.stripStart(objectSummary.getKey(), s3Prefix + "/"))
+                .collect(Collectors.toSet());
     }
 
     /**

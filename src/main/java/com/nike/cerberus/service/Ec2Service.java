@@ -21,7 +21,6 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.AvailabilityZone;
 import com.amazonaws.services.ec2.model.AvailabilityZoneState;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
-import com.amazonaws.services.ec2.model.DescribeInstanceStatusRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeKeyPairsRequest;
@@ -30,15 +29,12 @@ import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.ImportKeyPairRequest;
 import com.amazonaws.services.ec2.model.ImportKeyPairResult;
 import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.InstanceStatus;
 import com.amazonaws.services.ec2.model.RebootInstancesRequest;
-import com.amazonaws.services.ec2.model.Reservation;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import javax.inject.Inject;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,7 +61,7 @@ public class Ec2Service {
     /**
      * Import a key pair to AWS EC2.
      *
-     * @param keyName Friendly name for the key
+     * @param keyName           Friendly name for the key
      * @param publicKeyMaterial Public key
      * @return Key name
      */
@@ -112,9 +108,10 @@ public class Ec2Service {
 
     /**
      * Gets all EC2 instances with the given tag key/value pair
-     * @param tagKey - Key of the tag
+     *
+     * @param tagKey   - Key of the tag
      * @param tagValue - Value of the tag
-     * @param filters - Array of EC2 filters
+     * @param filters  - Array of EC2 filters
      * @return - List of instances with the given tag
      */
     public List<Instance> getInstancesByTag(final String tagKey, final String tagValue, final Filter... filters) {
@@ -137,6 +134,7 @@ public class Ec2Service {
 
     /**
      * Reboots the EC2 instance with the given ID
+     *
      * @param instanceId - EC2 instance ID
      */
     public void rebootEc2Instance(final String instanceId) {

@@ -44,19 +44,18 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.google.common.collect.ImmutableMap;
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.client.CerberusAdminClientFactory;
-import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
-import com.nike.cerberus.domain.cms.SafeDepositBox;
 import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
+import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.backup.CerberusBackupMetadata;
 import com.nike.cerberus.domain.backup.CerberusSdbMetadata;
+import com.nike.cerberus.domain.cms.SafeDepositBox;
 import com.nike.cerberus.domain.environment.BackupRegionInfo;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.MetricsService;
 import com.nike.cerberus.service.S3StoreService;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.vault.client.model.VaultListResponse;
-import com.nike.vault.client.model.VaultResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,7 +237,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         keys.forEach(key -> {
             String compositeKey = path + key;
             if (key.endsWith("/")) {
-                recurseVault( compositeKey, data);
+                recurseVault(compositeKey, data);
             } else {
                 data.put(compositeKey, getData(compositeKey));
             }
@@ -271,6 +270,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
 
     /**
      * Using an S3 Encryption client saves the sdb data to the backup bucket / kms key
+     *
      * @param object The sdb data to back up
      * @param prefix The prefix / virtual folder to store the encrypted json
      */
@@ -293,7 +293,7 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
     private S3StoreService getEncryptedStoreServiceForRegion(String region) {
         Optional<BackupRegionInfo> backupRegionInfo = configStore.getBackupInfoForRegion(region);
 
-        if (! backupRegionInfo.isPresent()) {
+        if (!backupRegionInfo.isPresent()) {
             String kmsCmkId = provisionKmsCmkForBackupRegion(region);
             String backupBucket = provisionBackupBucketForRegion(region);
             configStore.storeBackupInfoForRegion(region, backupBucket, kmsCmkId);
@@ -340,13 +340,13 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         Policy kmsPolicy = new Policy();
         final List<Statement> statements = new LinkedList<>();
         // allow the configured admin iam principals all permissions
-        configStore.getBackupAdminIamPrincipals().forEach( principal -> {
+        configStore.getBackupAdminIamPrincipals().forEach(principal -> {
             log.debug("Adding principal: {} to the CMK Policy for region {}", principal, region);
             statements.add(new Statement(Statement.Effect.Allow)
-                .withId("Principal " + principal + " Has All Actions")
-                .withPrincipals(new Principal(AWS_PROVIDER, principal, false))
-                .withActions(KMSActions.AllKMSActions)
-                .withResources(new Resource("*")));
+                    .withId("Principal " + principal + " Has All Actions")
+                    .withPrincipals(new Principal(AWS_PROVIDER, principal, false))
+                    .withActions(KMSActions.AllKMSActions)
+                    .withResources(new Resource("*")));
         });
 
         kmsPolicy.setStatements(statements);
@@ -358,16 +358,16 @@ public class CreateCerberusBackupOperation implements Operation<CreateCerberusBa
         AWSKMS kms = AWSKMSClient.builder().withCredentials(getAWSCredentialsProviderChain()).withRegion(region).build();
         CreateKeyResult createKeyResult = kms.createKey(
                 new CreateKeyRequest()
-                    .withPolicy(policyString)
-                    .withBypassPolicyLockoutSafetyCheck(true)
-                    .withDescription(String.format("Cerberus Backup Encryption key for env: %S region: %s",
-                            environmentMetadata.getName(), region))
-                    .withTags(
-                            new Tag().withTagKey("env").withTagValue(environmentMetadata.getName()),
-                            new Tag().withTagKey("region").withTagValue(region),
-                            new Tag().withTagKey("cerberus-backup-key").withTagValue("true")
+                        .withPolicy(policyString)
+                        .withBypassPolicyLockoutSafetyCheck(true)
+                        .withDescription(String.format("Cerberus Backup Encryption key for env: %S region: %s",
+                                environmentMetadata.getName(), region))
+                        .withTags(
+                                new Tag().withTagKey("env").withTagValue(environmentMetadata.getName()),
+                                new Tag().withTagKey("region").withTagValue(region),
+                                new Tag().withTagKey("cerberus-backup-key").withTagValue("true")
 
-                    )
+                        )
         );
 
         String keyId = createKeyResult.getKeyMetadata().getKeyId();

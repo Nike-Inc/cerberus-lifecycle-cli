@@ -20,7 +20,6 @@ import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.Route53Parameters;
@@ -75,7 +74,8 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setOriginDomainName(getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride()));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, typeReference);
 
         cloudFormationService.createStackAndWait(Stack.ROUTE53, parameters, true,
