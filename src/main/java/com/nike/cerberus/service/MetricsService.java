@@ -50,7 +50,7 @@ public class MetricsService {
         log.info("Attempting to track metric, TYPE: {}, KEY: {}, VALUE: {}, DIMENSIONS: {}",
                 metricType, key, value, dimensions);
 
-        if (! metricsTopicArn.isPresent()) {
+        if (!metricsTopicArn.isPresent()) {
             log.warn("No metrics topic arn set, CLI will not track metric");
             return;
         }

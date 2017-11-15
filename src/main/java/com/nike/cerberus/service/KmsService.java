@@ -52,11 +52,12 @@ public class KmsService {
 
     /**
      * Create keys with a shared alias in multiple regions
-     * @param regions the target regions to create CMKs in
-     * @param alias the alias for the keys
-     * @param policy the policy
+     *
+     * @param regions     the target regions to create CMKs in
+     * @param alias       the alias for the keys
+     * @param policy      the policy
      * @param description the key description
-     * @param tags tags to apply to the keys
+     * @param tags        tags to apply to the keys
      * @return the ARNs of the created CMKs
      */
     public List<String> createKeysAndAliases(List<Regions> regions, String alias, String policy, String description, Map<String, String> tags) {

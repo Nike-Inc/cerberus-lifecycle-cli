@@ -26,7 +26,6 @@ import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -283,8 +282,8 @@ public class EnvironmentConfigToArgsMapperTest {
             boolean isPairE = false;
             String eVal = "";
             if (i < expected.length - 1) {
-                eVal = expected[i+1];
-                if (! StringUtils.startsWith(eVal, "-")) {
+                eVal = expected[i + 1];
+                if (!StringUtils.startsWith(eVal, "-")) {
                     isPairE = true;
                 }
             }
@@ -300,8 +299,8 @@ public class EnvironmentConfigToArgsMapperTest {
                 boolean isPairA = false;
                 String aVal = "";
                 if (n < actual.length - 1) {
-                    aVal = actual[n+1];
-                    if (! StringUtils.startsWith(aVal, "-")) {
+                    aVal = actual[n + 1];
+                    if (!StringUtils.startsWith(aVal, "-")) {
                         isPairA = true;
                     }
                 }
@@ -313,12 +312,12 @@ public class EnvironmentConfigToArgsMapperTest {
                 if (isPairE && isPairA && eKey.equals(aKey) && eVal.equals(aVal)) {
                     found = true;
                     break;
-                } else if (! isPairE && ! isPairA && eKey.equals(aKey)) {
+                } else if (!isPairE && !isPairA && eKey.equals(aKey)) {
                     found = true;
                     break;
                 }
             }
-            if (! found) {
+            if (!found) {
                 if (isPairE) {
                     fail(String.format("Failed to find [ %s %s ] in actual args \nactual args:   %s\nexpected args: %s\nactual size: %s\nexpected size: %s", eKey, eVal, String.join(" ", actual), String.join(" ", expected), actual.length, expected.length));
                 } else {

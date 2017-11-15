@@ -76,7 +76,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
     @Inject
     public RestoreCerberusBackupOperation(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
-                                                                    ObjectMapper objectMapper,
+                                                  ObjectMapper objectMapper,
                                           ConsoleService console,
                                           CerberusAdminClientFactory cerberusAdminClientFactory) {
 
@@ -104,7 +104,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
             logger.error("There where no keys in {}/{}", command.getS3Bucket(), command.getS3Prefix());
         }
 
-        if (! keys.contains(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY)) {
+        if (!keys.contains(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY)) {
             throw new RuntimeException(
                     String.format("cerberus-backup-metadata.json was not found in s3://%s/%s/ is this a complete backup?",
                             command.getS3Bucket(), command.getS3Prefix()));
@@ -136,13 +136,15 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
     /**
      * Use the metadata from the backup and ensure that the user wants to proceed
+     *
      * @param s3StoreService - The encrypted S3 store service
      */
     private void validateRestore(S3StoreService s3StoreService, RestoreCerberusBackupCommand command) {
         String backupMetadataJsonString = getDecryptedJson(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         Map<String, String> backupMetadata;
         try {
-            backupMetadata = objectMapper.readValue(backupMetadataJsonString, new TypeReference<HashMap<String,String>>() {});
+            backupMetadata = objectMapper.readValue(backupMetadataJsonString, new TypeReference<HashMap<String, String>>() {
+            });
         } catch (IOException e) {
             throw new RuntimeException("Failed to deserialize backup metadata", e);
         }
@@ -162,7 +164,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
                 .append("\nYou are attempting to restore this backup to ")
                 .append(Chalk.on(command.getCerberusUrl()).green().toString());
 
-        if (! backupApiUrl.equalsIgnoreCase(command.getCerberusUrl())) {
+        if (!backupApiUrl.equalsIgnoreCase(command.getCerberusUrl())) {
             msg.append("\n\n")
                     .append(Chalk.on("Warning: ").red().toString())
                     .append(Chalk.on("The backup was created for ").red().toString())
@@ -187,7 +189,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
             throw new RuntimeException("Failed to validate that the user wanted to proceed with backup", e);
         }
 
-        if (! proceed.equalsIgnoreCase("proceed")) {
+        if (!proceed.equalsIgnoreCase("proceed")) {
             throw new RuntimeException("User did not confirm to proceed with backup restore");
         }
     }
@@ -210,7 +212,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
     private String getKmsCmkId(String path, S3StoreService s3StoreService) {
         Map<String, String> metadata = s3StoreService.getS3ObjectUserMetaData(path);
-        if (! metadata.containsKey("x-amz-matdesc")) {
+        if (!metadata.containsKey("x-amz-matdesc")) {
             throw new RuntimeException("Failed to get Customer Master Key ID from object user metadata. " +
                     "'x-amz-matdesc' not found in metadata for object at path: " + path);
         }
@@ -220,7 +222,8 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
         Map<String, String> encryptionContextMap;
         try {
             encryptionContextMap = objectMapper.readValue(serializedEncryptionContext,
-                    new TypeReference<HashMap<String,String>>() {});
+                    new TypeReference<HashMap<String, String>>() {
+                    });
         } catch (IOException e) {
             throw new RuntimeException("Failed to convert encryption context metadata value into Map");
         }
@@ -239,6 +242,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
      * Process the stored backup json
      * Step 1: Restores the metadata to CMS
      * Step 2: Restores the secrete data to Vault
+     *
      * @param sdbBackupJson the json string from s3
      */
     protected void processBackup(String sdbBackupJson, CerberusAdminClient cerberusAdminClient) throws IOException {
@@ -251,19 +255,21 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
         // restore secret vault data
         JsonNode data = sdb.get("data");
         Map<String, Map<String, JsonNode>> kvPairs = objectMapper.convertValue(data,
-                new TypeReference<HashMap<String,Map<String, JsonNode>>>() {});
+                new TypeReference<HashMap<String, Map<String, JsonNode>>>() {
+                });
 
         kvPairs.forEach((String path, Map<String, JsonNode> secretData) -> {
             Map<String, Object> genericDataMap = new HashMap<>();
-            secretData.forEach((String key , JsonNode valueNode)-> {
+            secretData.forEach((String key, JsonNode valueNode) -> {
                 if (valueNode.isObject()) {
-                    genericDataMap.put(key , objectMapper.convertValue(valueNode,
-                            new TypeReference<HashMap<Object,Object>>() {})
+                    genericDataMap.put(key, objectMapper.convertValue(valueNode,
+                            new TypeReference<HashMap<Object, Object>>() {
+                            })
                     );
                 } else if (valueNode.isTextual()) {
-                    genericDataMap.put(key , valueNode.textValue());
+                    genericDataMap.put(key, valueNode.textValue());
                 } else if (valueNode.isBoolean()) {
-                    genericDataMap.put(key , valueNode.booleanValue());
+                    genericDataMap.put(key, valueNode.booleanValue());
                 } else {
                     throw new RuntimeException("Unexpected value type for secret value. Type: " + valueNode.getClass());
                 }
@@ -300,7 +306,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
                     vaultAdminClient.delete(fixedPath + "/" + key);
                 }
             }
-        }  catch (VaultClientException vce) {
+        } catch (VaultClientException vce) {
             throw new RuntimeException("Failed to delete secrets from Vault. for path: " + path);
         }
     }
