@@ -377,6 +377,9 @@ public class ConfigStore {
         return getEncryptedObject(path);
     }
 
+    /**
+     * returns the complete stack name
+     */
     public String getStackLogicalId(Stack stack) {
         return stack.getFullName(environmentMetadata.getName());
     }
@@ -547,13 +550,11 @@ public class ConfigStore {
      * @return Outputs
      */
     public <M> M getStackOutputs(final String stackName, final Class<M> outputClass) {
-        final String stackId = Stack.fromName(stackName).getFullName(environmentMetadata.getName());
-
-        if (!cloudFormationService.isStackPresent(stackId)) {
+        if (!cloudFormationService.isStackPresent(stackName)) {
             throw new IllegalStateException("Failed to get CloudFormation output for stack: '" + stackName + "'. Stack does not exist.");
         }
 
-        final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(stackId);
+        final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(stackName);
         return cloudFormationObjectMapper.convertValue(stackOutputs, outputClass);
     }
 
@@ -587,13 +588,11 @@ public class ConfigStore {
      * @return Parameters
      */
     public <M> M getStackParameters(final String stackName, final Class<M> parameterClass) {
-        final String stackId = Stack.fromName(stackName).getFullName(environmentMetadata.getName());
-
-        if (!cloudFormationService.isStackPresent(stackId)) {
+        if (!cloudFormationService.isStackPresent(stackName)) {
             throw new IllegalStateException("Failed to get CloudFormation parameters for stack: '" + stackName + "'. Stack does not exist.");
         }
 
-        final Map<String, String> stackOutputs = cloudFormationService.getStackParameters(stackId);
+        final Map<String, String> stackOutputs = cloudFormationService.getStackParameters(stackName);
         return cloudFormationObjectMapper.convertValue(stackOutputs, parameterClass);
     }
 
