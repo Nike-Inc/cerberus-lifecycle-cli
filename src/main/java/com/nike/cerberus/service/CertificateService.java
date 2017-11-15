@@ -61,10 +61,14 @@ import java.net.URI;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -178,14 +182,7 @@ public class CertificateService {
         }
     }
 
-    /**
-     * Creates a Txt record in Route53
-     *
-     * @param name         The record name
-     * @param digest       The value for the txt record
-     * @param hostedZoneId The hosted zone id to create the record in
-     */
-    protected void generateChallengeTxtEntry(String name, String digest, String hostedZoneId) {
+    protected void executeRecordSetChanges(String name, String digest, String hostedZoneId, ChangeAction action) {
         ResourceRecordSet recordSet = new ResourceRecordSet()
                 .withName(name)
                 .withType(RRType.TXT)
@@ -194,13 +191,9 @@ public class CertificateService {
                         new ResourceRecord(String.format("\"%s\"", digest))
                 );
 
-        createOrUpdateRecordSets(recordSet, hostedZoneId);
-    }
-
-    protected void createOrUpdateRecordSets(ResourceRecordSet recordSet, String hostedZoneId) {
         ChangeBatch changeBatch = new ChangeBatch().withChanges(
                 new Change()
-                        .withAction(ChangeAction.UPSERT)
+                        .withAction(action)
                         .withResourceRecordSet(recordSet)
         );
 
@@ -274,10 +267,23 @@ public class CertificateService {
             Session session = new Session(acmeServerUrl, userKeyPair);
             Registration registration = findOrRegisterAccount(session, contactEmail);
 
+            Map<String, Collection<Challenge>> domainChallengeCollectionMap = new HashMap<>();
             for (String name : names) {
                 Authorization authorization = registration.authorizeDomain(name);
-                getChallenges(authorization).forEach(challenge -> doChallenge(challenge, name, hostedZoneId));
+                domainChallengeCollectionMap.put(name, getChallenges(authorization));
             }
+
+            ThreadPoolExecutor challengeExecutorService = (ThreadPoolExecutor) Executors.newFixedThreadPool(names.size());
+            domainChallengeCollectionMap.forEach((name, challengeCollection) -> {
+                challengeExecutorService.execute(() ->
+                        challengeCollection.forEach(challenge -> doChallenge(challenge, name, hostedZoneId)));
+            });
+
+            do {
+                log.info("Waiting for all challenges to complete before continuing");
+                Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+            } while (challengeExecutorService.getActiveCount() > 0);
+            challengeExecutorService.shutdown();
 
             KeyPair domainKeyPair = loadOrCreateKeyPair(new File(certDir.getAbsolutePath() + File.separator + DOMAIN_PKCS1_KEY_FILE));
             createPKCS8PrivateKeyPemFileFromKeyPair(domainKeyPair, certDir);
@@ -371,20 +377,23 @@ public class CertificateService {
      */
     protected void doDns01Challenge(Dns01Challenge challenge, String domainName, String hostedZoneId) {
         String digest = challenge.getDigest();
+        String name = String.format(CHALLENGE_ENTRY_TEMPLATE, domainName);
         try {
-            String cname = String.format(CHALLENGE_ENTRY_TEMPLATE, domainName);
-            generateChallengeTxtEntry(cname, digest, hostedZoneId);
+            executeRecordSetChanges(name, digest, hostedZoneId, ChangeAction.UPSERT);
             Optional<String> recordValue;
             do {
-                log.info("Waiting for name: '{}' to have txt record digest value: '{}' before triggering challenge", cname, digest);
+                log.info("Waiting for name: '{}' to have txt record digest value: '{}' before triggering challenge", name, digest);
                 Thread.sleep(TimeUnit.SECONDS.toMillis(60));
-                recordValue = getTxtRecordValue(cname);
+                recordValue = getTxtRecordValue(name);
             } while (!recordValue.isPresent() || !recordValue.get().equals(String.format("\"%s\"", digest)));
         } catch (InterruptedException e) {
             throw new RuntimeException("Failed to complete DNS 01 challenge", e);
         }
 
-        triggerChallenge(challenge);
+        triggerChallenge(challenge, 0);
+
+        log.info("Deleting record: {}", name);
+        executeRecordSetChanges(name, digest, hostedZoneId, ChangeAction.DELETE);
     }
 
     /**
@@ -392,7 +401,7 @@ public class CertificateService {
      *
      * @param challenge The challenge that is ready to be triggered
      */
-    protected void triggerChallenge(Challenge challenge) {
+    protected void triggerChallenge(Challenge challenge, int retryCount) {
         try {
             challenge.trigger();
 
@@ -404,7 +413,15 @@ public class CertificateService {
             }
             log.info("challenge accepted");
         } catch (AcmeException | InterruptedException e) {
-            log.error("failed to trigger and wait for challenge to be accepted", e);
+            log.error("failed to trigger and wait for challenge to be accepted msg: {}", e.getMessage());
+            // parallelizing challenges causes a race condition, retrying works past it an drastically improves overall time
+            if (e.getMessage().startsWith("JWS has invalid anti-replay nonce")) {
+                final int maxRetries = 10;
+                if (retryCount < maxRetries) {
+                    log.info("Retrying {} out of {}", retryCount  + 1, maxRetries);
+                    triggerChallenge(challenge, retryCount + 1);
+                }
+            }
         }
     }
 

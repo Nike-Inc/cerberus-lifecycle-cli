@@ -81,10 +81,6 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
         subjectAlternativeNames.add(originName);
         subjectAlternativeNames.add(loadBalancerName);
 
-        // confirm with user
-        consoleService.askUserToProceed(String.format("Preparing to generate certs with Common Name: %s and Subject Alternative Names: %s",
-                commonName, String.join(", ", subjectAlternativeNames)), NO);
-
         // Enable the use of the hard coded lets encrypt cert if enabled
         if (command.enableLetsEncryptCertfix()) {
             log.warn("Setting acme4j.le.certfix system property to 'true', this only works if you use the special acme:// lets encrypt addr. See: https://shredzone.org/maven/acme4j/usage/session.html and https://shredzone.org/maven/acme4j/provider.html");
@@ -100,6 +96,10 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
             if (!certDir.isDirectory() || !certDir.canWrite()) {
                 throw new RuntimeException("The certificate directory is not a directory or is not writable, path: " + certDir.getAbsolutePath());
             }
+
+            // confirm with user
+            consoleService.askUserToProceed(String.format("Preparing to generate certs in %s with Common Name: %s and Subject Alternative Names: %s",
+                    certDir.getAbsolutePath(), commonName, String.join(", ", subjectAlternativeNames)), NO);
 
             // generate the certs
             certService.generateCerts(
