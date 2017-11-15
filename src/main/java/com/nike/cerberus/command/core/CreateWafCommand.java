@@ -21,7 +21,6 @@ import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateLoadBalancerOperation;
 import com.nike.cerberus.operation.core.CreateWafOperation;
 
 import static com.nike.cerberus.command.core.CreateWafCommand.COMMAND_NAME;

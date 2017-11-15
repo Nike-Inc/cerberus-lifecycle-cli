@@ -42,11 +42,11 @@ public class IdentityManagementService {
     /**
      * Uploads a server certificate to AWS IAM.
      *
-     * @param name The server certificate name.  No spaces.
-     * @param path Path to store the certificate under.
-     * @param body PEM-encoded certificate body.
+     * @param name  The server certificate name.  No spaces.
+     * @param path  Path to store the certificate under.
+     * @param body  PEM-encoded certificate body.
      * @param chain PEM-encoded certificate chain.
-     * @param key PEM-encoded certificate key.
+     * @param key   PEM-encoded certificate key.
      * @return The server certificate ID of the uploaded certificate.
      */
     public String uploadServerCertificate(

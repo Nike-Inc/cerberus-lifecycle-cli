@@ -21,13 +21,12 @@ import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.Filter;
+import com.nike.cerberus.ConfigConstants;
+import com.nike.cerberus.domain.environment.Stack;
 
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.nike.cerberus.domain.environment.Stack;
-import com.nike.cerberus.ConfigConstants;
 
 /**
  * Service wrapper for AWS EC2.
@@ -54,8 +53,8 @@ public class AmiTagCheckService {
     public boolean isAmiWithTagExist(final String amiId, final String tagName, final String tagValue) {
 
         final DescribeImagesRequest request = new DescribeImagesRequest()
-            .withFilters(new Filter().withName(tagName).withValues(tagValue))
-            .withFilters(new Filter().withName("image-id").withValues(amiId));
+                .withFilters(new Filter().withName(tagName).withValues(tagValue))
+                .withFilters(new Filter().withName("image-id").withValues(amiId));
 
         try {
             final DescribeImagesResult result = ec2Client.describeImages(request);
@@ -75,7 +74,7 @@ public class AmiTagCheckService {
      * @return void
      */
     public void validateAmiTagForStack(final String amiId, final Stack stack) {
-        if (!isAmiWithTagExist(amiId, ConfigConstants.CERBERUS_AMI_TAG_NAME, stackAmiTagValueMap.get(stack) )) {
+        if (!isAmiWithTagExist(amiId, ConfigConstants.CERBERUS_AMI_TAG_NAME, stackAmiTagValueMap.get(stack))) {
             throw new IllegalStateException(ConfigConstants.AMI_TAG_CHECK_ERROR_MESSAGE);
         }
     }

@@ -83,7 +83,7 @@ public class CerberusCommand {
         }
 
         File environmentConfigFile = new File(file);
-        if (! environmentConfigFile.exists() || environmentConfigFile.isDirectory()) {
+        if (!environmentConfigFile.exists() || environmentConfigFile.isDirectory()) {
             throw new IllegalArgumentException(String.format("The file: %s does not exist or is a directory", file));
         }
 

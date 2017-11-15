@@ -238,6 +238,7 @@ public class CloudFormationService {
 
     /**
      * Get the full ID of the stack
+     *
      * @param stackName - The stack logical id / full stack name
      * @return
      */
@@ -292,10 +293,10 @@ public class CloudFormationService {
     }
 
 
-
     /**
      * Since there doesn't appear to be a first class way through the SDK at this time to get a CF export. We can
      * iterate through the stacks for a given output key and return the value.
+     *
      * @param outputKey The exported CF variable to search and retrieve the value of.
      * @return The value for the export if found
      */
@@ -381,7 +382,7 @@ public class CloudFormationService {
      */
     private Collection<Tag> getTags(Map<String, String> globalTags) {
         Set<Tag> tags = new HashSet<>();
-        globalTags.forEach((k,v) -> {
+        globalTags.forEach((k, v) -> {
             tags.add(new Tag().withKey(k).withValue(v));
         });
 

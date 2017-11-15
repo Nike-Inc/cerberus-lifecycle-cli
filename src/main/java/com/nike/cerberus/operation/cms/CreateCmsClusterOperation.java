@@ -88,7 +88,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         }
 
         // Make sure the given AmiId is for CMS component. Check if it contains required tag
-        if ( ! command.isSkipAmiTagCheck() ) {
+        if (!command.isSkipAmiTagCheck()) {
             amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), Stack.CMS);
         }
 
@@ -105,7 +105,8 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         cmsParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(Stack.CMS));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters, typeReference);
 
         // allow user to overwrite CloudFormation parameters with -P option
@@ -142,6 +143,6 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         }
 
         return configStore.getCmsEnvConfig().isPresent() &&
-                ! cloudFormationService.isStackPresent(Stack.CMS.getFullName(environmentName));
+                !cloudFormationService.isStackPresent(Stack.CMS.getFullName(environmentName));
     }
 }

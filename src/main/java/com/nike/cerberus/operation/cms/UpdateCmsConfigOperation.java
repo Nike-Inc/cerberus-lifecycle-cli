@@ -27,8 +27,8 @@ import javax.inject.Inject;
 import java.util.Optional;
 import java.util.Properties;
 
-import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
 import static com.nike.cerberus.ConfigConstants.CMS_ADMIN_GROUP_KEY;
+import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
 
 /**
  * Gathers all of the CMS environment configuration and puts it in the config bucket.
@@ -51,14 +51,14 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
         final Properties newProperties = configStore.getCmsSystemProperties();
         final Properties existingCustomProperties = configStore.getExistingCmsUserProperties();
-        if (! command.getOverwrite()) {
+        if (!command.getOverwrite()) {
             // keep existing custom properties
             newProperties.putAll(existingCustomProperties);
         }
 
         // update existing custom properties, add new ones
         command.getAdditionalProperties().forEach((k, v) -> {
-            if (! SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(k) || command.isForce()) {
+            if (!SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(k) || command.isForce()) {
                 newProperties.put(k, v);
             } else {
                 logger.warn("Ignoring additional property that would override system configured property, " + k);

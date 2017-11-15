@@ -69,7 +69,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Service for managing Cerificates and calls to the ACME cert provider
- *
+ * <p>
  * TODO: Update TOS
  * TODO: Rotate ACME user private key
  * TODO: Support Venafi ACME Impl
@@ -132,8 +132,7 @@ public class CertificateService {
      * it somewhere. If you need to get access to your account later, reconnect to it via
      * {@link Registration#bind(Session, URI)} by using the stored location.
      *
-     * @param session
-     *            {@link Session} to bind with
+     * @param session {@link Session} to bind with
      * @return {@link Registration} connected to your account
      */
     protected Registration findOrRegisterAccount(Session session, String contactEmail) throws AcmeException, IOException {
@@ -147,7 +146,7 @@ public class CertificateService {
             // We won't be able to authorize domains until the ToS is accepted.
             URI agreement = reg.getAgreement();
 
-            if (! (agreement == null)) {
+            if (!(agreement == null)) {
                 acceptAgreement(reg, agreement);
             }
         } catch (AcmeConflictException ex) {
@@ -162,14 +161,14 @@ public class CertificateService {
     /**
      * Prompts a user to read and accept or deny a ACME providers TOS
      *
-     * @param reg The registration object
+     * @param reg       The registration object
      * @param agreement The link to the TOS
      */
     protected void acceptAgreement(Registration reg, URI agreement) {
         try {
             log.info("Please download and review the Terms of Service: " + agreement);
             String userResponse = console.readLine("Type \"I Accept\" to accept the Terms of Service, anything else will exit: ");
-            if (! StringUtils.equalsIgnoreCase("I Accept", userResponse)) {
+            if (!StringUtils.equalsIgnoreCase("I Accept", userResponse)) {
                 throw new RuntimeException("User did not accept the Terms of Service");
             }
             reg.modify().setAgreement(agreement).commit();
@@ -182,8 +181,8 @@ public class CertificateService {
     /**
      * Creates a Txt record in Route53
      *
-     * @param name The record name
-     * @param digest The value for the txt record
+     * @param name         The record name
+     * @param digest       The value for the txt record
      * @param hostedZoneId The hosted zone id to create the record in
      */
     protected void generateChallengeTxtEntry(String name, String digest, String hostedZoneId) {
@@ -253,10 +252,10 @@ public class CertificateService {
     /**
      * Generates the certs needed for a Cerberus Environment
      *
-     * @param certDir The folder to store the generated files
-     * @param commonName The primary CNAME for the cert
+     * @param certDir                 The folder to store the generated files
+     * @param commonName              The primary CNAME for the cert
      * @param subjectAlternativeNames Additional CNAMEs for the cert
-     * @param hostedZoneId The hosted zone id that can be used to create txt records for the ACME ownership challenges
+     * @param hostedZoneId            The hosted zone id that can be used to create txt records for the ACME ownership challenges
      */
     public void generateCerts(File certDir,
                               String acmeServerUrl,
@@ -322,7 +321,7 @@ public class CertificateService {
     /**
      * Takes a challenge and performs it
      *
-     * @param challenge The challenge
+     * @param challenge  The challenge
      * @param domainName The domain that is being verified
      * @param hostedZone The hosted zone id if applicable
      */
@@ -338,7 +337,7 @@ public class CertificateService {
 
     /**
      * Attempts to get an acceptable challenge from the ACME provider.
-     *
+     * <p>
      * This CLI currently only supports DNS-01 Challenges
      *
      * @param authorization The authorization object from the ACME provider
@@ -351,7 +350,7 @@ public class CertificateService {
 
         for (String[] desiredChallengeCombo : desiredChallengeCombos) {
             Collection<Challenge> challenges = authorization.findCombination(desiredChallengeCombo);
-            if (! challenges.isEmpty()) {
+            if (!challenges.isEmpty()) {
                 return challenges;
             }
         }
@@ -366,8 +365,8 @@ public class CertificateService {
     /**
      * Performs the ACME DNS 01 Challenge by creating txt records in Route 53
      *
-     * @param challenge The ACME challenge info with digest
-     * @param domainName The domain name that is being verified
+     * @param challenge    The ACME challenge info with digest
+     * @param domainName   The domain name that is being verified
      * @param hostedZoneId The hosted zone id that has permissions to create dns records for the domain name
      */
     protected void doDns01Challenge(Dns01Challenge challenge, String domainName, String hostedZoneId) {
@@ -380,7 +379,7 @@ public class CertificateService {
                 log.info("Waiting for name: '{}' to have txt record digest value: '{}' before triggering challenge", cname, digest);
                 Thread.sleep(TimeUnit.SECONDS.toMillis(60));
                 recordValue = getTxtRecordValue(cname);
-            } while (! recordValue.isPresent() || ! recordValue.get().equals(String.format("\"%s\"", digest)));
+            } while (!recordValue.isPresent() || !recordValue.get().equals(String.format("\"%s\"", digest)));
         } catch (InterruptedException e) {
             throw new RuntimeException("Failed to complete DNS 01 challenge", e);
         }

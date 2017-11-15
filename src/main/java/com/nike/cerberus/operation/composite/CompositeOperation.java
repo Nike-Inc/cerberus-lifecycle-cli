@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -60,7 +59,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Runs all the chained commands in order that are defined in the runnable chained command list,
      * which gets populated when isRunnable is executed
      */
@@ -97,8 +96,8 @@ public abstract class CompositeOperation<T extends Command> implements Operation
             // If the given command is not runnable return false for the whole chain
             //noinspection unchecked
             boolean isRunnable = operation.isRunnable(chainedCommand);
-            if (! isRunnable) {
-                if (! skipOnNotRunnable()) {
+            if (!isRunnable) {
+                if (!skipOnNotRunnable()) {
                     throw new RuntimeException("The command: " + chainedCommand.getCommandName() + " is not runnable, stopping...");
                 } else {
                     log.info("The command {} reports that it is not runnable, skipping...", chainedCommand.getCommandName());
@@ -134,7 +133,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
 
     /**
      * If your chain of commands doesn't need every command to run to succeed you can override this to tru.
-     *
+     * <p>
      * For example you could have a chain of commands that is long and complicated and commands that have completed will
      * return isRunnable: false on future runs, setting this to return true would just mean that the command that is
      * already run will be skipped moving on to commands that are still needing to be ran. Allowing you to run a

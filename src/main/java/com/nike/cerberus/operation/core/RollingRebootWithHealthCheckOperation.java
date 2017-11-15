@@ -57,7 +57,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final static ImmutableMap<String, String> HEALTH_CHECK_MAP = ImmutableMap.of(
-            Stack.CMS.getName(),     "http://%s:8080/healthcheck"
+            Stack.CMS.getName(), "http://%s:8080/healthcheck"
     );
 
     private final static int DEFAULT_HTTP_TIMEOUT = 15;
@@ -105,7 +105,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
 
         logger.warn(Chalk.on(
                 "If this command fails: the minimum instance size may need to be increased and an EC2 instance" +
-                " may need to be set to 'in-service' state on the auto scaling group").yellow().toString());
+                        " may need to be set to 'in-service' state on the auto scaling group").yellow().toString());
 
         final Stack stack = command.getStack();
         final String stackId = stack.getFullName(environmentMetadata.getName());
@@ -157,7 +157,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
         // wait for health check pass to confirm instance is healthy after reboot
         logger.warn(Chalk.on(
                 "If a proxy is required to talk to the EC2 instance, then make sure it is set up." +
-                " Otherwise this command will never succeed.").yellow().toString());
+                        " Otherwise this command will never succeed.").yellow().toString());
         logger.info("Waiting for health check to pass again to confirm instance is healthy...");
         waitForHealthCheckStatusCode(healthCheckUrl, HttpStatus.OK, EXPECTED_NUM_SUCCESSES_AFTER_REBOOT);
 
@@ -167,7 +167,8 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
 
     /**
      * Poll the health check 'n' times, looking for the given response
-     * @param healthCheckUrl - The health check URL
+     *
+     * @param healthCheckUrl                  - The health check URL
      * @param numConsecutiveResponsesExpected - The number of times to poll health check
      */
     private void waitForHealthCheckStatusCode(final String healthCheckUrl,
@@ -199,6 +200,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
 
     /**
      * Execute the given health check
+     *
      * @param healthCheckUrl - Name of that EC2 instance belongs to
      * @return - Response code of the health check
      */
@@ -219,7 +221,7 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
 
         final Call healthCheckCall = okHttpClient.newCall(requestBuilder);
 
-        try(final Response response = healthCheckCall.execute()) {
+        try (final Response response = healthCheckCall.execute()) {
             logger.debug("Health check returned status: {}, URL: {}", response.code(), healthCheckUrl);
             return response.code();
         } catch (IOException ioe) {
@@ -238,10 +240,10 @@ public class RollingRebootWithHealthCheckOperation implements Operation<RollingR
         final String stackId = stack.getFullName(environmentMetadata.getName());
         final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
 
-        if (! HEALTH_CHECK_MAP.containsKey(stackNameStr)) {
+        if (!HEALTH_CHECK_MAP.containsKey(stackNameStr)) {
             logger.error("Cannot reboot cluster: {}. Allowed stacks: {}", stack, HEALTH_CHECK_MAP.keySet());
             return false;
-        } else if (! stackParameters.containsKey(MIN_INSTANCES_STACK_PARAMETER_KEY)) {
+        } else if (!stackParameters.containsKey(MIN_INSTANCES_STACK_PARAMETER_KEY)) {
             logger.error("Could not find parameter 'minInstances' on stack: {}", stackId);
             return false;
         } else {

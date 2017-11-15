@@ -29,7 +29,7 @@ import static com.nike.cerberus.command.composite.CreateCerberusEnvironmentComma
         },
         commandDescription = "Creates a complete Cerberus environment from scratch using an environment yaml"
 )
-public class  CreateCerberusEnvironmentCommand implements Command {
+public class CreateCerberusEnvironmentCommand implements Command {
 
     public static final String COMMAND_NAME = "create-cerberus-environment";
 

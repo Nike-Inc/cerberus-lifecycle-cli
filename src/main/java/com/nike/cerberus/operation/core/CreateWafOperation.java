@@ -71,7 +71,8 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setWafName("cerberus-" + environmentName + "-waf");
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafParameters, typeReference);
 
         String stackId = cloudFormationService.createStack(Stack.WAF, parameters, true,
@@ -96,6 +97,6 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
             return false;
         }
 
-        return ! cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName));
     }
 }

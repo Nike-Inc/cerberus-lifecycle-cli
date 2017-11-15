@@ -56,9 +56,9 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
 
     @Inject
     public CreateLoadBalancerOperation(final EnvironmentMetadata environmentMetadata,
-                              final CloudFormationService cloudFormationService,
-                              final ConfigStore configStore,
-                              @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+                                       final CloudFormationService cloudFormationService,
+                                       final ConfigStore configStore,
+                                       @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
@@ -85,7 +85,8 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
             loadBalancerParameters.setSslPolicy(command.getLoadBalancerSslPolicyOverride());
         }
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters, typeReference);
 
         final String stackId = cloudFormationService.createStack(Stack.LOAD_BALANCER, parameters, true,
@@ -109,6 +110,6 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
             return false;
         }
 
-        return ! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName));
     }
 }

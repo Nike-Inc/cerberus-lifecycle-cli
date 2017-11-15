@@ -85,7 +85,8 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters, typeReference);
 
         String stackId = cloudFormationService.createStack(Stack.DATABASE, parameters, true,

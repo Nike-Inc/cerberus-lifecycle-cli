@@ -60,7 +60,7 @@ public class ConfigConstants {
 
     public static final String JDBC_USERNAME_KEY = "JDBC.username";
 
-    public static final String JDBC_PASSWORD_KEY ="JDBC.password";
+    public static final String JDBC_PASSWORD_KEY = "JDBC.password";
 
     public static final String CMK_ARNS_KEY = "cms.encryption.cmk.arns";
 
@@ -88,9 +88,9 @@ public class ConfigConstants {
     public static final String SKIP_AMI_TAG_CHECK_DESCRIPTION = "Skip validation of 'cerberus_component' tag on AMI";
 
     public static final String AMI_TAG_CHECK_ERROR_MESSAGE
-                        = "FAIL: AMI tag check failed!\n"
-                        + "Given AMI ID either does not exist "
-                        + "or does not contain cerberus tag 'cerberus_component' with stack name "
-                        + "or cerberus tag does not match the stack that is being deployed.\n"
-                        + "Please refer documentation on AMI Tagging or use '"+ SKIP_AMI_TAG_CHECK_ARG +"' option to skip this check.";
+            = "FAIL: AMI tag check failed!\n"
+            + "Given AMI ID either does not exist "
+            + "or does not contain cerberus tag 'cerberus_component' with stack name "
+            + "or cerberus tag does not match the stack that is being deployed.\n"
+            + "Please refer documentation on AMI Tagging or use '" + SKIP_AMI_TAG_CHECK_ARG + "' option to skip this check.";
 }

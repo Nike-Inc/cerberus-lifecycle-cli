@@ -68,7 +68,7 @@ public class CreateCmsConfigOperation implements Operation<CreateCmsConfigComman
     public boolean isRunnable(final CreateCmsConfigCommand command) {
         boolean isRunnable = !configStore.getCmsEnvConfig().isPresent();
 
-        if (! isRunnable) {
+        if (!isRunnable) {
             logger.warn("CMS config already exists, use 'update-cms-config' command.");
         }
 
