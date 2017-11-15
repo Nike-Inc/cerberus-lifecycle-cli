@@ -17,7 +17,6 @@
 package com.nike.cerberus.operation.cms;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
@@ -32,6 +31,7 @@ import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
 import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.MapOfStringsTypeRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,9 +105,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         cmsParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(Stack.CMS));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters, new MapOfStringsTypeRef());
 
         // allow user to overwrite CloudFormation parameters with -P option
         parameters.putAll(command.getStackDelegate().getDynamicParameters());
