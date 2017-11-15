@@ -17,14 +17,10 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
 import org.apache.commons.lang3.StringUtils;
@@ -85,25 +81,8 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         try {
             logger.info("Starting the update for '{}' overwrite:{}.", stackId, command.isOverwriteTemplate());
 
-            cloudFormationService.updateStack(command.getStack(), parameters, true, command.isOverwriteTemplate(),
+            cloudFormationService.updateStackAndWait(command.getStack(), parameters, true, command.isOverwriteTemplate(),
                     command.getTagsDelegate().getTags());
-
-            final StackStatus endStatus =
-                    cloudFormationService.waitForStatus(stackId,
-                            Sets.newHashSet(
-                                    UPDATE_COMPLETE,
-                                    UPDATE_COMPLETE_CLEANUP_IN_PROGRESS,
-                                    UPDATE_ROLLBACK_COMPLETE,
-                                    UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS,
-                                    UPDATE_ROLLBACK_FAILED
-                            ));
-
-            if (!ImmutableList.of(UPDATE_COMPLETE, UPDATE_COMPLETE_CLEANUP_IN_PROGRESS).contains(endStatus)) {
-                final String errorMessage = String.format("CloudFormation reports that updating the stack was not successful. end status: %s", endStatus.name());
-                logger.error(errorMessage);
-
-                throw new UnexpectedCloudFormationStatusException(errorMessage);
-            }
 
             logger.info("Update complete.");
         } catch (AmazonServiceException ase) {

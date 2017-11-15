@@ -16,7 +16,6 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.beust.jcommander.internal.Maps;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateVpcCommand;
@@ -24,7 +23,6 @@ import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2Service;
 import com.nike.cerberus.util.CloudFormationObjectMapper;
@@ -74,15 +72,8 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
 
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters);
 
-        final String stackId = cloudFormationService.createStack(Stack.VPC, parameters, true,
+        cloudFormationService.createStackAndWait(Stack.VPC, parameters, true,
                 command.getTagsDelegate().getTags());
-
-        StackStatus endStatus = cloudFormationService.waitForStatus(stackId,
-                Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
-
-        if (endStatus != StackStatus.CREATE_COMPLETE) {
-            throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
-        }
     }
 
     @Override

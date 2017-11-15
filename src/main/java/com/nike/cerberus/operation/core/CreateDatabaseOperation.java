@@ -25,7 +25,6 @@ import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.CloudFormationObjectMapper;
@@ -83,18 +82,10 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters);
 
-        String stackId = cloudFormationService.createStack(Stack.DATABASE, parameters, true,
+        cloudFormationService.createStackAndWait(Stack.DATABASE, parameters, true,
                 command.getTagsDelegate().getTags());
 
-        final StackStatus endStatus =
-                cloudFormationService.waitForStatus(stackId,
-                        Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
-
-        if (StackStatus.CREATE_COMPLETE == endStatus) {
-            configStore.storeCmsDatabasePassword(databasePassword);
-        } else {
-            throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
-        }
+        configStore.storeCmsDatabasePassword(databasePassword);
     }
 
     @Override
