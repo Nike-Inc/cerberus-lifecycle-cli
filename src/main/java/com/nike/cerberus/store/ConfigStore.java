@@ -53,6 +53,7 @@ import com.nike.cerberus.service.IdentityManagementService;
 import com.nike.cerberus.service.S3StoreService;
 import com.nike.cerberus.service.SaltGenerator;
 import com.nike.cerberus.service.StoreService;
+import com.nike.cerberus.util.CloudFormationObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,6 @@ import static com.nike.cerberus.ConfigConstants.JDBC_URL_KEY;
 import static com.nike.cerberus.ConfigConstants.JDBC_USERNAME_KEY;
 import static com.nike.cerberus.ConfigConstants.ROOT_USER_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 import static com.nike.cerberus.module.CerberusModule.CONFIG_OBJECT_MAPPER;
 
 /**
@@ -96,7 +96,7 @@ public class ConfigStore {
 
     private final ObjectMapper configObjectMapper;
 
-    private final ObjectMapper cloudFormationObjectMapper;
+    private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     private final IdentityManagementService iamService;
 
@@ -124,7 +124,7 @@ public class ConfigStore {
                        final EnvironmentMetadata environmentMetadata,
                        final SaltGenerator saltGenerator,
                        @Named(CONFIG_OBJECT_MAPPER) final ObjectMapper configObjectMapper,
-                       @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
+                       final CloudFormationObjectMapper cloudFormationObjectMapper) {
 
         this.cloudFormationService = cloudFormationService;
         this.iamService = iamService;

@@ -16,8 +16,8 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.amazonaws.services.cloudformation.model.StackStatus;
+import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
@@ -25,14 +25,12 @@ import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.CloudFormationObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Map;
-
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -47,17 +45,17 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
     private final ConfigStore configStore;
 
-    private final ObjectMapper cloudFormationObjectMapper;
+    private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     @Inject
     public CreateBaseOperation(final EnvironmentMetadata environmentMetadata,
                                final CloudFormationService cloudFormationService,
                                final ConfigStore configStore,
-                               @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+                               final CloudFormationObjectMapper cloudFormationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
-        this.cloudFormationObjectMapper = cloudformationObjectMapper;
+        this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
@@ -65,10 +63,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
         final BaseParameters baseParameters = new BaseParameters()
                 .setAccountAdminArn(command.getAdminRoleArn());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters);
 
         cloudFormationService.createStackAndWait(Stack.BASE, parameters, true,
                 command.getTagsDelegate().getTags());
