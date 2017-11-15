@@ -24,8 +24,6 @@ import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Image;
 import org.junit.Test;
 
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -51,7 +49,7 @@ public class AmiTagCheckServiceTest {
                 )
         ).thenReturn(
                 new DescribeImagesResult().withImages(new Image())
-                );
+        );
 
         // invoke method under test
         assertTrue(amiTagCheckService.isAmiWithTagExist(amiId, tagName, tagValue));
@@ -73,7 +71,7 @@ public class AmiTagCheckServiceTest {
                 )
         ).thenReturn(
                 new DescribeImagesResult()
-                );
+        );
 
         // invoke method under test
         assertFalse(amiTagCheckService.isAmiWithTagExist(amiId, tagName, tagValue));

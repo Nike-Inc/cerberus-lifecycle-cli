@@ -67,6 +67,4 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationTest {
     }
 
 
-
-
 }
