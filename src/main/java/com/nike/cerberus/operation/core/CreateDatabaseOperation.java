@@ -17,7 +17,6 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
@@ -30,6 +29,7 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.MapOfStringsTypeRef;
 import com.nike.cerberus.util.RandomStringGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,9 +85,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters, new MapOfStringsTypeRef());
 
         String stackId = cloudFormationService.createStack(Stack.DATABASE, parameters, true,
                 command.getTagsDelegate().getTags());

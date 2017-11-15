@@ -17,7 +17,6 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateBaseCommand;
@@ -28,6 +27,7 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.MapOfStringsTypeRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,16 +68,12 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
         final BaseParameters baseParameters = new BaseParameters()
                 .setAccountAdminArn(command.getAdminRoleArn());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, new MapOfStringsTypeRef());
 
         final String stackId = cloudFormationService.createStack(Stack.BASE, parameters, true,
                 command.getTagsDelegate().getTags());
 
-        final StackStatus endStatus =
-                cloudFormationService.waitForStatus(stackId,
+        final StackStatus endStatus = cloudFormationService.waitForStatus(stackId,
                         Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
 
         if (StackStatus.CREATE_COMPLETE == endStatus) {

@@ -17,7 +17,6 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
@@ -29,6 +28,7 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.MapOfStringsTypeRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,9 +71,7 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
         final SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
                 .setVpcId(vpcOutputs.getVpcId());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, new MapOfStringsTypeRef());
 
         String stackId = cloudFormationService.createStack(Stack.SECURITY_GROUPS, parameters, true,
                 command.getTagParameters().getTags());

@@ -17,7 +17,6 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateRoute53Command;
@@ -28,6 +27,7 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Route53Service;
+import com.nike.cerberus.util.MapOfStringsTypeRef;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +74,7 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setOriginDomainName(getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride()));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, new MapOfStringsTypeRef());
 
         final String stackId = cloudFormationService.createStack(Stack.ROUTE53, parameters, true,
                 command.getTagsDelegate().getTags());
