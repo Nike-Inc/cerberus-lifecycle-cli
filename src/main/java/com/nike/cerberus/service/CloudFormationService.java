@@ -127,7 +127,7 @@ public class CloudFormationService {
         Future future = waiters.stackCreateComplete()
                 .runAsync(new WaiterParameters<>(new DescribeStacksRequest().withStackName(stackName)), handler);
 
-        printAndPoolCFEventsWhileWaiting(stackName, future);
+        waitAndPrintCFEvents(stackName, future);
 
         if (!handler.wasSuccess) {
             throw new UnexpectedCloudFormationStatusException(
@@ -171,7 +171,7 @@ public class CloudFormationService {
         Waiter<DescribeStacksRequest> waiter = waiters.stackUpdateComplete();
         Future future = waiter.runAsync(new WaiterParameters<>(new DescribeStacksRequest().withStackName(stackName)), handler);
 
-        printAndPoolCFEventsWhileWaiting(stackName, future);
+        waitAndPrintCFEvents(stackName, future);
 
         if (!handler.wasSuccess) {
             throw new UnexpectedCloudFormationStatusException(
@@ -194,7 +194,7 @@ public class CloudFormationService {
         Future future = waiters.stackDeleteComplete()
                 .runAsync(new WaiterParameters<>(new DescribeStacksRequest().withStackName(stackName)), handler);
 
-        printAndPoolCFEventsWhileWaiting(stackName, future);
+        waitAndPrintCFEvents(stackName, future);
 
         if (!handler.wasSuccess) {
             throw new UnexpectedCloudFormationStatusException(
@@ -211,7 +211,7 @@ public class CloudFormationService {
      * @param stackName The stack name that an CF action is being performed on
      * @param future The Future from the waiter
      */
-    private void printAndPoolCFEventsWhileWaiting(String stackName, Future future) {
+    private void waitAndPrintCFEvents(String stackName, Future future) {
         do {
             try {
                 DateTime now = DateTime.now(DateTimeZone.UTC).minusSeconds(10);
