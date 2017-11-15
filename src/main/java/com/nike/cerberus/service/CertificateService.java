@@ -80,7 +80,8 @@ import java.util.concurrent.TimeUnit;
  */
 @SuppressFBWarnings(value = {
         "DM_DEFAULT_ENCODING",
-        "REC_CATCH_EXCEPTION"
+        "REC_CATCH_EXCEPTION",
+        "UC_USELESS_OBJECT"
 })
 public class CertificateService {
 
