@@ -327,7 +327,7 @@ public class CloudFormationService {
                     new ListStackResourcesRequest().withStackName(stackName)
             );
             stackResourceSummaries.addAll(result.getStackResourceSummaries());
-        } while (result != null && result.getNextToken() != null);
+        } while (result.getNextToken() != null);
 
         return stackResourceSummaries;
     }
@@ -473,7 +473,7 @@ public class CloudFormationService {
     /**
      * Waiter Handler that keeps track of status
      */
-    private class SuccessTrackingWaiterHandler extends WaiterHandler {
+    private static class SuccessTrackingWaiterHandler extends WaiterHandler {
 
         boolean wasSuccess = false;
 
