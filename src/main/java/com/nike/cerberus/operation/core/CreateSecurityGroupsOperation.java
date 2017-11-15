@@ -17,8 +17,6 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
@@ -29,14 +27,12 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.CloudFormationObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Map;
-
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -51,17 +47,17 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
 
     private final ConfigStore configStore;
 
-    private final ObjectMapper cloudFormationObjectMapper;
+    private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     @Inject
     public CreateSecurityGroupsOperation(final EnvironmentMetadata environmentMetadata,
                                          final CloudFormationService cloudFormationService,
                                          final ConfigStore configStore,
-                                         @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+                                         final CloudFormationObjectMapper cloudFormationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
-        this.cloudFormationObjectMapper = cloudformationObjectMapper;
+        this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
@@ -71,9 +67,7 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
         final SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
                 .setVpcId(vpcOutputs.getVpcId());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters);
 
         String stackId = cloudFormationService.createStack(Stack.SECURITY_GROUPS, parameters, true,
                 command.getTagParameters().getTags());

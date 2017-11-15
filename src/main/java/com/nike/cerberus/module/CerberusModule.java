@@ -47,7 +47,6 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -79,8 +78,6 @@ import java.util.UUID;
  * Guice module for enabling DI.
  */
 public class CerberusModule extends AbstractModule {
-
-    public static final String CF_OBJECT_MAPPER = "cloudformationObjectMapper";
 
     public static final String CONFIG_OBJECT_MAPPER = "configObjectMapper";
 
@@ -122,21 +119,6 @@ public class CerberusModule extends AbstractModule {
         bind(AWSLambda.class).toInstance(createAmazonClientInstance(AWSLambdaClient.class, region));
         bind(AmazonSNS.class).toInstance(createAmazonClientInstance(AmazonSNSClient.class, region));
         bind(AmazonRoute53.class).toInstance(createAmazonClientInstance(AmazonRoute53Client.class, region));
-    }
-
-    /**
-     * Object mapper for handling CloudFormation parameters and outputs.
-     *
-     * @return Object mapper
-     */
-    @Provides
-    @Singleton
-    @Named(CF_OBJECT_MAPPER)
-    public ObjectMapper cloudFormationObjectMapper() {
-        final ObjectMapper om = new ObjectMapper();
-        om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        om.setSerializationInclusion(JsonInclude.Include.NON_ABSENT);
-        return om;
     }
 
     /**

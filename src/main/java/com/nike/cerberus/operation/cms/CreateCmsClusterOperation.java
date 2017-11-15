@@ -17,8 +17,6 @@
 package com.nike.cerberus.operation.cms;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
@@ -32,15 +30,13 @@ import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
 import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.CloudFormationObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
  * Operation for creating the CMS cluster.
@@ -59,7 +55,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
     private final ConfigStore configStore;
 
-    private final ObjectMapper cloudFormationObjectMapper;
+    private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     @Inject
     public CreateCmsClusterOperation(final EnvironmentMetadata environmentMetadata,
@@ -67,7 +63,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
                                      final Ec2UserDataService ec2UserDataService,
                                      final AmiTagCheckService amiTagCheckService,
                                      final ConfigStore configStore,
-                                     @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudFormationObjectMapper) {
+                                     final CloudFormationObjectMapper cloudFormationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.ec2UserDataService = ec2UserDataService;
@@ -105,9 +101,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         cmsParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(Stack.CMS));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters);
 
         // allow user to overwrite CloudFormation parameters with -P option
         parameters.putAll(command.getStackDelegate().getDynamicParameters());

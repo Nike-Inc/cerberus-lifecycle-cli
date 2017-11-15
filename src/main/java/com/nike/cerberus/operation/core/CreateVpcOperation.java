@@ -18,8 +18,6 @@ package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.beust.jcommander.internal.Maps;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
@@ -29,16 +27,15 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2Service;
+import com.nike.cerberus.util.CloudFormationObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.List;
 import java.util.Map;
 
 import static com.nike.cerberus.ConfigConstants.MINIMUM_AZS;
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -53,17 +50,17 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
 
     private final Ec2Service ec2Service;
 
-    private final ObjectMapper cloudFormationObjectMapper;
+    private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     @Inject
     public CreateVpcOperation(final EnvironmentMetadata environmentMetadata,
                               final CloudFormationService cloudFormationService,
                               final Ec2Service ec2Service,
-                              @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+                              final CloudFormationObjectMapper cloudFormationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.ec2Service = ec2Service;
-        this.cloudFormationObjectMapper = cloudformationObjectMapper;
+        this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
@@ -75,9 +72,7 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
                 .setAz2(azByIdentifier.get(2))
                 .setAz3(azByIdentifier.get(3));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters);
 
         final String stackId = cloudFormationService.createStack(Stack.VPC, parameters, true,
                 command.getTagsDelegate().getTags());

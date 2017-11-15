@@ -17,8 +17,6 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.domain.EnvironmentMetadata;
@@ -28,15 +26,13 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Route53Service;
+import com.nike.cerberus.util.CloudFormationObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Map;
-
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
  * Creates the origin and load balancer Route53 records for Cerberus
@@ -51,17 +47,17 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
 
     private final Route53Service route53Service;
 
-    private final ObjectMapper cloudFormationObjectMapper;
+    private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     @Inject
     public CreateRoute53Operation(final EnvironmentMetadata environmentMetadata,
                                   final CloudFormationService cloudFormationService,
                                   final Route53Service route53Service,
-                                  @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+                                  final CloudFormationObjectMapper cloudFormationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.route53Service = route53Service;
-        this.cloudFormationObjectMapper = cloudformationObjectMapper;
+        this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
@@ -74,9 +70,7 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setOriginDomainName(getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride()));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters);
 
         final String stackId = cloudFormationService.createStack(Stack.ROUTE53, parameters, true,
                 command.getTagsDelegate().getTags());

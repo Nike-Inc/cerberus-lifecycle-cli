@@ -17,8 +17,6 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
@@ -30,15 +28,13 @@ import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.CloudFormationObjectMapper;
 import com.nike.cerberus.util.RandomStringGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Map;
-
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -53,7 +49,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
     private final ConfigStore configStore;
 
-    private final ObjectMapper cloudFormationObjectMapper;
+    private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     private RandomStringGenerator passwordGenerator = new RandomStringGenerator();
 
@@ -61,11 +57,11 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
     public CreateDatabaseOperation(final EnvironmentMetadata environmentMetadata,
                                    final CloudFormationService cloudFormationService,
                                    final ConfigStore configStore,
-                                   @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper) {
+                                   final CloudFormationObjectMapper cloudFormationObjectMapper) {
         this.environmentMetadata = environmentMetadata;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
-        this.cloudFormationObjectMapper = cloudformationObjectMapper;
+        this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
@@ -85,9 +81,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
-        };
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters, typeReference);
+        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters);
 
         String stackId = cloudFormationService.createStack(Stack.DATABASE, parameters, true,
                 command.getTagsDelegate().getTags());
