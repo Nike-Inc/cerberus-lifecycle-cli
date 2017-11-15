@@ -83,7 +83,7 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
 
         // confirm with user
         consoleService.askUserToProceed(String.format("Preparing to generate certs with Common Name: %s and Subject Alternative Names: %s",
-                        commonName, String.join(", ", subjectAlternativeNames)), NO);
+                commonName, String.join(", ", subjectAlternativeNames)), NO);
 
         // Enable the use of the hard coded lets encrypt cert if enabled
         if (command.enableLetsEncryptCertfix()) {
@@ -97,7 +97,7 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
 
             // check that we can write to the provided dir
             FileUtils.forceMkdir(certDir);
-            if (! certDir.isDirectory() || ! certDir.canWrite()) {
+            if (!certDir.isDirectory() || !certDir.canWrite()) {
                 throw new RuntimeException("The certificate directory is not a directory or is not writable, path: " + certDir.getAbsolutePath());
             }
 

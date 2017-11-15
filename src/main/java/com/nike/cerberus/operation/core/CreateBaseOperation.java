@@ -68,7 +68,8 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
         final BaseParameters baseParameters = new BaseParameters()
                 .setAccountAdminArn(command.getAdminRoleArn());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
 
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
@@ -93,7 +94,7 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
     @Override
     public boolean isRunnable(final CreateBaseCommand command) {
         String environmentName = environmentMetadata.getName();
-        return ! cloudFormationService.isStackPresent(Stack.BASE.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(Stack.BASE.getFullName(environmentName));
     }
 
 }

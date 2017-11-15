@@ -24,9 +24,9 @@ import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.cms.CreateCmsClusterOperation;
 
-import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
 import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
 import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
+import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
 
 /**
  * Command to create the CMS cluster.

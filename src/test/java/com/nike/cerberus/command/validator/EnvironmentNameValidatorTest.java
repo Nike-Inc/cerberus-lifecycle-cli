@@ -19,8 +19,6 @@ package com.nike.cerberus.command.validator;
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
 
-import javax.print.attribute.standard.MediaSize;
-
 public class EnvironmentNameValidatorTest {
 
     private final static String NAME = "NAME";

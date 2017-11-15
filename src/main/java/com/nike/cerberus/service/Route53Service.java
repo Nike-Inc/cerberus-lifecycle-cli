@@ -26,7 +26,6 @@ import com.amazonaws.services.route53.model.ListResourceRecordSetsResult;
 import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

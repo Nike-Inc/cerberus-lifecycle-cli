@@ -31,7 +31,8 @@ import java.util.Iterator;
  */
 public final class LoggingConfigurer {
 
-    private LoggingConfigurer() {}
+    private LoggingConfigurer() {
+    }
 
     /**
      * Initializes the logger and the requested log level.

@@ -20,7 +20,7 @@ package com.nike.cerberus.domain.cloudformation;
  * Represents the base stack outputs.
  *
  * @deprecated TODO: remove this class when old backup and restore is removed
- *             use {@link com.nike.cerberus.domain.cloudformation.BaseOutputs} for new environments
+ * use {@link com.nike.cerberus.domain.cloudformation.BaseOutputs} for new environments
  */
 @Deprecated
 public class DeprecatedBaseOutputs {

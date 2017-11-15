@@ -71,7 +71,8 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
         final SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
                 .setVpcId(vpcOutputs.getVpcId());
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, typeReference);
 
         String stackId = cloudFormationService.createStack(Stack.SECURITY_GROUPS, parameters, true,
@@ -89,7 +90,7 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
     @Override
     public boolean isRunnable(final CreateSecurityGroupsCommand command) {
         String environmentName = environmentMetadata.getName();
-        return ! cloudFormationService.isStackPresent(Stack.SECURITY_GROUPS.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(Stack.SECURITY_GROUPS.getFullName(environmentName));
     }
 
 }

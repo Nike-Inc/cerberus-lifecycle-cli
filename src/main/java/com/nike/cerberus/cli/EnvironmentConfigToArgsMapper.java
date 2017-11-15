@@ -29,9 +29,9 @@ import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
+import com.nike.cerberus.command.core.GenerateCertsCommand;
 import com.nike.cerberus.command.core.UploadCertFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.command.core.GenerateCertsCommand;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementService;
@@ -59,8 +59,8 @@ public class EnvironmentConfigToArgsMapper {
         for (int i = 0; i < passedArgs.length; i++) {
             if (StringUtils.startsWith(passedArgs[i], "-")) {
                 args.add(passedArgs[i]);
-                if (i < passedArgs.length && ! StringUtils.startsWith(passedArgs[i+1], "-")) {
-                    args.add(passedArgs[i+1]);
+                if (i < passedArgs.length && !StringUtils.startsWith(passedArgs[i + 1], "-")) {
+                    args.add(passedArgs[i + 1]);
                     i++;
                 }
             } else {
@@ -72,7 +72,7 @@ public class EnvironmentConfigToArgsMapper {
 
         // now if the command supplied is a command that that is reused for multiple steps, like update-stack, or upload-cert
         // we need to source the args
-        if (! StringUtils.isBlank(commandName)) {
+        if (!StringUtils.isBlank(commandName)) {
             args.addAll(getArgsForCommand(environmentConfig, commandName, passedArgs));
         }
 
@@ -178,7 +178,7 @@ public class EnvironmentConfigToArgsMapper {
 
     private static List<String> getGlobalTags(EnvironmentConfig environmentConfig) {
         ArgsBuilder args = ArgsBuilder.create();
-        environmentConfig.getGlobalTags().forEach( (key, value) ->
+        environmentConfig.getGlobalTags().forEach((key, value) ->
                 args.addDynamicProperty(TagParametersDelegate.TAG_SHORT_ARG, key, value)
         );
         return args.build();
@@ -195,7 +195,7 @@ public class EnvironmentConfigToArgsMapper {
         args.addOption(UploadCertFilesCommand.STACK_NAME_LONG_ARG, stackName);
         switch (stackName) {
             case "cms":
-                args.addOption(UploadCertFilesCommand.CERT_PATH_LONG_ARG, 
+                args.addOption(UploadCertFilesCommand.CERT_PATH_LONG_ARG,
                         environmentConfig.getManagementService().getCertPath());
                 break;
             default:
@@ -283,7 +283,7 @@ public class EnvironmentConfigToArgsMapper {
     private static String getStackName(String[] passedArgs) {
         for (int i = 0; i < passedArgs.length; i++) {
             if (StringUtils.equals(passedArgs[i], STACK_NAME_KEY)) {
-                  return passedArgs[i+1];
+                return passedArgs[i + 1];
             }
         }
         return null;

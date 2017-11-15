@@ -118,7 +118,7 @@ public class Stack {
     public static Stack fromName(final String name) {
         for (Stack stack : ALL_STACKS) {
             // ignore case and all enum style stack names
-            if (stack.getName().equalsIgnoreCase(StringUtils.replaceAll(name,"_", "-"))) {
+            if (stack.getName().equalsIgnoreCase(StringUtils.replaceAll(name, "_", "-"))) {
                 return stack;
             }
         }

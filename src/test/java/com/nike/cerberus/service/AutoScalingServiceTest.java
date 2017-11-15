@@ -132,8 +132,8 @@ public class AutoScalingServiceTest {
                         .withAutoScalingGroups(
                                 new AutoScalingGroup().withInstances(
                                         new Instance().withInstanceId(instanceId))
-                        .withMinSize(minSize)
-                )
+                                        .withMinSize(minSize)
+                        )
         );
 
         autoScalingService.updateMinInstancesForAutoScalingGroup(logicalId, minSize - 1);

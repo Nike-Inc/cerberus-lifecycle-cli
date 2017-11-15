@@ -75,14 +75,15 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
                 .setAz2(azByIdentifier.get(2))
                 .setAz3(azByIdentifier.get(3));
 
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
+        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {
+        };
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters, typeReference);
 
         final String stackId = cloudFormationService.createStack(Stack.VPC, parameters, true,
                 command.getTagsDelegate().getTags());
 
         StackStatus endStatus = cloudFormationService.waitForStatus(stackId,
-                        Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
+                Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
 
         if (endStatus != StackStatus.CREATE_COMPLETE) {
             throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
@@ -92,7 +93,7 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
     @Override
     public boolean isRunnable(final CreateVpcCommand command) {
         String environmentName = environmentMetadata.getName();
-        return ! cloudFormationService.isStackPresent(Stack.VPC.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(Stack.VPC.getFullName(environmentName));
     }
 
     private Map<Integer, String> mapAvailabilityZones() {

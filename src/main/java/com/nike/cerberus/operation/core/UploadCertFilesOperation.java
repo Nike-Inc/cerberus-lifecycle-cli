@@ -16,7 +16,6 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
