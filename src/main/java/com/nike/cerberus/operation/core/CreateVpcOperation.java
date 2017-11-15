@@ -16,17 +16,14 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.beust.jcommander.internal.Maps;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2Service;
 import org.slf4j.Logger;

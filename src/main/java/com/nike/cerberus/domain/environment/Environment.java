@@ -16,6 +16,8 @@
 
 package com.nike.cerberus.domain.environment;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -28,8 +30,9 @@ public class Environment {
 
     private String domainName;
 
+    @JsonDeserialize(keyUsing = StackKeyDeserializer.class)
     private Map<Stack, String> stackMap;
-
+    @JsonDeserialize(keyUsing = StackKeyDeserializer.class)
     private Map<Stack, String> serverCertificateIdMap;
 
     private String configKeyId;

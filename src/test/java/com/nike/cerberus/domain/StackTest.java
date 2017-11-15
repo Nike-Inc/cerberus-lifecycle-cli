@@ -18,32 +18,40 @@ package com.nike.cerberus.domain;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nike.cerberus.domain.environment.Environment;
 import com.nike.cerberus.domain.environment.Stack;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class StackTest {
 
     @Test
-    public void test_stack_serializes_as_expected() throws JsonProcessingException {
-        Stack stack = Stack.CMS;
+    public void test_that_stack_can_go_into_serialized_map() throws JsonProcessingException {
+        Map<Stack, String> map = new HashMap<>();
+        map.put(Stack.CMS, "foo");
 
         ObjectMapper objectMapper = new ObjectMapper();
-        String json = objectMapper.writeValueAsString(stack);
+        String json = objectMapper.writeValueAsString(map);
 
-        assertEquals("\"cms\"", json);
+        assertEquals("{\"cms\":\"foo\"}", json);
     }
 
     @Test
-    public void test_stack_deserializes_as_expected() throws IOException {
-        Stack expected = Stack.CMS;
-
+    public void test_that_stack_can_deserialize_from_map() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        Stack actual = objectMapper.readValue("\"cms\"", Stack.class);
 
-        assertEquals(expected, actual);
+        Environment environment = new Environment();
+        environment.getServerCertificateIdMap().put(Stack.CMS, "foo");
+        String json = objectMapper.writeValueAsString(environment);
+        Environment actual = objectMapper.readValue(json, Environment.class);
+
+        assertTrue(actual.getServerCertificateIdMap().size() == 1);
     }
+
 }

@@ -16,16 +16,13 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.iterable.S3Versions;
 import com.amazonaws.services.s3.model.S3VersionSummary;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.nike.cerberus.command.core.DeleteStackCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
 import com.nike.cerberus.service.CloudFormationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,11 +48,12 @@ public class DeleteStackOperation implements Operation<DeleteStackCommand> {
 
     @Override
     public void run(DeleteStackCommand command) {
-        String stackId = command.getStack().getFullName(environmentMetadata.getName());
-        cloudFormationService.getStackResources(stackId)
+        String stackName = command.getStack().getFullName(environmentMetadata.getName());
+        cloudFormationService.getStackResources(stackName)
                 .forEach(stackResourceSummary -> {
                     if (stackResourceSummary.getResourceType().equals("AWS::S3::Bucket")) {
                         String bucketName = stackResourceSummary.getPhysicalResourceId();
+                        log.info("Detected S3 Bucket: {}, emptying contents before deleting stack", bucketName);
                         for (S3VersionSummary version : S3Versions.inBucket(amazonS3, bucketName)) {
                             String key = version.getKey();
                             String versionId = version.getVersionId();
@@ -64,7 +62,9 @@ public class DeleteStackOperation implements Operation<DeleteStackCommand> {
                     }
                 });
 
-        cloudFormationService.deleteStackAndWait(stackId);
+        log.info("Deleting stack: {}", stackName);
+        cloudFormationService.deleteStackAndWait(stackName);
+        log.info("Finished deleting stack: {}", stackName);
     }
 
     @Override

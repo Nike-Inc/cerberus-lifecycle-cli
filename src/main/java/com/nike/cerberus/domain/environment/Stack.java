@@ -16,8 +16,6 @@
 
 package com.nike.cerberus.domain.environment;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.ImmutableList;
 import com.nike.cerberus.ConfigConstants;
 import org.apache.commons.io.IOUtils;
@@ -32,9 +30,7 @@ import java.util.stream.Collectors;
 /**
  * Describes the stacks that make up Cerberus.
  */
-@JsonSerialize(using = StackSerializer.class)
-@JsonDeserialize(using = StackDeserializer.class)
-public class Stack {
+public class Stack implements Comparable<Stack> {
 
     public static final Stack BASE = new Stack("base", "base.yaml", false);
     public static final Stack VAULT = new Stack("vault", null, false);
@@ -138,9 +134,19 @@ public class Stack {
     }
 
     @Override
+    public String toString() {
+        return getName();
+    }
+
+    @Override
     public int hashCode() {
         int result = name.hashCode();
         result = 31 * result + templatePath.hashCode();
         return result;
+    }
+
+    @Override
+    public int compareTo(Stack o) {
+        return this.name.compareTo(o.name);
     }
 }
