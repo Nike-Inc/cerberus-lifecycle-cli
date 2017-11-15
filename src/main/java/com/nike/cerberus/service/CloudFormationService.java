@@ -122,96 +122,23 @@ public class CloudFormationService {
 
         final CreateStackResult result = cloudFormationClient.createStack(request);
 
-        SuccessTrackingWaiterHandler handler = new SuccessTrackingWaiterHandler();
-
-        Future future = waiters.stackCreateComplete()
-                .runAsync(new WaiterParameters<>(new DescribeStacksRequest().withStackName(stackName)), handler);
-
-        waitAndPrintCFEvents(stackName, future);
-
-        if (!handler.wasSuccess) {
-            throw new UnexpectedCloudFormationStatusException(
-                    String.format("Failed to create stack: %s, msg: %s", stackName, handler.getErrorMessage()));
-        }
+        waitAndPrintCFEvents(stackName, waiters.stackCreateComplete());
 
         return result.getStackId();
     }
 
-
     /**
-     * Updates an existing stack
+     * Uses AWS CF Aync Waiters to wait for Cloud Formation actions to complete, while logging events and verifying success
+     * @param stackName The stack that is having an action performed
+     * @param waiter The Amazon waiter
      */
-    public void updateStackAndWait(final Stack stack,
-                                   final Map<String, String> parameters,
-                                   final boolean iamCapabilities,
-                                   final boolean overwrite,
-                                   final Map<String, String> globalTags) {
-
-        String stackName = stack.getFullName(environmentMetadata.getName());
-        final UpdateStackRequest request = new UpdateStackRequest()
-                .withStackName(stackName)
-                .withParameters(convertParameters(parameters));
-
-        if (overwrite) {
-            request.withTemplateBody(stack.getTemplateText());
-        } else {
-            request.withUsePreviousTemplate(true);
-        }
-
-        if (iamCapabilities) {
-            request.getCapabilities().add("CAPABILITY_IAM");
-        }
-
-        request.setTags(getTags(globalTags));
-
-        cloudFormationClient.updateStack(request);
-
+    private void waitAndPrintCFEvents(String stackName, Waiter waiter) {
         SuccessTrackingWaiterHandler handler = new SuccessTrackingWaiterHandler();
 
-        Waiter<DescribeStacksRequest> waiter = waiters.stackUpdateComplete();
-        Future future = waiter.runAsync(new WaiterParameters<>(new DescribeStacksRequest().withStackName(stackName)), handler);
-
-        waitAndPrintCFEvents(stackName, future);
-
-        if (!handler.wasSuccess) {
-            throw new UnexpectedCloudFormationStatusException(
-                    String.format("Failed to update stack: %s, msg: %s", stackName, handler.getErrorMessage()));
-        }
-
-    }
-
-    /**
-     * Deletes an existing stack by name.
-     *
-     * @param stackName Stack ID.
-     */
-    public void deleteStackAndWait(final String stackName) {
-        final DeleteStackRequest request = new DeleteStackRequest().withStackName(stackName);
-        cloudFormationClient.deleteStack(request);
-
-        SuccessTrackingWaiterHandler handler = new SuccessTrackingWaiterHandler();
-
-        Future future = waiters.stackDeleteComplete()
+        @SuppressWarnings("unchecked")
+        Future future = waiter
                 .runAsync(new WaiterParameters<>(new DescribeStacksRequest().withStackName(stackName)), handler);
 
-        waitAndPrintCFEvents(stackName, future);
-
-        if (!handler.wasSuccess) {
-            throw new UnexpectedCloudFormationStatusException(
-                    String.format("Failed to delete stack: %s, msg: %s", stackName, handler.getErrorMessage()));
-        }
-        logger.debug("Stack: {} deleted", stackName);
-    }
-
-    /**
-     * Amazon's waiters give you a future that you can track and do things while you wait.
-     *
-     * This method will poll and print the events until the future (the cf action) is done
-     *
-     * @param stackName The stack name that an CF action is being performed on
-     * @param future The Future from the waiter
-     */
-    private void waitAndPrintCFEvents(String stackName, Future future) {
         do {
             try {
                 DateTime now = DateTime.now(DateTimeZone.UTC).minusSeconds(10);
@@ -246,6 +173,54 @@ public class CloudFormationService {
                 logger.error("Failed to poll and print stack", e);
             }
         } while (!future.isDone());
+
+        if (!handler.wasSuccess) {
+            throw new UnexpectedCloudFormationStatusException(
+                    String.format("Failed to create stack: %s, msg: %s", stackName, handler.getErrorMessage()));
+        }
+    }
+
+    /**
+     * Updates an existing stack
+     */
+    public void updateStackAndWait(final Stack stack,
+                                   final Map<String, String> parameters,
+                                   final boolean iamCapabilities,
+                                   final boolean overwrite,
+                                   final Map<String, String> globalTags) {
+
+        String stackName = stack.getFullName(environmentMetadata.getName());
+        final UpdateStackRequest request = new UpdateStackRequest()
+                .withStackName(stackName)
+                .withParameters(convertParameters(parameters));
+
+        if (overwrite) {
+            request.withTemplateBody(stack.getTemplateText());
+        } else {
+            request.withUsePreviousTemplate(true);
+        }
+
+        if (iamCapabilities) {
+            request.getCapabilities().add("CAPABILITY_IAM");
+        }
+
+        request.setTags(getTags(globalTags));
+
+        cloudFormationClient.updateStack(request);
+
+        waitAndPrintCFEvents(stackName, waiters.stackUpdateComplete());
+
+    }
+
+    /**
+     * Deletes an existing stack by name.
+     *
+     * @param stackName Stack ID.
+     */
+    public void deleteStackAndWait(final String stackName) {
+        final DeleteStackRequest request = new DeleteStackRequest().withStackName(stackName);
+        cloudFormationClient.deleteStack(request);
+        waitAndPrintCFEvents(stackName, waiters.stackDeleteComplete());
     }
 
     /**
