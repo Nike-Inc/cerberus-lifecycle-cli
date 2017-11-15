@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.Optional;
 
 /**
  * Service wrapper for AWS CloudFormation.
@@ -61,7 +62,7 @@ public class Route53Service {
 
         final ChangeBatch recordSetChangeBatch = new ChangeBatch()
                 .withChanges(new Change()
-                        .withAction(ChangeAction.CREATE)
+                        .withAction(ChangeAction.UPSERT)
                         .withResourceRecordSet(recordSet));
 
         route53Client.changeResourceRecordSets(new ChangeResourceRecordSetsRequest()
@@ -69,13 +70,17 @@ public class Route53Service {
                 .withChangeBatch(recordSetChangeBatch));
     }
 
-    public boolean recordSetWithNameAlreadyExists(final String recordSetName, final String hostedZoneId) {
+    public Optional<ResourceRecordSet> getRecordSetByName(final String recordSetName, final String hostedZoneId) {
         final ListResourceRecordSetsResult recordSets = route53Client.listResourceRecordSets(
                 new ListResourceRecordSetsRequest()
                         .withHostedZoneId(hostedZoneId));
 
-        return recordSets.getResourceRecordSets()
-                .stream()
-                .anyMatch(recordSet -> recordSet.getName().equals(recordSetName + "."));
+        for (ResourceRecordSet recordSet : recordSets.getResourceRecordSets()) {
+            if (recordSet.getName().equals(recordSetName + ".")) {
+                return Optional.of(recordSet);
+            }
+        }
+
+        return Optional.empty();
     }
 }

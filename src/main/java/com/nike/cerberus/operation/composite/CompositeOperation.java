@@ -41,7 +41,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
 
     private Injector injector;
 
-    private EnvironmentConfig environmentConfig;
+    protected EnvironmentConfig environmentConfig;
 
     @Inject
     public void setInjector(Injector injector) {

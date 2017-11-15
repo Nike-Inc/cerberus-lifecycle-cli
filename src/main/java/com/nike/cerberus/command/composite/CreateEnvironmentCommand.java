@@ -19,9 +19,9 @@ package com.nike.cerberus.command.composite;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.composite.CreateCerberusEnvironmentOperation;
+import com.nike.cerberus.operation.composite.CreateEnvironmentOperation;
 
-import static com.nike.cerberus.command.composite.CreateCerberusEnvironmentCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.composite.CreateEnvironmentCommand.COMMAND_NAME;
 
 @Parameters(
         commandNames = {
@@ -29,9 +29,9 @@ import static com.nike.cerberus.command.composite.CreateCerberusEnvironmentComma
         },
         commandDescription = "Creates a complete Cerberus environment from scratch using an environment yaml"
 )
-public class CreateCerberusEnvironmentCommand implements Command {
+public class CreateEnvironmentCommand implements Command {
 
-    public static final String COMMAND_NAME = "create-cerberus-environment";
+    public static final String COMMAND_NAME = "create-environment";
 
     @Override
     public String getCommandName() {
@@ -40,6 +40,6 @@ public class CreateCerberusEnvironmentCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return CreateCerberusEnvironmentOperation.class;
+        return CreateEnvironmentOperation.class;
     }
 }

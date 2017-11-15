@@ -281,7 +281,8 @@ public class CertificateService {
             });
 
             do {
-                log.info("Waiting for all challenges to complete before continuing");
+                log.info("Waiting for all challenges to complete before continuing, current active challenge threads: {}",
+                        challengeExecutorService.getActiveCount());
                 Thread.sleep(TimeUnit.SECONDS.toMillis(5));
             } while (challengeExecutorService.getActiveCount() > 0);
             challengeExecutorService.shutdown();

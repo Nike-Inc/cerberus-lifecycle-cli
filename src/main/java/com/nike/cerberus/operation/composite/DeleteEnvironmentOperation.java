@@ -1,7 +1,7 @@
 package com.nike.cerberus.operation.composite;
 
 import com.google.common.collect.ImmutableList;
-import com.nike.cerberus.command.composite.DeleteCerberusEnvironmentCommand;
+import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
 import com.nike.cerberus.command.core.DeleteStackCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.service.ConsoleService;
@@ -12,15 +12,15 @@ import java.util.List;
 
 import static com.nike.cerberus.domain.environment.Stack.*;
 
-public class DeleteCerberusEnvironmentOperation extends CompositeOperation<DeleteCerberusEnvironmentCommand> {
+public class DeleteEnvironmentOperation extends CompositeOperation<DeleteEnvironmentCommand> {
 
     private final ConsoleService consoleService;
 
     private final EnvironmentMetadata environmentMetadata;
 
     @Inject
-    public DeleteCerberusEnvironmentOperation(ConsoleService consoleService,
-                                              EnvironmentMetadata environmentMetadata) {
+    public DeleteEnvironmentOperation(ConsoleService consoleService,
+                                      EnvironmentMetadata environmentMetadata) {
 
         this.consoleService = consoleService;
         this.environmentMetadata = environmentMetadata;
@@ -51,7 +51,7 @@ public class DeleteCerberusEnvironmentOperation extends CompositeOperation<Delet
     }
 
     @Override
-    public boolean isRunnable(DeleteCerberusEnvironmentCommand command) {
+    public boolean isRunnable(DeleteEnvironmentCommand command) {
         try {
             String warning = String.format(
                     "This will delete the environment '%s' including all the secure data.",

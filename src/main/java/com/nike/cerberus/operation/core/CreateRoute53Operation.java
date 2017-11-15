@@ -81,17 +81,25 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
         final String loadBalancerDomainName = getLoadBalancerDomainName(command.getBaseDomainName(), command.getLoadBalancerDomainNameOverride());
         final String originDomainName = getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride());
 
+        boolean isRunnable = true;
         if (!cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
             logger.error("The load balancer stack must exist to create the Route53 record!");
-            return false;
+            isRunnable = false;
         }
         if (cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName))) {
             logger.error("Route53 stack already exists.");
-            return false;
+            isRunnable = false;
+        }
+        if (route53Service.getRecordSetByName(loadBalancerDomainName, command.getHostedZoneId()).isPresent()) {
+            logger.error("The load balancer name is already registered");
+            isRunnable = false;
+        }
+        if (route53Service.getRecordSetByName(originDomainName, command.getHostedZoneId()).isPresent()) {
+            logger.error("The origin name is already registered");
+            isRunnable = false;
         }
 
-        return !(route53Service.recordSetWithNameAlreadyExists(loadBalancerDomainName, command.getHostedZoneId()) ||
-                route53Service.recordSetWithNameAlreadyExists(originDomainName, command.getHostedZoneId()));
+        return isRunnable;
     }
 
     private String getLoadBalancerDomainName(final String baseDomainName, final String loadBalancerDomainNameOverride) {
