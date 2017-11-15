@@ -42,6 +42,7 @@ import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
+import com.nike.cerberus.command.core.DeleteStackCommand;
 import com.nike.cerberus.command.core.GenerateCertsCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
@@ -126,6 +127,9 @@ public class CerberusRunner {
                 System.exit(1);
             }
         }
+
+        // Shutdown the thread pool executors
+        System.exit(0);
     }
 
     /**
@@ -188,6 +192,7 @@ public class CerberusRunner {
         registerCommand(new CreateLoadBalancerCommand());
         registerCommand(new CreateEdgeDomainRecordCommand());
         registerCommand(new CreateCerberusEnvironmentCommand());
+        registerCommand(new DeleteStackCommand());
     }
 
     /**

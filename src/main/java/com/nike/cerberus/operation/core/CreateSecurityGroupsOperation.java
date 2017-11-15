@@ -74,16 +74,8 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters, typeReference);
 
-        String stackId = cloudFormationService.createStack(Stack.SECURITY_GROUPS, parameters, true,
+        cloudFormationService.createStackAndWait(Stack.SECURITY_GROUPS, parameters, true,
                 command.getTagParameters().getTags());
-
-        final StackStatus endStatus =
-                cloudFormationService.waitForStatus(stackId,
-                        Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
-
-        if (StackStatus.CREATE_COMPLETE != endStatus) {
-            throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
-        }
     }
 
     @Override

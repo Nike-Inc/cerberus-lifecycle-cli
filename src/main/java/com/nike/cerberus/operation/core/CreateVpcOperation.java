@@ -78,15 +78,8 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters, typeReference);
 
-        final String stackId = cloudFormationService.createStack(Stack.VPC, parameters, true,
+        cloudFormationService.createStackAndWait(Stack.VPC, parameters, true,
                 command.getTagsDelegate().getTags());
-
-        StackStatus endStatus = cloudFormationService.waitForStatus(stackId,
-                        Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
-
-        if (endStatus != StackStatus.CREATE_COMPLETE) {
-            throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
-        }
     }
 
     @Override

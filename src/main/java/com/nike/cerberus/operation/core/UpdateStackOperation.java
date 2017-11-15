@@ -85,25 +85,8 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         try {
             logger.info("Starting the update for '{}' overwrite:{}.", stackId, command.isOverwriteTemplate());
 
-            cloudFormationService.updateStack(command.getStack(), parameters, true, command.isOverwriteTemplate(),
+            cloudFormationService.updateStackAndWait(command.getStack(), parameters, true, command.isOverwriteTemplate(),
                     command.getTagsDelegate().getTags());
-
-            final StackStatus endStatus =
-                    cloudFormationService.waitForStatus(stackId,
-                            Sets.newHashSet(
-                                    UPDATE_COMPLETE,
-                                    UPDATE_COMPLETE_CLEANUP_IN_PROGRESS,
-                                    UPDATE_ROLLBACK_COMPLETE,
-                                    UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS,
-                                    UPDATE_ROLLBACK_FAILED
-                            ));
-
-            if (!ImmutableList.of(UPDATE_COMPLETE, UPDATE_COMPLETE_CLEANUP_IN_PROGRESS).contains(endStatus)) {
-                final String errorMessage = String.format("CloudFormation reports that updating the stack was not successful. end status: %s", endStatus.name());
-                logger.error(errorMessage);
-
-                throw new UnexpectedCloudFormationStatusException(errorMessage);
-            }
 
             logger.info("Update complete.");
         } catch (AmazonServiceException ase) {

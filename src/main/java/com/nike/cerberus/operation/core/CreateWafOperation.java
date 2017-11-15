@@ -74,16 +74,8 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
         final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafParameters, typeReference);
 
-        String stackId = cloudFormationService.createStack(Stack.WAF, parameters, true,
+        cloudFormationService.createStackAndWait(Stack.WAF, parameters, true,
                 command.getTagsDelegate().getTags());
-
-        final StackStatus endStatus =
-                cloudFormationService.waitForStatus(stackId,
-                        Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
-
-        if (StackStatus.CREATE_COMPLETE != endStatus) {
-            throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
-        }
     }
 
     @Override

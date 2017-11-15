@@ -72,22 +72,15 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
 
         final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters, typeReference);
 
-        final String stackId = cloudFormationService.createStack(Stack.BASE, parameters, true,
+        cloudFormationService.createStackAndWait(Stack.BASE, parameters, true,
                 command.getTagsDelegate().getTags());
 
-        final StackStatus endStatus =
-                cloudFormationService.waitForStatus(stackId,
-                        Sets.newHashSet(StackStatus.CREATE_COMPLETE, StackStatus.ROLLBACK_COMPLETE));
 
-        if (StackStatus.CREATE_COMPLETE == endStatus) {
-            logger.info("Stack creation complete, initializing the configuration bucket.");
-            environmentMetadata.setBucketName(configStore.getBaseStackOutputs().getConfigBucketName());
-            configStore.initEnvironmentData();
-            configStore.initSecretsData();
-            logger.info("Initialization complete.");
-        } else {
-            throw new UnexpectedCloudFormationStatusException(String.format("Unexpected end status: %s", endStatus.name()));
-        }
+        logger.info("Stack creation complete, initializing the configuration bucket.");
+        environmentMetadata.setBucketName(configStore.getBaseStackOutputs().getConfigBucketName());
+        configStore.initEnvironmentData();
+        configStore.initSecretsData();
+        logger.info("Initialization complete.");
     }
 
     @Override
