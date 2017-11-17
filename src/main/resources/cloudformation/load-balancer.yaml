@@ -13,10 +13,10 @@ Outputs:
     Value: !GetAtt 'ApplicationLoadBalancer.DNSName'
     Export:
       Name: !Sub "${AWS::StackName}-loadBalancerDnsName"
-  loadBalancerLogicalId:
+  loadBalancerPhysicalId:
     Value: !Ref 'ApplicationLoadBalancer'
     Export:
-      Name: !Sub "${AWS::StackName}-loadBalancerLogicalId"
+      Name: !Sub "${AWS::StackName}-loadBalancerPhysicalId"
 Parameters:
   sgStackName:
     Description: The name of the stack containing Cerberus IAM roles and SGs stack

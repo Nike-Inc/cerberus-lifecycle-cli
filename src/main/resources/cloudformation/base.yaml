@@ -49,8 +49,9 @@ Resources:
               AWS:
                 - !GetAtt 'CmsIamRole.Arn'
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /data/cms/*]]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /data/cms]]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /certificates/*]]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', cms/*]]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', cms]]
             Sid: Allow-Bucket-Access-For-CMS
         Version: '2012-10-17'
     Type: AWS::S3::BucketPolicy

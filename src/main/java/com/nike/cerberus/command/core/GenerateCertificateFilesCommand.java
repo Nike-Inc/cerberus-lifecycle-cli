@@ -20,21 +20,21 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.GenerateCertsOperation;
+import com.nike.cerberus.operation.core.GenerateCertificateFilesOperation;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.nike.cerberus.command.core.GenerateCertsCommand.COMMAND_DESCRIPTION;
-import static com.nike.cerberus.command.core.GenerateCertsCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.GenerateCertificateFilesCommand.COMMAND_DESCRIPTION;
+import static com.nike.cerberus.command.core.GenerateCertificateFilesCommand.COMMAND_NAME;
 
 @Parameters(
         commandNames = COMMAND_NAME,
         commandDescription = COMMAND_DESCRIPTION
 )
-public class GenerateCertsCommand implements Command {
+public class GenerateCertificateFilesCommand implements Command {
 
-    public static final String COMMAND_NAME = "generate-certificates";
+    public static final String COMMAND_NAME = "generate-certificate-files";
     public static final String COMMAND_DESCRIPTION = "Generates the TLS certificates needed to enable https " +
             "through out the system, using an ACME provider such as LetsEncrypt";
 
@@ -203,6 +203,6 @@ public class GenerateCertsCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return GenerateCertsOperation.class;
+        return GenerateCertificateFilesOperation.class;
     }
 }

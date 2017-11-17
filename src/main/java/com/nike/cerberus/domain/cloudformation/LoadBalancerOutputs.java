@@ -21,19 +21,19 @@ package com.nike.cerberus.domain.cloudformation;
  */
 public class LoadBalancerOutputs {
 
-    private Integer cmsTargetGroup;
+    private String cmsTargetGroup;
 
     private String loadBalancerAccessLogBucket;
 
     private String loadBalancerDnsName;
 
-    private String loadBalancerLogicalId;
+    private String loadBalancerPhysicalId;
 
-    public Integer getCmsTargetGroup() {
+    public String getCmsTargetGroup() {
         return cmsTargetGroup;
     }
 
-    public LoadBalancerOutputs setCmsTargetGroup(Integer cmsTargetGroup) {
+    public LoadBalancerOutputs setCmsTargetGroup(String cmsTargetGroup) {
         this.cmsTargetGroup = cmsTargetGroup;
         return this;
     }
@@ -56,12 +56,11 @@ public class LoadBalancerOutputs {
         return this;
     }
 
-    public String getLoadBalancerLogicalId() {
-        return loadBalancerLogicalId;
+    public String getLoadBalancerPhysicalId() {
+        return loadBalancerPhysicalId;
     }
 
-    public LoadBalancerOutputs setLoadBalancerLogicalId(String loadBalancerLogicalId) {
-        this.loadBalancerLogicalId = loadBalancerLogicalId;
-        return this;
+    public void setLoadBalancerPhysicalId(String loadBalancerPhysicalId) {
+        this.loadBalancerPhysicalId = loadBalancerPhysicalId;
     }
 }

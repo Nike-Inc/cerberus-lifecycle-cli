@@ -41,18 +41,12 @@ import com.nike.cerberus.domain.cloudformation.Route53Outputs;
 import com.nike.cerberus.domain.cloudformation.Route53Parameters;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
-import com.nike.cerberus.domain.cloudformation.VaultOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
-import com.nike.cerberus.domain.environment.BackupRegionInfo;
-import com.nike.cerberus.domain.environment.Environment;
-import com.nike.cerberus.domain.environment.Secrets;
+import com.nike.cerberus.domain.environment.CerberusEnvironmentData;
+import com.nike.cerberus.domain.environment.CertificateInformation;
 import com.nike.cerberus.domain.environment.Stack;
-import com.nike.cerberus.service.CloudFormationService;
-import com.nike.cerberus.service.IdentityManagementService;
-import com.nike.cerberus.service.S3StoreService;
-import com.nike.cerberus.service.SaltGenerator;
-import com.nike.cerberus.service.StoreService;
+import com.nike.cerberus.service.*;
 import com.nike.cerberus.util.CloudFormationObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -66,6 +60,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.LinkedList;
 
 import static com.nike.cerberus.ConfigConstants.ADMIN_ROLE_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.CERT_PART_CA;
@@ -81,6 +76,7 @@ import static com.nike.cerberus.ConfigConstants.JDBC_URL_KEY;
 import static com.nike.cerberus.ConfigConstants.JDBC_USERNAME_KEY;
 import static com.nike.cerberus.ConfigConstants.ROOT_USER_ARN_KEY;
 import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
+import static com.nike.cerberus.ConfigConstants.CMS_CERTIFICATE_TO_USE;
 import static com.nike.cerberus.module.CerberusModule.CONFIG_OBJECT_MAPPER;
 
 /**
@@ -98,17 +94,13 @@ public class ConfigStore {
 
     private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
-    private final IdentityManagementService iamService;
-
     private final AmazonS3 s3Client;
 
     private final EnvironmentMetadata environmentMetadata;
 
     private final SaltGenerator saltGenerator;
 
-    private final Object envDataLock = new Object();
-
-    private final Object secretsDataLock = new Object();
+    private final Object cerberusEnvironmentDataLock = new Object();
 
     private StoreService encryptedConfigStoreService;
 
@@ -119,7 +111,6 @@ public class ConfigStore {
     @Inject
     public ConfigStore(final AmazonS3 s3Client,
                        final CloudFormationService cloudFormationService,
-                       final IdentityManagementService iamService,
                        final AWSSecurityTokenService securityTokenService,
                        final EnvironmentMetadata environmentMetadata,
                        final SaltGenerator saltGenerator,
@@ -127,7 +118,6 @@ public class ConfigStore {
                        final CloudFormationObjectMapper cloudFormationObjectMapper) {
 
         this.cloudFormationService = cloudFormationService;
-        this.iamService = iamService;
         this.configObjectMapper = configObjectMapper;
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
         this.s3Client = s3Client;
@@ -137,50 +127,14 @@ public class ConfigStore {
     }
 
     /**
-     * Gets the server certificate name from the config store.
-     *
-     * @param stack Stack name
-     */
-    public String getServerCertificateName(final Stack stack) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            return environment.getServerCertificateIdMap().get(stack);
-        }
-    }
-
-    /**
-     * Gets the server certificate ARN for the stack name.
-     *
-     * @param stack Stack name
-     * @return ARN
-     */
-    public Optional<String> getServerCertificateArn(final Stack stack) {
-        final String certificateName = getServerCertificateName(stack);
-        return iamService.getServerCertificateArn(certificateName);
-    }
-
-    /**
-     * Stores the CMS admin group.
-     *
-     * @param adminGroup Admin Group
-     */
-    public void storeCmsAdminGroup(final String adminGroup) {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            secrets.getCms().setAdminGroup(adminGroup);
-            saveSecretsData(secrets);
-        }
-    }
-
-    /**
      * Retrieves the CMS database password from the config store.
      *
      * @return CMS database password
      */
     public Optional<String> getCmsDatabasePassword() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            return Optional.ofNullable(secrets.getCms().getDatabasePassword());
+        synchronized (cerberusEnvironmentDataLock) {
+            final CerberusEnvironmentData environmentData = getDecryptedEnvironmentData();
+            return Optional.ofNullable(environmentData.getDatabasePassword());
         }
     }
 
@@ -190,66 +144,46 @@ public class ConfigStore {
      * @param databasePassword Database password
      */
     public void storeCmsDatabasePassword(final String databasePassword) {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            secrets.getCms().setDatabasePassword(databasePassword);
-            saveSecretsData(secrets);
+        synchronized (cerberusEnvironmentDataLock) {
+            final CerberusEnvironmentData environmentData = getDecryptedEnvironmentData();
+            environmentData.setDatabasePassword(databasePassword);
+            saveEnvironmentData(environmentData);
         }
-    }
-
-    /**
-     * Gets the Vault root token from the config store.
-     *
-     * @return Vault root token
-     */
-    public String getVaultRootToken() {
-        synchronized (secretsDataLock) {
-            final Secrets secrets = getSecretsData();
-            final String rootToken = secrets.getVault().getRootToken();
-            return (rootToken != null) ? rootToken : "";
-        }
-    }
-
-    /**
-     * Returns the contents of a specific certificate part that's been uploaded for a stack.
-     *
-     * @param stack
-     * @param part
-     * @return
-     */
-    public Optional<String> getCertPart(final Stack stack, final String part) {
-        return getEncryptedObject(buildCertFilePath(stack, part));
     }
 
     /**
      * Stores the certificate files encrypted and adds the certificate name to the environment data.
      *
-     * @param stack           Stack that the cert is for
-     * @param certificateName Certificate name in IAM
-     * @param caContents      CA chain
-     * @param certContents    Certificate body
-     * @param keyContents     Certificate key
-     * @param pubKeyContents  Certificate public key
+     * @param certificateInformation Certificate information for cert
+     * @param caContents             CA chain
+     * @param certContents           Certificate body
+     * @param keyContents            Certificate key
+     * @param pubKeyContents         Certificate public key
      */
-    public void storeCert(final Stack stack,
-                          final String certificateName,
-                          final String caContents,
-                          final String certContents,
-                          final String keyContents,
-                          final String pkcs8KeyContents,
-                          final String pubKeyContents) {
+    public void storeCert(CertificateInformation certificateInformation,
+                          String caContents,
+                          String certContents,
+                          String keyContents,
+                          String pkcs8KeyContents,
+                          String pubKeyContents) {
 
-        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_CA), caContents);
-        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_CERT), certContents);
-        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_KEY), keyContents);
-        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_PKCS8_KEY), pkcs8KeyContents);
-        saveEncryptedObject(buildCertFilePath(stack, CERT_PART_PUBKEY), pubKeyContents);
+        String name = certificateInformation.getIdentityManagementCertificateName();
+        saveEncryptedObject(buildCertFilePath(name, CERT_PART_CA), caContents);
+        saveEncryptedObject(buildCertFilePath(name, CERT_PART_CERT), certContents);
+        saveEncryptedObject(buildCertFilePath(name, CERT_PART_KEY), keyContents);
+        saveEncryptedObject(buildCertFilePath(name, CERT_PART_PKCS8_KEY), pkcs8KeyContents);
+        saveEncryptedObject(buildCertFilePath(name, CERT_PART_PUBKEY), pubKeyContents);
 
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            environment.getServerCertificateIdMap().put(stack, certificateName);
+        synchronized (cerberusEnvironmentDataLock) {
+            final CerberusEnvironmentData environment = getDecryptedEnvironmentData();
+            environment.addNewCertificateData(certificateInformation);
+
             saveEnvironmentData(environment);
         }
+    }
+
+    public LinkedList<CertificateInformation> getCertificationInformationList() {
+        return getDecryptedEnvironmentData().getCertificateData();
     }
 
     public void storeCmsEnvConfig(final Properties cmsConfigMap) {
@@ -297,7 +231,7 @@ public class ConfigStore {
         final BaseOutputs baseOutputs = getBaseStackOutputs();
         final DatabaseOutputs databaseOutputs = getDatabaseStackOutputs();
         final BaseParameters baseParameters = getBaseStackParameters();
-        final String cmsDatabasePassword = getSecretsData().getCms().getDatabasePassword();
+        final String cmsDatabasePassword = getDecryptedEnvironmentData().getDatabasePassword();
 
         final GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
                 new GetCallerIdentityRequest());
@@ -311,17 +245,10 @@ public class ConfigStore {
         properties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
         properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword);
         properties.put(CMS_ENV_NAME, environmentMetadata.getName());
+        // Ust the latest uploaded certificate
+        properties.put(CMS_CERTIFICATE_TO_USE, getCertificationInformationList().getLast());
 
         return properties;
-    }
-
-    public Optional<String> getAccountAdminArn() {
-        final BaseParameters baseParameters = getBaseStackParameters();
-        return Optional.ofNullable(baseParameters.getAccountAdminArn());
-    }
-
-    public String getCerberusBaseUrl() {
-        return String.format("https://%s", getEnvironmentData().getDomainName());
     }
 
     /**
@@ -380,7 +307,7 @@ public class ConfigStore {
     /**
      * returns the complete stack name
      */
-    public String getStackLogicalId(Stack stack) {
+    public String getCloudFormationStackName(Stack stack) {
         return stack.getFullName(environmentMetadata.getName());
     }
 
@@ -390,7 +317,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public BaseParameters getBaseStackParameters() {
-        return getStackParameters(getStackLogicalId(Stack.BASE), BaseParameters.class);
+        return getStackParameters(getCloudFormationStackName(Stack.BASE), BaseParameters.class);
     }
 
     /**
@@ -399,7 +326,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public BaseOutputs getBaseStackOutputs() {
-        return getStackOutputs(getStackLogicalId(Stack.BASE), BaseOutputs.class);
+        return getStackOutputs(getCloudFormationStackName(Stack.BASE), BaseOutputs.class);
     }
 
     /**
@@ -408,7 +335,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public VpcParameters getVpcStackParameters() {
-        return getStackParameters(getStackLogicalId(Stack.VPC), VpcParameters.class);
+        return getStackParameters(getCloudFormationStackName(Stack.VPC), VpcParameters.class);
     }
 
     /**
@@ -417,7 +344,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public VpcOutputs getVpcStackOutputs() {
-        return getStackOutputs(getStackLogicalId(Stack.VPC), VpcOutputs.class);
+        return getStackOutputs(getCloudFormationStackName(Stack.VPC), VpcOutputs.class);
     }
 
     /**
@@ -426,7 +353,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public SecurityGroupParameters getSecurityGroupStackParameters() {
-        return getStackParameters(getStackLogicalId(Stack.SECURITY_GROUPS), SecurityGroupParameters.class);
+        return getStackParameters(getCloudFormationStackName(Stack.SECURITY_GROUPS), SecurityGroupParameters.class);
     }
 
     /**
@@ -435,7 +362,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public SecurityGroupOutputs getSecurityGroupStackOutputs() {
-        return getStackOutputs(getStackLogicalId(Stack.SECURITY_GROUPS), SecurityGroupOutputs.class);
+        return getStackOutputs(getCloudFormationStackName(Stack.SECURITY_GROUPS), SecurityGroupOutputs.class);
     }
 
     /**
@@ -444,7 +371,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public LoadBalancerOutputs getLoadBalancerStackOutputs() {
-        return getStackOutputs(getStackLogicalId(Stack.LOAD_BALANCER), LoadBalancerOutputs.class);
+        return getStackOutputs(getCloudFormationStackName(Stack.LOAD_BALANCER), LoadBalancerOutputs.class);
     }
 
     /**
@@ -453,7 +380,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public DatabaseParameters getDatabaseStackParameters() {
-        return getStackParameters(getStackLogicalId(Stack.DATABASE), DatabaseParameters.class);
+        return getStackParameters(getCloudFormationStackName(Stack.DATABASE), DatabaseParameters.class);
     }
 
     /**
@@ -462,7 +389,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public Route53Parameters getRoute53Parameters() {
-        return getStackParameters(getStackLogicalId(Stack.ROUTE53), Route53Parameters.class);
+        return getStackParameters(getCloudFormationStackName(Stack.ROUTE53), Route53Parameters.class);
     }
 
     /**
@@ -471,7 +398,7 @@ public class ConfigStore {
      * @return Base parameters
      */
     public Route53Outputs getRoute53StackOutputs() {
-        return getStackOutputs(getStackLogicalId(Stack.ROUTE53), Route53Outputs.class);
+        return getStackOutputs(getCloudFormationStackName(Stack.ROUTE53), Route53Outputs.class);
     }
 
     /**
@@ -480,16 +407,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public DatabaseOutputs getDatabaseStackOutputs() {
-        return getStackOutputs(getStackLogicalId(Stack.DATABASE), DatabaseOutputs.class);
-    }
-
-    /**
-     * Get the Vault stack outputs.
-     *
-     * @return Vault outputs
-     */
-    public VaultOutputs getVaultStackOutputs() {
-        return getStackOutputs(Stack.VAULT, VaultOutputs.class);
+        return getStackOutputs(getCloudFormationStackName(Stack.DATABASE), DatabaseOutputs.class);
     }
 
     /**
@@ -498,7 +416,7 @@ public class ConfigStore {
      * @return CMS parameters
      */
     public CmsParameters getCmsStackParamters() {
-        return getStackParameters(getStackLogicalId(Stack.CMS), CmsParameters.class);
+        return getStackParameters(getCloudFormationStackName(Stack.CMS), CmsParameters.class);
     }
 
     /**
@@ -507,7 +425,7 @@ public class ConfigStore {
      * @return CMS outputs
      */
     public CmsOutputs getCmsStackOutputs() {
-        return getStackOutputs(getStackLogicalId(Stack.CMS), CmsOutputs.class);
+        return getStackOutputs(getCloudFormationStackName(Stack.CMS), CmsOutputs.class);
     }
 
     /**
@@ -515,30 +433,8 @@ public class ConfigStore {
      *
      * @return Gateway parameters
      */
-    public GatewayParameters getGatewayStackParamters() {
-        return getStackParameters(Stack.GATEWAY, GatewayParameters.class);
-    }
-
-    /**
-     * Get the stack outputs for a specific stack name.
-     *
-     * @param stack       Stack name
-     * @param outputClass Outputs class
-     * @param <M>         Outputs type
-     * @return Outputs
-     */
-    public <M> M getStackOutputs(final Stack stack, final Class<M> outputClass) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            final String stackId = environment.getStackMap().get(stack);
-
-            if (!cloudFormationService.isStackPresent(stackId)) {
-                throw new IllegalStateException("The specified stack doesn't exist for specified environment.");
-            }
-
-            final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(stackId);
-            return cloudFormationObjectMapper.convertValue(stackOutputs, outputClass);
-        }
+    public GatewayParameters getGatewayStackParameters() {
+        return getStackParameters(getCloudFormationStackName(Stack.GATEWAY), GatewayParameters.class);
     }
 
     /**
@@ -561,27 +457,6 @@ public class ConfigStore {
     /**
      * Get the stack parameters for a specific stack name.
      *
-     * @param stack          Stack name
-     * @param parameterClass Parameters class
-     * @param <M>            Parameters type
-     * @return Parameters
-     */
-    public <M> M getStackParameters(final Stack stack, final Class<M> parameterClass) {
-        synchronized (envDataLock) {
-            final String stackId = stack.getFullName(environmentMetadata.getName());
-
-            if (!cloudFormationService.isStackPresent(stackId)) {
-                throw new IllegalStateException("The specified stack doesn't exist for the specified environment");
-            }
-
-            final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
-            return cloudFormationObjectMapper.convertValue(stackParameters, parameterClass);
-        }
-    }
-
-    /**
-     * Get the stack parameters for a specific stack name.
-     *
      * @param stackName      Full stack name
      * @param parameterClass Parameters class
      * @param <M>            Parameters type
@@ -597,72 +472,30 @@ public class ConfigStore {
     }
 
     /**
-     * Initializes the environment data in the config bucket.
+     * Initializes the environmentData data in the config bucket.
      */
     public void initEnvironmentData() {
-        synchronized (envDataLock) {
+        synchronized (cerberusEnvironmentDataLock) {
             try {
-                getEnvironmentData();
-                final String errorMessage = "Attempting to initialize environment data, but it already exists!";
+                getDecryptedEnvironmentData();
+                final String errorMessage = "Attempting to initialize environmentData data, but it already exists!";
                 logger.error(errorMessage);
                 throw new RuntimeException(errorMessage);
             } catch (IllegalStateException ise) {
-                final Environment environment = new Environment();
-                saveEnvironmentData(environment);
+                final CerberusEnvironmentData environmentData = new CerberusEnvironmentData();
+                saveEnvironmentData(environmentData);
             }
         }
     }
 
-    /**
-     * Initializes the secrets data in the config bucket.
-     */
-    public void initSecretsData() {
-        synchronized (secretsDataLock) {
-            try {
-                getSecretsData();
-                final String errorMessage = "Attempting to initialize secrets data, but it already exists!";
-                logger.error(errorMessage);
-                throw new RuntimeException(errorMessage);
-            } catch (IllegalStateException ise) {
-                final Secrets secrets = new Secrets();
-                saveSecretsData(secrets);
-            }
-        }
-    }
-
-    private Secrets getSecretsData() {
+    private CerberusEnvironmentData getDecryptedEnvironmentData() {
         initEncryptedConfigStoreService();
 
-        final Optional<String> secretsData = encryptedConfigStoreService.get(ConfigConstants.SECRETS_DATA_FILE);
+        final Optional<String> environmentData = encryptedConfigStoreService.get(ConfigConstants.ENVIRONMENT_DATA_FILE);
 
-        if (secretsData.isPresent()) {
+        if (environmentData.isPresent()) {
             try {
-                return configObjectMapper.readValue(secretsData.get(), Secrets.class);
-            } catch (IOException e) {
-                throw new IllegalStateException("Unable to read the secrets data!", e);
-            }
-        } else {
-            throw new IllegalStateException("No secrets data available!");
-        }
-    }
-
-    private void saveSecretsData(final Secrets secrets) {
-        try {
-            final String secretsData = configObjectMapper.writeValueAsString(secrets);
-            saveEncryptedObject(ConfigConstants.SECRETS_DATA_FILE, secretsData);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Unable to convert the environment data to JSON.  Aborting save...", e);
-        }
-    }
-
-    private Environment getEnvironmentData() {
-        initConfigStoreService();
-
-        final Optional<String> envData = configStoreService.get(ConfigConstants.ENV_DATA_FILE);
-
-        if (envData.isPresent()) {
-            try {
-                return configObjectMapper.readValue(envData.get(), Environment.class);
+                return configObjectMapper.readValue(environmentData.get(), CerberusEnvironmentData.class);
             } catch (IOException e) {
                 throw new IllegalStateException("Unable to read the environment data!", e);
             }
@@ -671,25 +504,13 @@ public class ConfigStore {
         }
     }
 
-    private void saveEnvironmentData(final Environment environment) {
+    private void saveEnvironmentData(final CerberusEnvironmentData environmentData) {
         try {
-            final String envData = configObjectMapper.writeValueAsString(environment);
-            saveObject(ConfigConstants.ENV_DATA_FILE, envData);
+            final String environmentDataData = configObjectMapper.writeValueAsString(environmentData);
+            saveEncryptedObject(ConfigConstants.ENVIRONMENT_DATA_FILE, environmentDataData);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Unable to convert the environment data to JSON.  Aborting save...", e);
         }
-    }
-
-    private void saveObject(final String path, final String value) {
-        initConfigStoreService();
-
-        configStoreService.put(path, value);
-    }
-
-    private Optional<String> getObject(final String path) {
-        initConfigStoreService();
-
-        return configStoreService.get(path);
     }
 
     /**
@@ -736,60 +557,13 @@ public class ConfigStore {
         }
     }
 
-    private String buildCertFilePath(final Stack stack, final String suffix) {
-        return "data/" + stack.getName() + "/" + stack.getName() + "-" + suffix;
-    }
-
-    /**
-     * Removes the final '.' from the CNAME.
-     *
-     * @param cname The cname to convert
-     * @return The host derived from the CNAME
-     */
-    private String cnameToHost(final String cname) {
-        return cname.substring(0, cname.length() - 1);
-    }
-
-    public Optional<BackupRegionInfo> getBackupInfoForRegion(String region) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            return Optional.ofNullable(environment.getRegionBackupBucketMap().get(region));
-        }
-    }
-
-    public Map<String, BackupRegionInfo> getRegionBackupBucketMap() {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            return environment.getRegionBackupBucketMap();
-        }
-    }
-
-    public void storeBackupInfoForRegion(String region, String bucket, String kmsCmkId) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            environment.getRegionBackupBucketMap().put(region, new BackupRegionInfo(bucket, kmsCmkId));
-            saveEnvironmentData(environment);
-        }
-    }
-
-    public Set<String> getBackupAdminIamPrincipals() {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            return environment.getBackupAdminIamPrincipals();
-        }
-    }
-
-    public void storeBackupAdminIamPrincipals(Set<String> principals) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
-            environment.setBackupAdminIamPrincipals(principals);
-            saveEnvironmentData(environment);
-        }
+    private String buildCertFilePath(String identityManagementCertName, String filename) {
+        return String.format("certificates/%s/%s", identityManagementCertName, filename);
     }
 
     public Optional<String> getMetricsTopicArn() {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
+        synchronized (cerberusEnvironmentDataLock) {
+            CerberusEnvironmentData environment = getDecryptedEnvironmentData();
             if (StringUtils.isNoneBlank(environment.getMetricsTopicArn())) {
                 return Optional.of(environment.getMetricsTopicArn());
             }
@@ -802,11 +576,10 @@ public class ConfigStore {
     }
 
     private void storeMetricsTopicArn(String arn) {
-        synchronized (envDataLock) {
-            final Environment environment = getEnvironmentData();
+        synchronized (cerberusEnvironmentDataLock) {
+            CerberusEnvironmentData environment = getDecryptedEnvironmentData();
             environment.setMetricsTopicArn(arn);
             saveEnvironmentData(environment);
         }
     }
-
 }

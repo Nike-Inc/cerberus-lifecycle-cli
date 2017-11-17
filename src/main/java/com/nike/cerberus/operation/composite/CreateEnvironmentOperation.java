@@ -29,9 +29,8 @@ import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
-import com.nike.cerberus.command.core.GenerateCertsCommand;
-import com.nike.cerberus.command.core.UploadCertFilesCommand;
-import com.nike.cerberus.domain.environment.Stack;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
+import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
 
 import java.util.List;
 
@@ -47,52 +46,49 @@ public class CreateEnvironmentOperation extends CompositeOperation<CreateEnviron
     protected List<ChainableCommand> getCompositeCommandChain() {
         List<ChainableCommand> list = Lists.newArrayList(
             // Step 1 Create the Base Cloud Formation Stack that creates S3 Buckets, Iam Roles and KMS keys needed for config
-            ChainableCommand.Builder.create().withCommand(new CreateBaseCommand()).build(),
+            new ChainableCommand(new CreateBaseCommand()),
 
             // Step 2 Create the VPC Cloud Formation Stack that Cerberus will use
-            ChainableCommand.Builder.create().withCommand(new CreateVpcCommand()).build(),
+            new ChainableCommand(new CreateVpcCommand()),
 
             // Step 3 Create the Security Group Cloud Formation Stack
-            ChainableCommand.Builder.create().withCommand(new CreateSecurityGroupsCommand()).build(),
+            new ChainableCommand(new CreateSecurityGroupsCommand()),
 
             // Step 4 Create the RDS Database Cloud Formation Stack
-            ChainableCommand.Builder.create().withCommand(new CreateDatabaseCommand()).build()
+            new ChainableCommand(new CreateDatabaseCommand())
         );
 
         // Step 5 Generate the PKCS private and public keys as well as the x509 certificates needed to enable https
         if (environmentConfig.isGenerateKeysAndCerts()) {
-            list.add(ChainableCommand.Builder.create().withCommand(new GenerateCertsCommand()).build());
+            list.add(new ChainableCommand(new GenerateCertificateFilesCommand()));
         }
                 
         list.addAll(Lists.newArrayList(
             // Step 6 Upload the certs and keys to S3 and the IAM Cert Management service so that the ALB and CMS can use the certs
-            ChainableCommand.Builder.create().withCommand(new UploadCertFilesCommand())
-                    .withAdditionalArg(UploadCertFilesCommand.STACK_NAME_LONG_ARG)
-                    .withAdditionalArg(Stack.CMS.getName())
-                    .build(),
+            new ChainableCommand(new UploadCertificateFilesCommand()),
 
             // Step 7 Create the Application Load Balancer Cloud Formation Stack
-            ChainableCommand.Builder.create().withCommand(new CreateLoadBalancerCommand()).build(),
+            new ChainableCommand(new CreateLoadBalancerCommand()),
 
             // Step 8 Generate the CMS config with org specific setting and first secrets encrypt,
             // Upload to S3 for CMS to download at service start
-            ChainableCommand.Builder.create().withCommand(new CreateCmsConfigCommand()).build(),
+            new ChainableCommand(new CreateCmsConfigCommand()),
 
             // Step 9 Create CMS CMK, create KMS master keys in the regions specified for CMS to use with the AWS Encryption
             // client to encrypt secure data in a manor that is decryptable in multiple regions and store in cms props
-            ChainableCommand.Builder.create().withCommand(new CreateCmsCmkCommand()).build(),
+            new ChainableCommand(new CreateCmsCmkCommand()),
 
             // Step 10 Create the CMS Cluster Stack
-            ChainableCommand.Builder.create().withCommand(new CreateCmsClusterCommand()).build(),
+            new ChainableCommand(new CreateCmsClusterCommand()),
 
             // Step 11 Create the Web Application Fire wall stack
-            ChainableCommand.Builder.create().withCommand(new CreateWafCommand()).build(),
+            new ChainableCommand(new CreateWafCommand()),
 
             // Step 12 Create the Route 53 DNS Record Stack for origin and the load balancer
-            ChainableCommand.Builder.create().withCommand(new CreateRoute53Command()).build(),
+            new ChainableCommand(new CreateRoute53Command()),
 
             // Step 13 Create the outer most domain name record that will point to the origin record
-            ChainableCommand.Builder.create().withCommand(new CreateEdgeDomainRecordCommand()).build()
+            new ChainableCommand(new CreateEdgeDomainRecordCommand())
         ));
 
         return list;

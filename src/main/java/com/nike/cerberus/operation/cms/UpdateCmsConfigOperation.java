@@ -71,7 +71,6 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
         if (shouldOverwriteAdminGroup(existingAdminGroup, adminGroupParameter)) {
             logger.warn(String.format("Updating CMS admin group from '%s' to '%s'", existingAdminGroup, adminGroupParameter));
-            configStore.storeCmsAdminGroup(adminGroupParameter);
             newAdminGroupValue = adminGroupParameter;  // overwrite admin group
         }
         newProperties.put(CMS_ADMIN_GROUP_KEY, newAdminGroupValue);

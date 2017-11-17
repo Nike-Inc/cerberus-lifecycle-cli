@@ -43,8 +43,6 @@ public class CreateCmsConfigOperation implements Operation<CreateCmsConfigComman
 
     @Override
     public void run(final CreateCmsConfigCommand command) {
-        configStore.storeCmsAdminGroup(command.getAdminGroup());
-
         logger.info("Retrieving configuration data from the configuration bucket.");
         final Properties cmsConfigProperties = configStore.getCmsSystemProperties();
 

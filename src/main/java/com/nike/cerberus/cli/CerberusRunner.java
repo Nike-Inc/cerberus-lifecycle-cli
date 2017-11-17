@@ -31,11 +31,11 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
+import com.nike.cerberus.command.core.AddCertificateToAlbCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
 import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
-import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
@@ -44,13 +44,12 @@ import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.command.core.DeleteStackCommand;
-import com.nike.cerberus.command.core.GenerateCertsCommand;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
-import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.command.core.UploadCertFilesCommand;
+import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
@@ -170,7 +169,7 @@ public class CerberusRunner {
      */
     private void registerAllCommands() {
         registerCommand(new CreateBaseCommand());
-        registerCommand(new UploadCertFilesCommand());
+        registerCommand(new UploadCertificateFilesCommand());
         registerCommand(new CreateCmsConfigCommand());
         registerCommand(new CreateCmsClusterCommand());
         registerCommand(new CreateCmsCmkCommand());
@@ -182,9 +181,7 @@ public class CerberusRunner {
         registerCommand(new ViewConfigCommand());
         registerCommand(new UpdateCmsConfigCommand());
         registerCommand(new RollingRebootWithHealthCheckCommand());
-        registerCommand(new CreateCerberusBackupCommand());
-        registerCommand(new SetBackupAdminPrincipalsCommand());
-        registerCommand(new GenerateCertsCommand());
+        registerCommand(new GenerateCertificateFilesCommand());
         registerCommand(new CreateVpcCommand());
         registerCommand(new CreateWafCommand());
         registerCommand(new CreateDatabaseCommand());
@@ -195,6 +192,7 @@ public class CerberusRunner {
         registerCommand(new CreateEnvironmentCommand());
         registerCommand(new DeleteStackCommand());
         registerCommand(new DeleteEnvironmentCommand());
+        registerCommand(new AddCertificateToAlbCommand());
     }
 
     /**
