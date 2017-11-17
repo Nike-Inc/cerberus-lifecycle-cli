@@ -84,7 +84,7 @@ public class EnvironmentConfigToArgsMapper {
             case CreateBaseCommand.COMMAND_NAME:
                 return getCreateBaseCommandArgs(environmentConfig);
             case UploadCertificateFilesCommand.COMMAND_NAME:
-                return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
+                return getUploadCertFilesCommandArgs(environmentConfig);
             case CreateCmsClusterCommand.COMMAND_NAME:
                 return getCreateCmsClusterCommandArgs(environmentConfig);
             case WhitelistCidrForVpcAccessCommand.COMMAND_NAME:
@@ -183,7 +183,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getUploadCertFilesCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
+    private static List<String> getUploadCertFilesCommandArgs(EnvironmentConfig environmentConfig) {
         return ArgsBuilder.create()
                 .addOption(UploadCertificateFilesCommand.CERT_PATH_LONG_ARG,
                         environmentConfig.getManagementService().getCertPath())
