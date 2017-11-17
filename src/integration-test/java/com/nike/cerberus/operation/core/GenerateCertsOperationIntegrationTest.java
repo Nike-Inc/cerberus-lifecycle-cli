@@ -24,10 +24,13 @@ import com.amazonaws.services.identitymanagement.model.UploadServerCertificateRe
 import com.amazonaws.services.identitymanagement.model.UploadServerCertificateResult;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.google.common.collect.ImmutableSet;
-import com.nike.cerberus.command.core.GenerateCertsCommand;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.service.CertificateService;
 import com.nike.cerberus.service.ConsoleService;
+import com.nike.cerberus.service.IdentityManagementService;
+import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.UuidSupplier;
 import io.netty.handler.ssl.SslContextBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -82,7 +85,7 @@ public class GenerateCertsOperationIntegrationTest {
     public static String CERT_DIR = "build/certs/";
 
     @Mock
-    private GenerateCertsCommand command;
+    private GenerateCertificateFilesCommand command;
 
     @Mock
     private ConsoleService consoleService;
@@ -90,7 +93,13 @@ public class GenerateCertsOperationIntegrationTest {
     @Mock
     private EnvironmentMetadata environmentMetadata;
 
-    private GenerateCertsOperation operation;
+    @Mock
+    private ConfigStore configStore;
+
+    @Mock
+    IdentityManagementService identityManagementService;
+
+    private GenerateCertificateFilesOperation operation;
 
     private File certDir;
 
@@ -99,9 +108,10 @@ public class GenerateCertsOperationIntegrationTest {
         initMocks(this);
 
         CertificateService certificateService = new CertificateService(consoleService,
-                AmazonRoute53Client.builder().withRegion("us-west-2").build());
+                AmazonRoute53Client.builder().withRegion("us-west-2").build(), new UuidSupplier(), configStore,
+                identityManagementService, environmentMetadata);
 
-        operation = new GenerateCertsOperation(certificateService, environmentMetadata, consoleService);
+        operation = new GenerateCertificateFilesOperation(certificateService, environmentMetadata, consoleService);
 
         certDir = new File(CERT_DIR);
     }

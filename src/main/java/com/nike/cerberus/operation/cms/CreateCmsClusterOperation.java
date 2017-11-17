@@ -16,13 +16,11 @@
 
 package com.nike.cerberus.operation.cms;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.google.common.collect.Sets;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
+import com.nike.cerberus.domain.environment.CertificateInformation;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.AmiTagCheckService;
@@ -34,8 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Operation for creating the CMS cluster.
@@ -75,11 +73,10 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
     public void run(final CreateCmsClusterCommand command) {
         final String environmentName = environmentMetadata.getName();
         final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
-        final Optional<String> cmsServerCertificateArn = configStore.getServerCertificateArn(Stack.CMS);
-        final Optional<String> pubKey = configStore.getCertPart(Stack.CMS, ConfigConstants.CERT_PART_PUBKEY);
+        final List<CertificateInformation> certInfoListForStack = configStore.getCertificationInformationList();
 
-        if (!cmsServerCertificateArn.isPresent() || !pubKey.isPresent()) {
-            throw new IllegalStateException("CMS certificate has not been uploaded!");
+        if (!certInfoListForStack.isEmpty()) {
+            throw new IllegalStateException("Certificate for cerberus environment has not been uploaded!");
         }
 
         // Make sure the given AmiId is for CMS component. Check if it contains required tag

@@ -20,34 +20,21 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.validator.UploadCertFilesPathValidator;
-import com.nike.cerberus.command.validator.UploadCertFilesStackNameValidator;
-import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.UploadCertFilesOperation;
-import com.nike.cerberus.util.StackConverter;
+import com.nike.cerberus.operation.core.UploadCertificatesFilesOperation;
 
 import java.nio.file.Path;
 
-import static com.nike.cerberus.command.core.UploadCertFilesCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.UploadCertificateFilesCommand.COMMAND_NAME;
 
 /**
  * Command for uploading a certificate for a specific component.
  */
 @Parameters(commandNames = COMMAND_NAME, commandDescription = "Upload certificate files for a specific component.")
-public class UploadCertFilesCommand implements Command {
+public class UploadCertificateFilesCommand implements Command {
 
-    public static final String COMMAND_NAME = "upload-cert";
-    public static final String STACK_NAME_LONG_ARG = "--stack-name";
-    public static final String CERT_PATH_LONG_ARG = "--cert-path";
-    public static final String OVERWRITE_LONG_ARG = "--overwrite";
-
-    @Parameter(
-            names = {STACK_NAME_LONG_ARG},
-            required = true,
-            description = "Stack name the certificate is for.",
-            validateValueWith = UploadCertFilesStackNameValidator.class,
-            converter = StackConverter.class)
-    private Stack stack;
+    public static final String COMMAND_NAME = "upload-certificate-files";
+    public static final String CERT_PATH_LONG_ARG = "--cert-dir-path";
 
     @Parameter(
             names = {CERT_PATH_LONG_ARG},
@@ -56,22 +43,8 @@ public class UploadCertFilesCommand implements Command {
             validateValueWith = UploadCertFilesPathValidator.class)
     private Path certPath;
 
-    @Parameter(
-            names = {OVERWRITE_LONG_ARG},
-            description = "If certificate is already present for the environment and component, overwrite it."
-    )
-    private boolean overwrite;
-
-    public Stack getStack() {
-        return stack;
-    }
-
     public Path getCertPath() {
         return certPath;
-    }
-
-    public boolean isOverwrite() {
-        return overwrite;
     }
 
     @Override
@@ -81,6 +54,6 @@ public class UploadCertFilesCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return UploadCertFilesOperation.class;
+        return UploadCertificatesFilesOperation.class;
     }
 }

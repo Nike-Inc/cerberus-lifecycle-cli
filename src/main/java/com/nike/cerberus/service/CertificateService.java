@@ -24,13 +24,24 @@ import com.amazonaws.services.route53.model.ChangeResourceRecordSetsRequest;
 import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
+import com.amazonaws.util.StringInputStream;
+import com.beust.jcommander.internal.Sets;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
+import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.environment.CertificateInformation;
+import com.nike.cerberus.store.ConfigStore;
+import com.nike.cerberus.util.UuidSupplier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.openssl.jcajce.JcaPKCS8Generator;
 import org.bouncycastle.util.io.pem.PemObject;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Registration;
@@ -55,11 +66,15 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -67,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -116,15 +132,35 @@ public class CertificateService {
 
     protected static final String CHALLENGE_ENTRY_TEMPLATE = "_acme-challenge.%s";
 
+    protected static final Set<String> EXPECTED_FILE_NAMES = ImmutableSet.of(
+            DOMAIN_CERT_CHAIN_FILE,
+            DOMAIN_CERT_FILE,
+            DOMAIN_PKCS1_KEY_FILE,
+            DOMAIN_PKCS8_KEY_FILE,
+            DOMAIN_PUBLIC_KEY_FILE
+    );
+
     private final ConsoleService console;
     private final AmazonRoute53 route53;
+    private final UuidSupplier uuidSupplier;
+    private final ConfigStore configStore;
+    private final IdentityManagementService identityManagementService;
+    private final EnvironmentMetadata environmentMetadata;
 
     @Inject
     public CertificateService(ConsoleService console,
-                              AmazonRoute53 route53) {
+                              AmazonRoute53 route53,
+                              UuidSupplier uuidSupplier,
+                              ConfigStore configStore,
+                              IdentityManagementService identityManagementService,
+                              EnvironmentMetadata environmentMetadata) {
 
         this.console = console;
         this.route53 = route53;
+        this.uuidSupplier = uuidSupplier;
+        this.configStore = configStore;
+        this.identityManagementService = identityManagementService;
+        this.environmentMetadata = environmentMetadata;
     }
 
     /**
@@ -454,5 +490,97 @@ public class CertificateService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to create PKCS8 private key pem", e);
         }
+    }
+
+    /**
+     * Uploads the required files to enable tls to identity management and s3
+     *
+     * @param certDir The directory containing the required files
+     */
+    public void uploadCertFiles(File certDir) {
+
+        checkForRequiredFiles(certDir);
+
+        final String caContents = getFileContents(certDir, DOMAIN_CERT_CHAIN_FILE);
+        final String certContents = getFileContents(certDir, DOMAIN_CERT_FILE);
+        final String keyContents = getFileContents(certDir, DOMAIN_PKCS1_KEY_FILE);
+        final String pkcs8KeyContents = getFileContents(certDir, DOMAIN_PKCS8_KEY_FILE);
+        final String pubKeyContents = getFileContents(certDir, DOMAIN_PUBLIC_KEY_FILE);
+        final String certificateName = String.format("cerberus_%s_%s",  environmentMetadata.getName(), uuidSupplier.get());
+
+        log.info("Uploading certificate files to IAM with name of {}.", certificateName);
+        String identityManagementCertificateName = identityManagementService.uploadServerCertificate(certificateName, getPath(),
+                certContents, caContents, keyContents);
+        log.info("Identity Management Cert Name: {}", identityManagementCertificateName);
+
+        log.info("Uploading certificate parts to the configuration bucket.");
+        X509Certificate certificate;
+        try {
+            certificate = CertificateUtils.readX509Certificate(new StringInputStream(certContents));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse x509 cert", e);
+        }
+
+        List<String> sans = new LinkedList<>();
+        try {
+            certificate.getSubjectAlternativeNames().forEach(o -> sans.add(o.get(1).toString()));
+        } catch (Exception e) {
+            log.error("Failed to parse subject alternative names from x509 cert");
+        }
+
+        CertificateInformation certificateInformation = CertificateInformation.Builder.create()
+                .withIdentityManagementCertificateName(identityManagementCertificateName)
+                .withCommonName(StringUtils.removeStart(certificate.getSubjectX500Principal().getName(), "CN="))
+                .withSubjectAlternateNames(sans)
+                .withNotBefore(new DateTime(certificate.getNotBefore(), DateTimeZone.UTC))
+                .withNotAfter(new DateTime(certificate.getNotAfter(), DateTimeZone.UTC))
+                .withUploaded(DateTime.now(DateTimeZone.UTC))
+                .build();
+
+        configStore.storeCert(certificateInformation, caContents, certContents, keyContents, pkcs8KeyContents, pubKeyContents);
+        log.info("Successfully uploaded Certificate: {}", certificateInformation);
+    }
+
+    /**
+     * Validates that the requires files to enable https for Cerberus are present see the constants at the top of this file.
+     *
+     * @param certDir The directory that contains the required files
+     */
+    private void checkForRequiredFiles(File certDir) {
+
+        final Set<String> filenames = Sets.newHashSet();
+
+        final FilenameFilter filter = new RegexFileFilter("^.*\\.(pem|crt)$");
+        final File[] files = certDir.listFiles(filter);
+        Arrays.stream(files).forEach(file -> filenames.add(file.getName()));
+
+        if (!filenames.containsAll(EXPECTED_FILE_NAMES)) {
+            final StringJoiner sj = new StringJoiner(", ", "[", "]");
+            EXPECTED_FILE_NAMES.forEach(sj::add);
+            throw new RuntimeException("Not all expected files are present! Expected: " + sj.toString());
+        }
+    }
+
+    /**
+     * Reads the data from the file for uploading
+     */
+    private String getFileContents(final File certDir, final String filename) {
+        Preconditions.checkNotNull(certDir);
+        Preconditions.checkNotNull(filename);
+
+        File file = new File(certDir.getAbsolutePath() + File.separator + filename);
+        if (file.exists() && file.canRead()) {
+            try {
+                return new String(Files.readAllBytes(file.toPath()), Charset.forName("UTF-8"));
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to read the following file: " + file.getAbsolutePath());
+            }
+        } else {
+            throw new IllegalArgumentException("The file is not readable: " + file.getAbsolutePath());
+        }
+    }
+
+    private String getPath() {
+        return "/cerberus/" + environmentMetadata.getName() + "/";
     }
 }

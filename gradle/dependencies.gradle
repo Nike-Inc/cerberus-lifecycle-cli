@@ -19,7 +19,7 @@ allprojects {
         jcenter()
     }
 
-    def awsSDKVersion = '1.11.220'
+    def awsSDKVersion = '1.11.229'
 
     //noinspection GroovyAssignabilityCheck
     dependencies {
@@ -34,7 +34,7 @@ allprojects {
         compile group: 'com.amazonaws', name: 'aws-java-sdk-sns', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-route53', version: awsSDKVersion
-
+        compile group: 'com.amazonaws', name: 'aws-java-sdk-elasticloadbalancingv2', version: awsSDKVersion
 
         compile 'com.nike:vault-client:1.4.1'
         compile 'com.squareup.okhttp3:okhttp:3.3.1'
@@ -45,6 +45,7 @@ allprojects {
         compile 'com.fasterxml.jackson.core:jackson-annotations:2.7.+'
         compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7+'
         compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.8.5'
+        compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.4.3'
 
         compile 'org.slf4j:slf4j-api:1.7.+'
         compile 'ch.qos.logback:logback-classic:1.1.+'

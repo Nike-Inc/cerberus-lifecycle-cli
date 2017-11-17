@@ -32,6 +32,8 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClient;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.kms.AWSKMS;
@@ -51,6 +53,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import com.google.inject.AbstractModule;
@@ -119,6 +122,7 @@ public class CerberusModule extends AbstractModule {
         bind(AWSLambda.class).toInstance(createAmazonClientInstance(AWSLambdaClient.class, region));
         bind(AmazonSNS.class).toInstance(createAmazonClientInstance(AmazonSNSClient.class, region));
         bind(AmazonRoute53.class).toInstance(createAmazonClientInstance(AmazonRoute53Client.class, region));
+        bind(AmazonElasticLoadBalancing.class).toInstance(createAmazonClientInstance(AmazonElasticLoadBalancingClient.class, region));
     }
 
     /**
@@ -132,6 +136,7 @@ public class CerberusModule extends AbstractModule {
     public static ObjectMapper configObjectMapper() {
         final ObjectMapper om = new ObjectMapper();
         om.findAndRegisterModules();
+        om.registerModule(new JodaModule());
         om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         om.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         om.enable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);

@@ -23,7 +23,6 @@ import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
 import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.utils.TestUtils;
-import com.nike.cerberus.vault.VaultAdminClientFactory;
 import com.nike.vault.client.StaticVaultUrlResolver;
 import okhttp3.OkHttpClient;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -85,7 +84,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
 
         CerberusAdminClient adminClient = new CerberusAdminClient(
                 new StaticVaultUrlResolver("http://127.0.0.1:8200"),
-                new VaultAdminClientFactory.RootCredentialsProvider(rootToken),
+                null,
                 new OkHttpClient.Builder()
                         .hostnameVerifier(new NoopHostnameVerifier())
                         .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)

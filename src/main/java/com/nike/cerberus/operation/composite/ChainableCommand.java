@@ -35,8 +35,20 @@ import java.util.List;
 public class ChainableCommand {
 
     private Command command;
-    private Operation operation;
     private String[] additionalArgs;
+
+
+    public ChainableCommand() {
+    }
+
+    public ChainableCommand(Command command) {
+        this.command = command;
+    }
+
+    public ChainableCommand(Command command, String[] additionalArgs) {
+        this.command = command;
+        this.additionalArgs = additionalArgs;
+    }
 
     public Command getCommand() {
         return command;
@@ -44,14 +56,6 @@ public class ChainableCommand {
 
     public String[] getAdditionalArgs() {
         return additionalArgs;
-    }
-
-    public Operation getOperation() {
-        return operation;
-    }
-
-    public void setOperation(Operation operation) {
-        this.operation = operation;
     }
 
     public static final class Builder {

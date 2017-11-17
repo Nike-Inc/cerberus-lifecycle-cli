@@ -16,8 +16,6 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.BaseParameters;
@@ -72,7 +70,6 @@ public class CreateBaseOperation implements Operation<CreateBaseCommand> {
         logger.info("Stack creation complete, initializing the configuration bucket.");
         environmentMetadata.setBucketName(configStore.getBaseStackOutputs().getConfigBucketName());
         configStore.initEnvironmentData();
-        configStore.initSecretsData();
         logger.info("Initialization complete.");
     }
 

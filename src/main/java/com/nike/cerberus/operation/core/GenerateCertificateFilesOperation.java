@@ -16,7 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.nike.cerberus.command.core.GenerateCertsCommand;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CertificateService;
@@ -37,7 +37,7 @@ import static com.nike.cerberus.service.ConsoleService.DefaultAction.NO;
 /**
  * Operation that uses the cert service to generate the certificates needed to enable https in a Cerberus Env.
  */
-public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
+public class GenerateCertificateFilesOperation implements Operation<GenerateCertificateFilesCommand> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -46,9 +46,9 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
     private final ConsoleService consoleService;
 
     @Inject
-    public GenerateCertsOperation(CertificateService certService,
-                                  EnvironmentMetadata environmentMetadata,
-                                  ConsoleService consoleService) {
+    public GenerateCertificateFilesOperation(CertificateService certService,
+                                             EnvironmentMetadata environmentMetadata,
+                                             ConsoleService consoleService) {
 
         this.certService = certService;
         this.environmentMetadata = environmentMetadata;
@@ -60,7 +60,7 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
             justification = "I do not want to catch 1000 individual exceptions"
     )
     @Override
-    public void run(GenerateCertsCommand command) {
+    public void run(GenerateCertificateFilesCommand command) {
         // The common name ex: demo.example.com
         String commonName = StringUtils.isNotBlank(command.getEdgeDomainNameOverride()) ?
                 command.getEdgeDomainNameOverride() :
@@ -116,7 +116,7 @@ public class GenerateCertsOperation implements Operation<GenerateCertsCommand> {
     }
 
     @Override
-    public boolean isRunnable(GenerateCertsCommand command) {
+    public boolean isRunnable(GenerateCertificateFilesCommand command) {
         return true;
     }
 }

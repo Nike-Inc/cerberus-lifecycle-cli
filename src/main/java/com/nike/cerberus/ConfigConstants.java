@@ -30,9 +30,7 @@ public class ConfigConstants {
 
     public static final String DEFAULT_CMS_DB_NAME = "cms";
 
-    public static final String ENV_DATA_FILE = "config/environment.json";
-
-    public static final String SECRETS_DATA_FILE = "config/secrets.json";
+    public static final String ENVIRONMENT_DATA_FILE = "environment.json";
 
     public static final String CERT_PART_CA = "ca.pem";
 
@@ -44,7 +42,7 @@ public class ConfigConstants {
 
     public static final String CERT_PART_PUBKEY = "pubkey.pem";
 
-    public static final String CMS_ENV_CONFIG_PATH = "data/cms/environment.properties";
+    public static final String CMS_ENV_CONFIG_PATH = "cms/environment.properties";
 
     public static final String VERSION_PROPERTY = "cli.version";
 
@@ -68,6 +66,8 @@ public class ConfigConstants {
 
     public static final String CMS_ENV_NAME = "cms.env.name";
 
+    public static final String CMS_CERTIFICATE_TO_USE = "cms.ssl.certificateName";
+
     public static final ImmutableSet<String> SYSTEM_CONFIGURED_CMS_PROPERTIES = ImmutableSet.of(
             ROOT_USER_ARN_KEY,
             ADMIN_ROLE_ARN_KEY,
@@ -77,7 +77,8 @@ public class ConfigConstants {
             JDBC_PASSWORD_KEY,
             CMK_ARNS_KEY,
             HASH_SALT,
-            CMS_ENV_NAME);
+            CMS_ENV_NAME,
+            CMS_CERTIFICATE_TO_USE);
 
     public static final String CERBERUS_AMI_TAG_NAME = "tag:cerberus_component";
 

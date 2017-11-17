@@ -16,8 +16,6 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.LoadBalancerParameters;
@@ -65,8 +63,9 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
         final String environmentName = environmentMetadata.getName();
         final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
 
-        final String sslCertificateArn = configStore.getServerCertificateArn(Stack.CMS)
-                .orElseThrow(() -> new IllegalStateException("Could not retrieve SSL certificate ARN!"));
+        // Use latest cert, if there happens to be more than one for some reason
+        final String sslCertificateArn = configStore.getCertificationInformationList()
+                .getLast().getIdentityManagementCertificateName();
 
         final LoadBalancerParameters loadBalancerParameters = new LoadBalancerParameters()
                 .setVpcId(vpcOutputs.getVpcId())
@@ -88,14 +87,24 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
 
     @Override
     public boolean isRunnable(final CreateLoadBalancerCommand command) {
+        boolean isRunnable = true;
         String environmentName = environmentMetadata.getName();
-        try {
-            cloudFormationService.getStackId(Stack.SECURITY_GROUPS.getFullName(environmentName));
-        } catch (IllegalArgumentException iae) {
+
+        if (!cloudFormationService.isStackPresent(Stack.SECURITY_GROUPS.getFullName(environmentName))) {
             logger.error("The security group stack must exist to create the load balancer!");
-            return false;
+            isRunnable = false;
         }
 
-        return !cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName));
+        if (configStore.getCertificationInformationList().isEmpty()) {
+            logger.error("TLS Certificate files have not been uploaded for environment");
+            isRunnable = false;
+        }
+
+        if (cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
+            logger.error("The load balancer stack already exists");
+            isRunnable = false;
+        }
+
+        return isRunnable;
     }
 }
