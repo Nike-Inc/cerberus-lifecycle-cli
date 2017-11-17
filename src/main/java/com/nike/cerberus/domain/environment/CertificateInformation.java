@@ -155,7 +155,7 @@ public class CertificateInformation {
 
         public CertificateInformation build() {
             CertificateInformation certificateInformation = new CertificateInformation();
-            certificateInformation.setIdentityManagementCertificateName(identityManagementCertificateName;
+            certificateInformation.setIdentityManagementCertificateName(identityManagementCertificateName);
             certificateInformation.setIdentityManagementCertificateArn(identityManagementCertificateArn);
             certificateInformation.setNotBefore(notBefore);
             certificateInformation.setNotAfter(notAfter);
