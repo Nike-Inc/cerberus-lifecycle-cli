@@ -530,6 +530,7 @@ public class CertificateService {
 
         CertificateInformation certificateInformation = CertificateInformation.Builder.create()
                 .withIdentityManagementCertificateName(identityManagementCertificateName)
+                .withIdentityManagementCertificateArn(identityManagementService.getServerCertificateArn(identityManagementCertificateName).get())
                 .withCommonName(StringUtils.removeStart(certificate.getSubjectX500Principal().getName(), "CN="))
                 .withSubjectAlternateNames(sans)
                 .withNotBefore(new DateTime(certificate.getNotBefore(), DateTimeZone.UTC))

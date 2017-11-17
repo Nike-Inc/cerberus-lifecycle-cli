@@ -25,6 +25,7 @@ import java.util.List;
 public class CertificateInformation {
 
     private String identityManagementCertificateName;
+    private String identityManagementCertificateArn;
     private DateTime notBefore;
     private DateTime notAfter;
     private DateTime uploaded;
@@ -79,11 +80,20 @@ public class CertificateInformation {
         this.subjectAlternateNames = subjectAlternateNames;
     }
 
+    public String getIdentityManagementCertificateArn() {
+        return identityManagementCertificateArn;
+    }
+
+    public void setIdentityManagementCertificateArn(String identityManagementCertificateArn) {
+        this.identityManagementCertificateArn = identityManagementCertificateArn;
+    }
+
     @Override
     public String toString() {
         DateTimeFormatter fmt = DateTimeFormat.fullDateTime();
         return "CertificateInformation{" +
                 "identityManagementCertificateName='" + identityManagementCertificateName + '\'' +
+                ", identityManagementCertificateArn='" + identityManagementCertificateArn + '\'' +
                 ", notBefore=" + fmt.print(notBefore) +
                 ", notAfter=" + fmt.print(notAfter) +
                 ", uploaded=" + fmt.print(uploaded) +
@@ -94,6 +104,7 @@ public class CertificateInformation {
 
     public static final class Builder {
         private String identityManagementCertificateName;
+        private String identityManagementCertificateArn;
         private DateTime notBefore;
         private DateTime notAfter;
         private DateTime uploaded;
@@ -109,6 +120,11 @@ public class CertificateInformation {
 
         public Builder withIdentityManagementCertificateName(String identityManagementCertificateName) {
             this.identityManagementCertificateName = identityManagementCertificateName;
+            return this;
+        }
+
+        public Builder withIdentityManagementCertificateArn(String identityManagementCertificateArn) {
+            this.identityManagementCertificateArn = identityManagementCertificateArn;
             return this;
         }
 
@@ -139,7 +155,8 @@ public class CertificateInformation {
 
         public CertificateInformation build() {
             CertificateInformation certificateInformation = new CertificateInformation();
-            certificateInformation.setIdentityManagementCertificateName(identityManagementCertificateName);
+            certificateInformation.setIdentityManagementCertificateName(identityManagementCertificateName;
+            certificateInformation.setIdentityManagementCertificateArn(identityManagementCertificateArn);
             certificateInformation.setNotBefore(notBefore);
             certificateInformation.setNotAfter(notAfter);
             certificateInformation.setUploaded(uploaded);

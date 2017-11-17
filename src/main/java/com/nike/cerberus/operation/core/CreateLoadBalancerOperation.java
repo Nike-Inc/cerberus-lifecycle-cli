@@ -65,7 +65,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
 
         // Use latest cert, if there happens to be more than one for some reason
         final String sslCertificateArn = configStore.getCertificationInformationList()
-                .getLast().getIdentityManagementCertificateName();
+                .getLast().getIdentityManagementCertificateArn();
 
         final LoadBalancerParameters loadBalancerParameters = new LoadBalancerParameters()
                 .setVpcId(vpcOutputs.getVpcId())
