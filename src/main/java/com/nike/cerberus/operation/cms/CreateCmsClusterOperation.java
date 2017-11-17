@@ -75,7 +75,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
         final List<CertificateInformation> certInfoListForStack = configStore.getCertificationInformationList();
 
-        if (!certInfoListForStack.isEmpty()) {
+        if (certInfoListForStack.isEmpty()) {
             throw new IllegalStateException("Certificate for cerberus environment has not been uploaded!");
         }
 
