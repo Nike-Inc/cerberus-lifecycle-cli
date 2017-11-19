@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.inject.Inject;
 import com.nike.cerberus.client.CerberusAdminClient;
-import com.nike.cerberus.client.CerberusAdminClientFactory;
+import com.nike.cerberus.client.HttpClientFactory;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.Operation;
@@ -72,13 +72,13 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
     private final ObjectMapper objectMapper;
     private final ConsoleService console;
-    private final CerberusAdminClientFactory cerberusAdminClientFactory;
+    private final HttpClientFactory cerberusAdminClientFactory;
 
     @Inject
     public RestoreCerberusBackupOperation(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
                                                   ObjectMapper objectMapper,
                                           ConsoleService console,
-                                          CerberusAdminClientFactory cerberusAdminClientFactory) {
+                                          HttpClientFactory cerberusAdminClientFactory) {
 
         this.objectMapper = objectMapper;
         this.console = console;

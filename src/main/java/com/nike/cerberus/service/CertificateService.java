@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.service;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.model.Change;
 import com.amazonaws.services.route53.model.ChangeAction;
@@ -513,6 +514,13 @@ public class CertificateService {
                 certContents, caContents, keyContents);
         log.info("Identity Management Cert Name: {}", identityManagementCertificateName);
 
+        log.info("Sleeping to let iam cert become eventually consistent");
+        try {
+            Thread.sleep(TimeUnit.MINUTES.toMillis(1));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         log.info("Uploading certificate parts to the configuration bucket.");
         X509Certificate certificate;
         try {
@@ -529,8 +537,8 @@ public class CertificateService {
         }
 
         CertificateInformation certificateInformation = CertificateInformation.Builder.create()
-                .withIdentityManagementCertificateName(identityManagementCertificateName)
-                .withIdentityManagementCertificateArn(identityManagementService.getServerCertificateArn(identityManagementCertificateName).get())
+                .certificateName(identityManagementCertificateName)
+                .withIdentityManagementCertificateArn(identityManagementService.getServerCertificateArn(certificateName).get())
                 .withCommonName(StringUtils.removeStart(certificate.getSubjectX500Principal().getName(), "CN="))
                 .withSubjectAlternateNames(sans)
                 .withNotBefore(new DateTime(certificate.getNotBefore(), DateTimeZone.UTC))
@@ -583,5 +591,21 @@ public class CertificateService {
 
     private String getPath() {
         return "/cerberus/" + environmentMetadata.getName() + "/";
+    }
+
+    /**
+     * Deletes a certificate by name from S3 and from the identity management service and from the environment config
+     *
+     * @param certificateName the certificate to delete
+     */
+    public void deleteCertificate(String certificateName) {
+        try {
+            identityManagementService.deleteServerCertificate(certificateName);
+        } catch (AmazonServiceException e) {
+            log.error("Failed to delete the certificate from the identity management service," +
+                    " you may need to manually delete. MSG: {}", e.getMessage());
+        }
+
+        configStore.deleteCertificate(certificateName);
     }
 }

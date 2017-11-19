@@ -21,16 +21,7 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
-import com.nike.cerberus.command.core.CreateDatabaseCommand;
-import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
-import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
-import com.nike.cerberus.command.core.CreateRoute53Command;
-import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
-import com.nike.cerberus.command.core.CreateVpcCommand;
-import com.nike.cerberus.command.core.CreateWafCommand;
-import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
-import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.core.*;
 
 import java.util.List;
 
@@ -41,9 +32,10 @@ public class CreateEnvironmentOperation extends CompositeOperation<CreateEnviron
 
     /**
      * {@inheritDoc}
+     * @param compositeCommand
      */
     @Override
-    protected List<ChainableCommand> getCompositeCommandChain() {
+    protected List<ChainableCommand> getCompositeCommandChain(CreateEnvironmentCommand compositeCommand) {
         List<ChainableCommand> list = Lists.newArrayList(
             // Step 1 Create the Base Cloud Formation Stack that creates S3 Buckets, Iam Roles and KMS keys needed for config
             new ChainableCommand(new CreateBaseCommand()),
@@ -53,6 +45,9 @@ public class CreateEnvironmentOperation extends CompositeOperation<CreateEnviron
 
             // Step 3 Create the Security Group Cloud Formation Stack
             new ChainableCommand(new CreateSecurityGroupsCommand()),
+
+            // Step 3.5 Add the vpc whitelist CIDRs
+            new ChainableCommand(new WhitelistCidrForVpcAccessCommand()),
 
             // Step 4 Create the RDS Database Cloud Formation Stack
             new ChainableCommand(new CreateDatabaseCommand())

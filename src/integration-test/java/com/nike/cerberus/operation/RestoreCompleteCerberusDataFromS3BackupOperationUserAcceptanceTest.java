@@ -17,7 +17,7 @@
 package com.nike.cerberus.operation;
 
 import com.nike.cerberus.client.CerberusAdminClient;
-import com.nike.cerberus.client.CerberusAdminClientFactory;
+import com.nike.cerberus.client.HttpClientFactory;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
@@ -33,8 +33,8 @@ import org.mockito.Spy;
 
 import java.io.IOException;
 
-import static com.nike.cerberus.client.CerberusAdminClientFactory.DEFAULT_TIMEOUT;
-import static com.nike.cerberus.client.CerberusAdminClientFactory.DEFAULT_TIMEOUT_UNIT;
+import static com.nike.cerberus.client.HttpClientFactory.DEFAULT_TIMEOUT;
+import static com.nike.cerberus.client.HttpClientFactory.DEFAULT_TIMEOUT_UNIT;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -45,7 +45,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest {
 
     @Spy
-    private CerberusAdminClientFactory vaultAdminClientFactory;
+    private HttpClientFactory vaultAdminClientFactory;
 
     @Mock
     private ConsoleService consoleService;

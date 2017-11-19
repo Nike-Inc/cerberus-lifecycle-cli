@@ -29,7 +29,7 @@ import java.util.List;
 public class PrintAllStackInformationOperation extends CompositeOperation<PrintAllStackInformationCommand> {
 
     @Override
-    protected List<ChainableCommand> getCompositeCommandChain() {
+    protected List<ChainableCommand> getCompositeCommandChain(PrintAllStackInformationCommand compositeCommand) {
         List<ChainableCommand> commandList = new LinkedList<>();
 
         for (Stack stack : Stack.ALL_STACKS) {

@@ -16,33 +16,24 @@
 
 package com.nike.cerberus.command.core;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.RollingRebootWithHealthCheckOperation;
+import com.nike.cerberus.operation.core.RebootCmsOperation;
 
-import static com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.RebootCmsCommand.COMMAND_NAME;
 
 /**
  * Command to reboot the CMS cluster.
  */
 @Parameters(
         commandNames = COMMAND_NAME,
-        commandDescription = "Performs a safe rolling reboot on instances in the given cluster, checking that " +
+        commandDescription = "Performs a safe rolling reboot on instances in the cms ASG, checking that " +
                 "the previous instance is healthy before rebooting the next one."
 )
-public class RollingRebootWithHealthCheckCommand implements Command {
+public class RebootCmsCommand implements Command {
 
-    public static final String COMMAND_NAME = "rolling-reboot";
-
-    @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to reboot.")
-    private Stack stack = Stack.CMS;
-
-    public Stack getStack() {
-        return stack;
-    }
+    public static final String COMMAND_NAME = "reboot-cms";
 
     @Override
     public String getCommandName() {
@@ -51,6 +42,6 @@ public class RollingRebootWithHealthCheckCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return RollingRebootWithHealthCheckOperation.class;
+        return RebootCmsOperation.class;
     }
 }

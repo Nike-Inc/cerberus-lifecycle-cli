@@ -23,18 +23,13 @@ import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
+import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Map;
-
-import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_COMPLETE;
-import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_COMPLETE_CLEANUP_IN_PROGRESS;
-import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_ROLLBACK_COMPLETE;
-import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS;
-import static com.amazonaws.services.cloudformation.model.StackStatus.UPDATE_ROLLBACK_FAILED;
 
 /**
  * Operation for updating stacks.
@@ -47,16 +42,20 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     private final CloudFormationService cloudFormationService;
     private final Ec2UserDataService ec2UserDataService;
     private final EnvironmentMetadata environmentMetadata;
+    private final ConfigStore configStore;
 
     @Inject
     public UpdateStackOperation(final CloudFormationService cloudFormationService,
                                 final Ec2UserDataService ec2UserDataService,
-                                final EnvironmentMetadata environmentMetadata) {
+                                final EnvironmentMetadata environmentMetadata,
+                                ConfigStore configStore) {
+
         this.cloudFormationService = cloudFormationService;
         this.ec2UserDataService = ec2UserDataService;
         this.environmentMetadata = environmentMetadata;
 
 
+        this.configStore = configStore;
     }
 
     @Override
@@ -75,6 +74,9 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         } else if (Stack.DATABASE.equals(command.getStack())) {
             // TODO: implement storing password if it was changed
             //configStore.storeCmsDatabasePassword(databasePassword);
+        } else if (Stack.LOAD_BALANCER.equals(command.getStack())) {
+            parameters.put("sslCertificateArn", configStore.getCertificationInformationList()
+                    .getLast().getIdentityManagementCertificateArn());
         }
         parameters.putAll(command.getDynamicParameters());
 
@@ -102,6 +104,11 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         String fullName = command.getStack().getFullName(environmentMetadata.getName());
         if (!cloudFormationService.isStackPresent(fullName)) {
             logger.error("CloudFormation doesn't have the specified stack: {}", fullName);
+            isRunnable = false;
+        }
+
+        if (command.getStack().equals(Stack.LOAD_BALANCER) && configStore.getCertificationInformationList().isEmpty()) {
+            logger.error("Updating the load balancer requires that a cert has been uploaded by the upload-certificate-files command");
             isRunnable = false;
         }
 

@@ -24,7 +24,7 @@ import java.util.List;
 
 public class CertificateInformation {
 
-    private String identityManagementCertificateName;
+    private String certificateName;
     private String identityManagementCertificateArn;
     private DateTime notBefore;
     private DateTime notAfter;
@@ -32,12 +32,12 @@ public class CertificateInformation {
     private String commonName;
     private List<String> subjectAlternateNames;
 
-    public String getIdentityManagementCertificateName() {
-        return identityManagementCertificateName;
+    public String getCertificateName() {
+        return certificateName;
     }
 
-    public void setIdentityManagementCertificateName(String identityManagementCertificateName) {
-        this.identityManagementCertificateName = identityManagementCertificateName;
+    public void setCertificateName(String certificateName) {
+        this.certificateName = certificateName;
     }
 
     public DateTime getNotBefore() {
@@ -92,7 +92,7 @@ public class CertificateInformation {
     public String toString() {
         DateTimeFormatter fmt = DateTimeFormat.fullDateTime();
         return "CertificateInformation{" +
-                "identityManagementCertificateName='" + identityManagementCertificateName + '\'' +
+                "certificateName='" + certificateName + '\'' +
                 ", identityManagementCertificateArn='" + identityManagementCertificateArn + '\'' +
                 ", notBefore=" + fmt.print(notBefore) +
                 ", notAfter=" + fmt.print(notAfter) +
@@ -103,7 +103,7 @@ public class CertificateInformation {
     }
 
     public static final class Builder {
-        private String identityManagementCertificateName;
+        private String certificateName;
         private String identityManagementCertificateArn;
         private DateTime notBefore;
         private DateTime notAfter;
@@ -118,8 +118,8 @@ public class CertificateInformation {
             return new Builder();
         }
 
-        public Builder withIdentityManagementCertificateName(String identityManagementCertificateName) {
-            this.identityManagementCertificateName = identityManagementCertificateName;
+        public Builder certificateName(String certificateName) {
+            this.certificateName = certificateName;
             return this;
         }
 
@@ -155,7 +155,7 @@ public class CertificateInformation {
 
         public CertificateInformation build() {
             CertificateInformation certificateInformation = new CertificateInformation();
-            certificateInformation.setIdentityManagementCertificateName(identityManagementCertificateName);
+            certificateInformation.setCertificateName(certificateName);
             certificateInformation.setIdentityManagementCertificateArn(identityManagementCertificateArn);
             certificateInformation.setNotBefore(notBefore);
             certificateInformation.setNotAfter(notAfter);

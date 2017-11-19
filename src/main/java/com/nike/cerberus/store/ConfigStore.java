@@ -167,7 +167,7 @@ public class ConfigStore {
                           String pkcs8KeyContents,
                           String pubKeyContents) {
 
-        String name = certificateInformation.getIdentityManagementCertificateName();
+        String name = certificateInformation.getCertificateName();
         saveEncryptedObject(buildCertFilePath(name, CERT_PART_CA), caContents);
         saveEncryptedObject(buildCertFilePath(name, CERT_PART_CERT), certContents);
         saveEncryptedObject(buildCertFilePath(name, CERT_PART_KEY), keyContents);
@@ -184,6 +184,32 @@ public class ConfigStore {
 
     public LinkedList<CertificateInformation> getCertificationInformationList() {
         return getDecryptedEnvironmentData().getCertificateData();
+    }
+
+    /**
+     * Deletes a set of cert and key files by certificate name
+     * @param certificateName the name of the cert file bundle to delete
+     */
+    public void deleteCertificate(String certificateName) {
+        initEncryptedConfigStoreService();
+
+        encryptedConfigStoreService.deleteAllKeysOnPartialPath("certificates/" + certificateName);
+        synchronized (cerberusEnvironmentDataLock) {
+            final CerberusEnvironmentData environment = getDecryptedEnvironmentData();
+            environment.removeCertificateInformationByName(certificateName);
+
+            saveEnvironmentData(environment);
+        }
+    }
+
+    /**
+     * Returns the contents of a specific certificate part that's been uploaded for a stack.
+     *
+     * @param part
+     * @return
+     */
+    public Optional<String> getCertPart(String certName, String part) {
+        return getEncryptedObject(buildCertFilePath(certName, part));
     }
 
     public void storeCmsEnvConfig(final Properties cmsConfigMap) {
@@ -246,7 +272,7 @@ public class ConfigStore {
         properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword);
         properties.put(CMS_ENV_NAME, environmentMetadata.getName());
         // Ust the latest uploaded certificate
-        properties.put(CMS_CERTIFICATE_TO_USE, getCertificationInformationList().getLast());
+        properties.put(CMS_CERTIFICATE_TO_USE, getCertificationInformationList().getLast().getCertificateName());
 
         return properties;
     }
