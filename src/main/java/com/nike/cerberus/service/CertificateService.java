@@ -518,7 +518,7 @@ public class CertificateService {
         try {
             Thread.sleep(TimeUnit.MINUTES.toMillis(1));
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to wait for iam cert to  become eventually consistent");
         }
 
         log.info("Uploading certificate parts to the configuration bucket.");
