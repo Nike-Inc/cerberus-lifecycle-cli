@@ -48,7 +48,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     public UpdateStackOperation(final CloudFormationService cloudFormationService,
                                 final Ec2UserDataService ec2UserDataService,
                                 final EnvironmentMetadata environmentMetadata,
-                                ConfigStore configStore) {
+                                final ConfigStore configStore) {
 
         this.cloudFormationService = cloudFormationService;
         this.ec2UserDataService = ec2UserDataService;

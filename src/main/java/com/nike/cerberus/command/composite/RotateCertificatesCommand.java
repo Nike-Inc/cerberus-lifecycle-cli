@@ -16,14 +16,10 @@
 
 package com.nike.cerberus.command.composite;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.command.validator.UploadCertFilesPathValidator;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.composite.RotateCertificatesOperation;
-
-import java.nio.file.Path;
 
 import static com.nike.cerberus.command.composite.RotateCertificatesCommand.COMMAND_DESCRIPTION;
 import static com.nike.cerberus.command.composite.RotateCertificatesCommand.COMMAND_NAME;

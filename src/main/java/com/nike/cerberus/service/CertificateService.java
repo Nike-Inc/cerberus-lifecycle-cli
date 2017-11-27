@@ -602,8 +602,8 @@ public class CertificateService {
         try {
             identityManagementService.deleteServerCertificate(certificateName);
         } catch (AmazonServiceException e) {
-            log.error("Failed to delete the certificate from the identity management service," +
-                    " you may need to manually delete. MSG: {}", e.getMessage());
+            log.error("Failed to delete the certificate: {} from the identity management service," +
+                    " you may need to manually delete. MSG: {}", certificateName, e.getMessage());
         }
 
         configStore.deleteCertificate(certificateName);

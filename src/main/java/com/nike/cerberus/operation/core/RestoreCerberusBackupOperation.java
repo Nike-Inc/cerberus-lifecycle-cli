@@ -72,17 +72,17 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
     private final ObjectMapper objectMapper;
     private final ConsoleService console;
-    private final HttpClientFactory cerberusAdminClientFactory;
+    private final HttpClientFactory clientFactory;
 
     @Inject
     public RestoreCerberusBackupOperation(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
                                                   ObjectMapper objectMapper,
                                           ConsoleService console,
-                                          HttpClientFactory cerberusAdminClientFactory) {
+                                          HttpClientFactory clientFactory) {
 
         this.objectMapper = objectMapper;
         this.console = console;
-        this.cerberusAdminClientFactory = cerberusAdminClientFactory;
+        this.clientFactory = clientFactory;
     }
 
     @Override
@@ -112,7 +112,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
         String kmsCustomerMasterKeyId = getKmsCmkId(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         S3StoreService s3EncryptionStoreService = getS3EncryptionStoreService(kmsCustomerMasterKeyId, command);
-        CerberusAdminClient cerberusAdminClient = cerberusAdminClientFactory.createCerberusAdminClient(command.getCerberusUrl());
+        CerberusAdminClient cerberusAdminClient = clientFactory.createCerberusAdminClient(command.getCerberusUrl());
 
         validateRestore(s3EncryptionStoreService, command);
 
