@@ -18,19 +18,16 @@ package com.nike.cerberus.operation.composite;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.RotateCertificatesCommand;
+import com.nike.cerberus.command.core.DeleteOldestCertificatesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.RebootCmsCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
 import com.nike.cerberus.domain.EnvironmentMetadata;
-import com.nike.cerberus.domain.environment.CertificateInformation;
 import com.nike.cerberus.domain.environment.Stack;
-import com.nike.cerberus.service.CertificateService;
 import com.nike.cerberus.service.CloudFormationService;
-import com.nike.cerberus.store.ConfigStore;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -38,19 +35,13 @@ import java.util.List;
 public class RotateCertificatesOperation extends CompositeOperation<RotateCertificatesCommand> {
 
     private final CloudFormationService cloudFormationService;
-    private final ConfigStore configStore;
-    private final CertificateService certificateService;
     private final EnvironmentMetadata environmentMetadata;
 
     @Inject
     public RotateCertificatesOperation(CloudFormationService cloudFormationService,
-                                       ConfigStore configStore,
-                                       CertificateService certificateService,
                                        EnvironmentMetadata environmentMetadata) {
 
         this.cloudFormationService = cloudFormationService;
-        this.configStore = configStore;
-        this.certificateService = certificateService;
         this.environmentMetadata = environmentMetadata;
     }
 
@@ -73,31 +64,11 @@ public class RotateCertificatesOperation extends CompositeOperation<RotateCertif
                 // Generate new CMS config that points to the new cert
                 ChainableCommand.Builder.create().withCommand(new UpdateCmsConfigCommand()).build(),
                 // Do a rolling reboot of the management service
-                ChainableCommand.Builder.create().withCommand(new RebootCmsCommand()).build()
+                ChainableCommand.Builder.create().withCommand(new RebootCmsCommand()).build(),
+                // Delete all certs except the latest (there should just be the one)
+                ChainableCommand.Builder.create().withCommand(new DeleteOldestCertificatesCommand()).build()
         ));
         return commandList;
-    }
-
-    @Override
-    protected void beforeChain() {
-        log.info("Preparing to rotate certificates");
-    }
-
-    @Override
-    protected void afterChain() {
-        // Delete all certs except the latest (there should just be the one)
-        List<CertificateInformation> certificateInformationList = configStore.getCertificationInformationList();
-
-        if (certificateInformationList.size() < 2) {
-            throw new RuntimeException("The cert list did not have at least 2 certs, " +
-                    "cannot delete oldest certs, aborting...");
-        }
-        int indexBeforeLast = certificateInformationList.size() - 1;
-        certificateInformationList.subList(0, indexBeforeLast).forEach(certificateInformation -> {
-            certificateService.deleteCertificate(certificateInformation.getCertificateName());
-        });
-
-        log.info("Certificate rotation complete");
     }
 
     @Override

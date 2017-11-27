@@ -65,8 +65,6 @@ public abstract class CompositeOperation<T extends Command> implements Operation
      */
     @SuppressWarnings("unchecked")
     public void run(T compositeCommand) {
-        beforeChain();
-
         if (isEnvironmentConfigRequired() && environmentConfig == null) {
             throw new RuntimeException(String.format("The %s command requires that -f or --file must be supplied as a global option with " +
                     "a path to a valid environment yaml", compositeCommand.getCommandName()));
@@ -115,20 +113,6 @@ public abstract class CompositeOperation<T extends Command> implements Operation
             }
             log.info("Finished command: {}\n", chainedCommand.getCommandName());
         }
-
-        afterChain();
-    }
-
-    /**
-     * A method that can be overridden that is run before the chain of commands
-     */
-    protected void beforeChain() {
-    }
-
-    /**
-     * A method that can be overridden that is run after the chain of commands
-     */
-    protected void afterChain() {
     }
 
     /**

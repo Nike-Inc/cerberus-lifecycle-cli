@@ -43,6 +43,7 @@ import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
+import com.nike.cerberus.command.core.DeleteOldestCertificatesCommand;
 import com.nike.cerberus.command.core.DeleteStackCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
@@ -193,6 +194,7 @@ public class CerberusRunner {
         registerCommand(new DeleteStackCommand());
         registerCommand(new DeleteEnvironmentCommand());
         registerCommand(new RotateCertificatesCommand());
+        registerCommand(new DeleteOldestCertificatesCommand());
     }
 
     /**
