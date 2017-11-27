@@ -27,6 +27,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+/**
+ * Operation for the Delete Oldest Certificates Command
+ *
+ * Deletes the oldest certificates from S3 and the identity management service.
+ */
 public class DeleteOldestCertificatesOperation implements Operation<DeleteOldestCertificatesCommand> {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());

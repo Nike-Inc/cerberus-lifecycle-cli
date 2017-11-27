@@ -32,6 +32,9 @@ import com.nike.cerberus.service.CloudFormationService;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Operation for the certificate rotation command
+ */
 public class RotateCertificatesOperation extends CompositeOperation<RotateCertificatesCommand> {
 
     private final CloudFormationService cloudFormationService;
