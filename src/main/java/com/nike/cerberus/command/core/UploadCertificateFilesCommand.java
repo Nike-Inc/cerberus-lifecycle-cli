@@ -16,14 +16,11 @@
 
 package com.nike.cerberus.command.core;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.command.validator.UploadCertFilesPathValidator;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UploadCertificatesFilesOperation;
-
-import java.nio.file.Path;
 
 import static com.nike.cerberus.command.core.UploadCertificateFilesCommand.COMMAND_NAME;
 
@@ -34,17 +31,13 @@ import static com.nike.cerberus.command.core.UploadCertificateFilesCommand.COMMA
 public class UploadCertificateFilesCommand implements Command {
 
     public static final String COMMAND_NAME = "upload-certificate-files";
-    public static final String CERT_PATH_LONG_ARG = "--cert-dir-path";
 
-    @Parameter(
-            names = {CERT_PATH_LONG_ARG},
-            required = true,
-            description = "Path to the directory that contains the certificate files.",
-            validateValueWith = UploadCertFilesPathValidator.class)
-    private Path certPath;
+    @ParametersDelegate
+    private final UploadCertificateFilesCommandParametersDelegate uploadCertificatesPathParametersDelegate =
+            new UploadCertificateFilesCommandParametersDelegate();
 
-    public Path getCertPath() {
-        return certPath;
+    public UploadCertificateFilesCommandParametersDelegate getUploadCertificatesPathParametersDelegate() {
+        return uploadCertificatesPathParametersDelegate;
     }
 
     @Override

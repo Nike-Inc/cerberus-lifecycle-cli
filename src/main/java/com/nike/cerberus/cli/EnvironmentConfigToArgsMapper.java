@@ -21,6 +21,8 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
+import com.nike.cerberus.command.composite.GenerateAndRotateCertificatesCommand;
+import com.nike.cerberus.command.composite.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
@@ -30,7 +32,9 @@ import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
@@ -84,7 +88,7 @@ public class EnvironmentConfigToArgsMapper {
             case CreateBaseCommand.COMMAND_NAME:
                 return getCreateBaseCommandArgs(environmentConfig);
             case UploadCertificateFilesCommand.COMMAND_NAME:
-                return getUploadCertFilesCommandArgs(environmentConfig);
+                return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
             case CreateCmsClusterCommand.COMMAND_NAME:
                 return getCreateCmsClusterCommandArgs(environmentConfig);
             case WhitelistCidrForVpcAccessCommand.COMMAND_NAME:
@@ -111,6 +115,10 @@ public class EnvironmentConfigToArgsMapper {
                 return getCreateCmsCmkCommandArgs(environmentConfig);
             case CreateEdgeDomainRecordCommand.COMMAND_NAME:
                 return getCreateEdgeDomainRecordCommandArgs(environmentConfig);
+            case GenerateAndRotateCertificatesCommand.COMMAND_NAME:
+                return getGenerateCertificatesCommandArgs(environmentConfig);
+            case RotateCertificatesCommand.COMMAND_NAME:
+                return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
             default:
                 return new LinkedList<>();
         }
@@ -183,10 +191,13 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getUploadCertFilesCommandArgs(EnvironmentConfig environmentConfig) {
+    private static List<String> getUploadCertFilesCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
         return ArgsBuilder.create()
-                .addOption(UploadCertificateFilesCommand.CERT_PATH_LONG_ARG,
-                        environmentConfig.getManagementService().getCertPath())
+                .addOptionUsingPassedArgIfPresent(
+                        UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG,
+                        environmentConfig.getManagementService().getCertPath(),
+                        passedArgs
+                )
                 .build();
     }
 
@@ -237,22 +248,22 @@ public class EnvironmentConfigToArgsMapper {
 
     private static List<String> getGenerateCertificatesCommandArgs(EnvironmentConfig config) {
         ArgsBuilder argsBuilder = ArgsBuilder.create()
-                .addOption(GenerateCertificateFilesCommand.BASE_DOMAIN_LONG_ARG, config.getBaseDomainName())
-                .addOption(GenerateCertificateFilesCommand.EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getEdgeDomainNameOverride())
-                .addOption(GenerateCertificateFilesCommand.ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getOriginDomainNameOverride())
-                .addOption(GenerateCertificateFilesCommand.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getLoadBalancerDomainNameOverride())
-                .addOption(GenerateCertificateFilesCommand.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId())
-                .addOption(GenerateCertificateFilesCommand.ACME_API_LONG_ARG, config.getAcmeApiUrl())
-                .addOption(GenerateCertificateFilesCommand.CONTACT_EMAIL_LONG_ARG, config.getAcmeContactEmail())
-                .addOption(GenerateCertificateFilesCommand.CERT_FOLDER_LONG_ARG, config.getLocalFolderToStoreCerts());
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.BASE_DOMAIN_LONG_ARG, config.getBaseDomainName())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getEdgeDomainNameOverride())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getOriginDomainNameOverride())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getLoadBalancerDomainNameOverride())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.ACME_API_LONG_ARG, config.getAcmeApiUrl())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.CONTACT_EMAIL_LONG_ARG, config.getAcmeContactEmail())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.CERT_FOLDER_LONG_ARG, config.getLocalFolderToStoreCerts());
 
         if (config.isEnableLeCertFix()) {
-            argsBuilder.addFlag(GenerateCertificateFilesCommand.ENABLE_LE_CERTFIX_LONG_ARG);
+            argsBuilder.addFlag(GenerateCertificateFilesCommandParametersDelegate.ENABLE_LE_CERTFIX_LONG_ARG);
         }
 
         if (config.getAdditionalSubjectNames() != null) {
             config.getAdditionalSubjectNames().forEach(sn -> {
-                argsBuilder.addOption(GenerateCertificateFilesCommand.SUBJECT_ALT_NAME_LONG_ARG, sn);
+                argsBuilder.addOption(GenerateCertificateFilesCommandParametersDelegate.SUBJECT_ALT_NAME_LONG_ARG, sn);
             });
         }
 

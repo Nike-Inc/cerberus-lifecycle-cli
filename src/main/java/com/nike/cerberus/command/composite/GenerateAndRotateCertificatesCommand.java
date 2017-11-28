@@ -14,26 +14,27 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.core;
+package com.nike.cerberus.command.composite;
 
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.GenerateCertificateFilesOperation;
+import com.nike.cerberus.operation.composite.GenerateAndRotateCertificatesOperation;
 
-import static com.nike.cerberus.command.core.GenerateCertificateFilesCommand.COMMAND_DESCRIPTION;
-import static com.nike.cerberus.command.core.GenerateCertificateFilesCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.composite.GenerateAndRotateCertificatesCommand.COMMAND_NAME;
 
 @Parameters(
-        commandNames = COMMAND_NAME,
-        commandDescription = COMMAND_DESCRIPTION
+        commandNames = {
+                COMMAND_NAME
+        },
+        commandDescription = "Generates certificates with an ACME certificate provider and performs the necessary " +
+                "steps to rotate the certificates used by the ALB and CMS"
 )
-public class GenerateCertificateFilesCommand implements Command {
+public class GenerateAndRotateCertificatesCommand implements Command {
 
-    public static final String COMMAND_NAME = "generate-certificate-files";
-    public static final String COMMAND_DESCRIPTION = "Generates the TLS certificates needed to enable https " +
-            "through out the system, using an ACME provider such as LetsEncrypt";
+    public static final String COMMAND_NAME = "generate-and-rotate-certificates";
 
     @ParametersDelegate
     private GenerateCertificateFilesCommandParametersDelegate generateCertificateFilesCommandParametersDelegate =
@@ -50,6 +51,6 @@ public class GenerateCertificateFilesCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return GenerateCertificateFilesOperation.class;
+        return GenerateAndRotateCertificatesOperation.class;
     }
 }

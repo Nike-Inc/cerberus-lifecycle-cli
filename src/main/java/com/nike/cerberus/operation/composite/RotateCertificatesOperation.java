@@ -21,15 +21,14 @@ import com.google.inject.Inject;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.DeleteOldestCertificatesCommand;
-import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.RebootCmsCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.service.CloudFormationService;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -50,42 +49,49 @@ public class RotateCertificatesOperation extends CompositeOperation<RotateCertif
 
     @Override
     protected List<ChainableCommand> getCompositeCommandChain(RotateCertificatesCommand compositeCommand) {
-        List<ChainableCommand> commandList = new LinkedList<>();
-
-        if (environmentConfig.isGenerateKeysAndCerts()) {
-            commandList.add(ChainableCommand.Builder.create().withCommand(new GenerateCertificateFilesCommand()).build());
-        }
-
-        commandList.addAll(Lists.newArrayList(
+        return Lists.newArrayList(
                 // Add the cert and key files to S3
-                ChainableCommand.Builder.create().withCommand(new UploadCertificateFilesCommand()).build(),
+                ChainableCommand.Builder.create().withCommand(new UploadCertificateFilesCommand())
+                        .withAdditionalArg(UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG)
+                        .withAdditionalArg(compositeCommand.getUploadCertificateFilesCommandParametersDelegate()
+                                .getCertPath().toString())
+                        .build(),
+
                 // Update the Load Balancer stack to use the new cert
                 ChainableCommand.Builder.create().withCommand(new UpdateStackCommand())
                         .withAdditionalArg(UpdateStackCommand.STACK_NAME_LONG_ARG)
                         .withAdditionalArg(Stack.LOAD_BALANCER.getName())
                         .build(),
+
                 // Generate new CMS config that points to the new cert
                 ChainableCommand.Builder.create().withCommand(new UpdateCmsConfigCommand()).build(),
+
                 // Do a rolling reboot of the management service
                 ChainableCommand.Builder.create().withCommand(new RebootCmsCommand()).build(),
+
                 // Delete all certs except the latest (there should just be the one)
                 ChainableCommand.Builder.create().withCommand(new DeleteOldestCertificatesCommand()).build()
-        ));
-        return commandList;
+        );
     }
 
     @Override
     public boolean isRunnable(RotateCertificatesCommand command) {
+        return areRequiredStacksPresentToRotateCertificates(cloudFormationService, environmentMetadata);
+    }
+
+    public static boolean areRequiredStacksPresentToRotateCertificates(CloudFormationService cloudFormationService,
+                                                                       EnvironmentMetadata environmentMetadata) {
+
         boolean isRunnable = true;
         String environmentName = environmentMetadata.getName();
 
         if (! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
-            log.error("The load-balancer stack must be present in order to rotate certificates");
+            System.err.println("The load-balancer stack must be present in order to rotate certificates");
             isRunnable = false;
         }
 
         if (! cloudFormationService.isStackPresent(Stack.CMS.getFullName(environmentName))) {
-            log.error("The cms stack must be present to rotate certificates");
+            System.err.println("The cms stack must be present to rotate certificates");
             isRunnable = false;
         }
 
