@@ -97,6 +97,7 @@ Resources:
               - kms:ListKeyPolicies
               - kms:ListKeys
               - kms:PutKeyPolicy
+              - kms:TagResource
               - kms:UpdateAlias
               - kms:UpdateKeyDescription
             Effect: Allow
