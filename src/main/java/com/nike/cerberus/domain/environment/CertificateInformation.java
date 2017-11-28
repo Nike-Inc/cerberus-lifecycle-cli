@@ -118,7 +118,7 @@ public class CertificateInformation {
             return new Builder();
         }
 
-        public Builder certificateName(String certificateName) {
+        public Builder withCertificateName(String certificateName) {
             this.certificateName = certificateName;
             return this;
         }

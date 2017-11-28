@@ -537,7 +537,7 @@ public class CertificateService {
         }
 
         CertificateInformation certificateInformation = CertificateInformation.Builder.create()
-                .certificateName(identityManagementCertificateName)
+                .withCertificateName(identityManagementCertificateName)
                 .withIdentityManagementCertificateArn(identityManagementService.getServerCertificateArn(certificateName).get())
                 .withCommonName(StringUtils.removeStart(certificate.getSubjectX500Principal().getName(), "CN="))
                 .withSubjectAlternateNames(sans)
