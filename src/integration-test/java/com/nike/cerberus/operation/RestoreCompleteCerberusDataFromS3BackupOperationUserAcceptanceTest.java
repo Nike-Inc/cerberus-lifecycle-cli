@@ -17,7 +17,7 @@
 package com.nike.cerberus.operation;
 
 import com.nike.cerberus.client.CerberusAdminClient;
-import com.nike.cerberus.client.HttpClientFactory;
+import com.nike.cerberus.client.CerberusAdminClientFactory;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
@@ -45,7 +45,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest {
 
     @Spy
-    private HttpClientFactory vaultAdminClientFactory;
+    private CerberusAdminClientFactory cerberusAdminClientFactory;
 
     @Mock
     private ConsoleService consoleService;
@@ -64,7 +64,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
         operation = new RestoreCerberusBackupOperation(
                 CerberusModule.configObjectMapper(),
                 consoleService,
-                vaultAdminClientFactory);
+                cerberusAdminClientFactory);
 
         when(command.getCerberusUrl()).thenReturn(TestUtils.getRequiredEnvVar("CERBERUS_URL",
                 "The Cerberus API to restore against"));
@@ -94,7 +94,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
                 CerberusModule.configObjectMapper()
         );
 
-        when(vaultAdminClientFactory.createCerberusAdminClient(anyString())).thenReturn(adminClient);
+        when(cerberusAdminClientFactory.createCerberusAdminClient(anyString())).thenReturn(adminClient);
 
         operation.run(command);
     }

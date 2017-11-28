@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.inject.Inject;
 import com.nike.cerberus.client.CerberusAdminClient;
-import com.nike.cerberus.client.HttpClientFactory;
+import com.nike.cerberus.client.CerberusAdminClientFactory;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.Operation;
@@ -72,17 +72,17 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
     private final ObjectMapper objectMapper;
     private final ConsoleService console;
-    private final HttpClientFactory clientFactory;
+    private final CerberusAdminClientFactory cerberusAdminClientFactory;
 
     @Inject
     public RestoreCerberusBackupOperation(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
                                                   ObjectMapper objectMapper,
                                           ConsoleService console,
-                                          HttpClientFactory clientFactory) {
+                                          CerberusAdminClientFactory cerberusAdminClientFactory) {
 
         this.objectMapper = objectMapper;
         this.console = console;
-        this.clientFactory = clientFactory;
+        this.cerberusAdminClientFactory = cerberusAdminClientFactory;
     }
 
     @Override
@@ -112,7 +112,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
         String kmsCustomerMasterKeyId = getKmsCmkId(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         S3StoreService s3EncryptionStoreService = getS3EncryptionStoreService(kmsCustomerMasterKeyId, command);
-        CerberusAdminClient cerberusAdminClient = clientFactory.createCerberusAdminClient(command.getCerberusUrl());
+        CerberusAdminClient cerberusAdminClient = cerberusAdminClientFactory.createCerberusAdminClient(command.getCerberusUrl());
 
         validateRestore(s3EncryptionStoreService, command);
 

@@ -16,21 +16,16 @@
 
 package com.nike.cerberus.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.environment.CertificateInformation;
-import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.store.ConfigStore;
-import com.nike.vault.client.StaticVaultUrlResolver;
-import com.nike.vault.client.auth.DefaultVaultCredentialsProviderChain;
 import okhttp3.OkHttpClient;
 import okio.Buffer;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Named;
 import javax.net.ssl.*;
 import java.io.InputStream;
 import java.net.Proxy;
@@ -51,38 +46,17 @@ public class HttpClientFactory {
     public static final int DEFAULT_TIMEOUT = 15;
     public static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
-    private final ObjectMapper objectMapper;
     private final ConfigStore configStore;
     private final Proxy proxy;
 
     @Inject
-    public HttpClientFactory(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
-                                         ObjectMapper objectMapper,
-                             ConfigStore configStore,
+    public HttpClientFactory(ConfigStore configStore,
                              Proxy proxy) {
 
-        this.objectMapper = objectMapper;
         this.configStore = configStore;
         this.proxy = proxy;
     }
 
-    /**
-     * Admin client for doing admin cms tasks
-     */
-    public CerberusAdminClient createCerberusAdminClient(String url) {
-        return new CerberusAdminClient(
-                new StaticVaultUrlResolver(url),
-                new DefaultVaultCredentialsProviderChain(),
-                new OkHttpClient.Builder()
-                        .hostnameVerifier(new NoopHostnameVerifier())
-                        .proxy(proxy)
-                        .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .readTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .build(),
-                objectMapper
-        );
-    }
 
     /**
      * @return Generic default client with timeouts for making manual http calls

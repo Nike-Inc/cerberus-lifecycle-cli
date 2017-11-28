@@ -17,6 +17,7 @@
 package com.nike.cerberus.operation.core;
 
 import com.nike.cerberus.client.CerberusAdminClient;
+import com.nike.cerberus.client.CerberusAdminClientFactory;
 import com.nike.cerberus.client.HttpClientFactory;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.service.ConsoleService;
@@ -40,7 +41,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationTest {
     private RestoreCerberusBackupOperation operation;
 
     @Mock
-    private HttpClientFactory adminClientFactory;
+    private CerberusAdminClientFactory adminClientFactory;
 
     @Mock
     private ConsoleService consoleService;
