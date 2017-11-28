@@ -18,40 +18,31 @@ package com.nike.cerberus.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.nike.cerberus.module.CerberusModule;
 import com.nike.vault.client.StaticVaultUrlResolver;
-import okhttp3.OkHttpClient;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Named;
-import java.util.concurrent.TimeUnit;
+import com.nike.vault.client.auth.DefaultVaultCredentialsProviderChain;
 
 public class CerberusAdminClientFactory {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    public static final int DEFAULT_TIMEOUT = 60;
-    public static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
-
     private final ObjectMapper objectMapper;
+    private final HttpClientFactory httpClientFactory;
 
     @Inject
-    public CerberusAdminClientFactory(@Named(CerberusModule.CONFIG_OBJECT_MAPPER) ObjectMapper objectMapper) {
+    public CerberusAdminClientFactory(ObjectMapper objectMapper,
+                                      HttpClientFactory httpClientFactory) {
+
         this.objectMapper = objectMapper;
+        this.httpClientFactory = httpClientFactory;
     }
 
+
+    /**
+     * Admin client for doing admin cms tasks
+     */
     public CerberusAdminClient createCerberusAdminClient(String url) {
         return new CerberusAdminClient(
                 new StaticVaultUrlResolver(url),
-                null,
-                new OkHttpClient.Builder()
-                        .hostnameVerifier(new NoopHostnameVerifier())
-                        .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .readTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .build(),
+                new DefaultVaultCredentialsProviderChain(),
+                httpClientFactory.getGenericClient(),
                 objectMapper
         );
     }

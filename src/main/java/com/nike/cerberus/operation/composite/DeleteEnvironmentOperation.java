@@ -27,7 +27,7 @@ public class DeleteEnvironmentOperation extends CompositeOperation<DeleteEnviron
     }
 
     @Override
-    protected List<ChainableCommand> getCompositeCommandChain() {
+    protected List<ChainableCommand> getCompositeCommandChain(DeleteEnvironmentCommand compositeCommand) {
         List<ChainableCommand> chainableCommandList = new LinkedList<>();
 
         ImmutableList.of(

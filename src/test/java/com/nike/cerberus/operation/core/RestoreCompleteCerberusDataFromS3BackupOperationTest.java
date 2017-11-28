@@ -18,6 +18,7 @@ package com.nike.cerberus.operation.core;
 
 import com.nike.cerberus.client.CerberusAdminClient;
 import com.nike.cerberus.client.CerberusAdminClientFactory;
+import com.nike.cerberus.client.HttpClientFactory;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.service.ConsoleService;
 import com.nike.vault.client.VaultAdminClient;

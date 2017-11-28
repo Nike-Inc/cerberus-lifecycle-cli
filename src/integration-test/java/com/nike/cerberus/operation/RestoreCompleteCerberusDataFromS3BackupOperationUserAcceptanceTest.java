@@ -33,8 +33,8 @@ import org.mockito.Spy;
 
 import java.io.IOException;
 
-import static com.nike.cerberus.client.CerberusAdminClientFactory.DEFAULT_TIMEOUT;
-import static com.nike.cerberus.client.CerberusAdminClientFactory.DEFAULT_TIMEOUT_UNIT;
+import static com.nike.cerberus.client.HttpClientFactory.DEFAULT_TIMEOUT;
+import static com.nike.cerberus.client.HttpClientFactory.DEFAULT_TIMEOUT_UNIT;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -45,7 +45,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest {
 
     @Spy
-    private CerberusAdminClientFactory vaultAdminClientFactory;
+    private CerberusAdminClientFactory cerberusAdminClientFactory;
 
     @Mock
     private ConsoleService consoleService;
@@ -64,7 +64,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
         operation = new RestoreCerberusBackupOperation(
                 CerberusModule.configObjectMapper(),
                 consoleService,
-                vaultAdminClientFactory);
+                cerberusAdminClientFactory);
 
         when(command.getCerberusUrl()).thenReturn(TestUtils.getRequiredEnvVar("CERBERUS_URL",
                 "The Cerberus API to restore against"));
@@ -94,7 +94,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
                 CerberusModule.configObjectMapper()
         );
 
-        when(vaultAdminClientFactory.createCerberusAdminClient(anyString())).thenReturn(adminClient);
+        when(cerberusAdminClientFactory.createCerberusAdminClient(anyString())).thenReturn(adminClient);
 
         operation.run(command);
     }

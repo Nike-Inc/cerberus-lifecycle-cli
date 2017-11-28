@@ -54,7 +54,7 @@ public class CerberusEnvironmentData {
         List<CertificateInformation> certificateInformationList = getCertificateData();
         List<CertificateInformation> certsInfoToBeDeleted = certificateInformationList.stream()
                 .filter(certificateInformation ->
-                        certificateInformation.getIdentityManagementCertificateName().equals(identityManagementCertificateName))
+                        certificateInformation.getCertificateName().equals(identityManagementCertificateName))
                 .collect(Collectors.toList());
 
         certificateInformationList.removeAll(certsInfoToBeDeleted);

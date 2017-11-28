@@ -19,19 +19,21 @@ package com.nike.cerberus.command.core;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.AddCertificateToAlbOperation;
+import com.nike.cerberus.operation.core.RebootCmsOperation;
 
-import static com.nike.cerberus.command.core.AddCertificateToAlbCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.RebootCmsCommand.COMMAND_NAME;
 
+/**
+ * Command to reboot the CMS cluster.
+ */
 @Parameters(
-        commandNames = {
-                COMMAND_NAME
-        },
-        commandDescription = "Adds a new cert to the alb"
+        commandNames = COMMAND_NAME,
+        commandDescription = "Performs a safe rolling reboot on instances in the cms ASG, checking that " +
+                "the previous instance is healthy before rebooting the next one."
 )
-public class AddCertificateToAlbCommand implements Command {
+public class RebootCmsCommand implements Command {
 
-    public static final String COMMAND_NAME = "add-certificate-to-alb";
+    public static final String COMMAND_NAME = "reboot-cms";
 
     @Override
     public String getCommandName() {
@@ -40,6 +42,6 @@ public class AddCertificateToAlbCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return AddCertificateToAlbOperation.class;
+        return RebootCmsOperation.class;
     }
 }

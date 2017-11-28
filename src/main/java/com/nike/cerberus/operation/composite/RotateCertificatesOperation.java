@@ -18,29 +18,38 @@ package com.nike.cerberus.operation.composite;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
-import com.nike.cerberus.command.core.AddCertificateToAlbCommand;
+import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.RotateCertificatesCommand;
+import com.nike.cerberus.command.core.DeleteOldestCertificatesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
-import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
+import com.nike.cerberus.command.core.RebootCmsCommand;
+import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
+import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.service.CloudFormationService;
 
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Operation for the certificate rotation command
+ */
 public class RotateCertificatesOperation extends CompositeOperation<RotateCertificatesCommand> {
 
     private final CloudFormationService cloudFormationService;
+    private final EnvironmentMetadata environmentMetadata;
 
     @Inject
-    public RotateCertificatesOperation(CloudFormationService cloudFormationService) {
+    public RotateCertificatesOperation(CloudFormationService cloudFormationService,
+                                       EnvironmentMetadata environmentMetadata) {
+
         this.cloudFormationService = cloudFormationService;
+        this.environmentMetadata = environmentMetadata;
     }
 
     @Override
-    protected List<ChainableCommand> getCompositeCommandChain() {
+    protected List<ChainableCommand> getCompositeCommandChain(RotateCertificatesCommand compositeCommand) {
         List<ChainableCommand> commandList = new LinkedList<>();
 
         if (environmentConfig.isGenerateKeysAndCerts()) {
@@ -50,31 +59,34 @@ public class RotateCertificatesOperation extends CompositeOperation<RotateCertif
         commandList.addAll(Lists.newArrayList(
                 // Add the cert and key files to S3
                 ChainableCommand.Builder.create().withCommand(new UploadCertificateFilesCommand()).build(),
-                // Add the new cert to the ALB
-                ChainableCommand.Builder.create().withCommand(new AddCertificateToAlbCommand()).build(),
+                // Update the Load Balancer stack to use the new cert
+                ChainableCommand.Builder.create().withCommand(new UpdateStackCommand())
+                        .withAdditionalArg(UpdateStackCommand.STACK_NAME_LONG_ARG)
+                        .withAdditionalArg(Stack.LOAD_BALANCER.getName())
+                        .build(),
                 // Generate new CMS config that points to the new cert
-                ChainableCommand.Builder.create().withCommand(new CreateCmsConfigCommand()).build(),
+                ChainableCommand.Builder.create().withCommand(new UpdateCmsConfigCommand()).build(),
                 // Do a rolling reboot of the management service
-                ChainableCommand.Builder.create().withCommand(new RollingRebootWithHealthCheckCommand()).build()
-                // Delete the old cert from the ALB and from the Identity Management service and S3
-
-                // Revoke the Cert? todo
+                ChainableCommand.Builder.create().withCommand(new RebootCmsCommand()).build(),
+                // Delete all certs except the latest (there should just be the one)
+                ChainableCommand.Builder.create().withCommand(new DeleteOldestCertificatesCommand()).build()
         ));
-
         return commandList;
     }
 
     @Override
     public boolean isRunnable(RotateCertificatesCommand command) {
         boolean isRunnable = true;
+        String environmentName = environmentMetadata.getName();
 
-        if (! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getName())) {
+        if (! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
             log.error("The load-balancer stack must be present in order to rotate certificates");
             isRunnable = false;
         }
 
-        if (! cloudFormationService.isStackPresent(Stack.CMS.getName())) {
+        if (! cloudFormationService.isStackPresent(Stack.CMS.getFullName(environmentName))) {
             log.error("The cms stack must be present to rotate certificates");
+            isRunnable = false;
         }
 
         return isRunnable;

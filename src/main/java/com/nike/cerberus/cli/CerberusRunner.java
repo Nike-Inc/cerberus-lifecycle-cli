@@ -31,10 +31,10 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.core.AddCertificateToAlbCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
 import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
+import com.nike.cerberus.command.composite.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.CreateBaseCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
@@ -43,11 +43,12 @@ import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
+import com.nike.cerberus.command.core.DeleteOldestCertificatesCommand;
 import com.nike.cerberus.command.core.DeleteStackCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
-import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
+import com.nike.cerberus.command.core.RebootCmsCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
@@ -180,7 +181,7 @@ public class CerberusRunner {
         registerCommand(new RestoreCerberusBackupCommand());
         registerCommand(new ViewConfigCommand());
         registerCommand(new UpdateCmsConfigCommand());
-        registerCommand(new RollingRebootWithHealthCheckCommand());
+        registerCommand(new RebootCmsCommand());
         registerCommand(new GenerateCertificateFilesCommand());
         registerCommand(new CreateVpcCommand());
         registerCommand(new CreateWafCommand());
@@ -192,7 +193,8 @@ public class CerberusRunner {
         registerCommand(new CreateEnvironmentCommand());
         registerCommand(new DeleteStackCommand());
         registerCommand(new DeleteEnvironmentCommand());
-        registerCommand(new AddCertificateToAlbCommand());
+        registerCommand(new RotateCertificatesCommand());
+        registerCommand(new DeleteOldestCertificatesCommand());
     }
 
     /**

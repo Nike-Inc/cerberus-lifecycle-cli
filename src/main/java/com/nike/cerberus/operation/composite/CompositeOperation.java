@@ -65,14 +65,12 @@ public abstract class CompositeOperation<T extends Command> implements Operation
      */
     @SuppressWarnings("unchecked")
     public void run(T compositeCommand) {
-        beforeChain();
-
         if (isEnvironmentConfigRequired() && environmentConfig == null) {
             throw new RuntimeException(String.format("The %s command requires that -f or --file must be supplied as a global option with " +
                     "a path to a valid environment yaml", compositeCommand.getCommandName()));
         }
 
-        for (ChainableCommand chainableCommand : getCompositeCommandChain()) {
+        for (ChainableCommand chainableCommand : getCompositeCommandChain(compositeCommand)) {
             Command chainedCommand = chainableCommand.getCommand();
             String[] additionalArgs = chainableCommand.getAdditionalArgs();
 
@@ -115,28 +113,15 @@ public abstract class CompositeOperation<T extends Command> implements Operation
             }
             log.info("Finished command: {}\n", chainedCommand.getCommandName());
         }
-
-        afterChain();
-    }
-
-    /**
-     * A method that can be overridden that is run before the chain of commands
-     */
-    private void beforeChain() {
-    }
-
-    /**
-     * A method that can be overridden that is run after the chain of commands
-     */
-    private void afterChain() {
     }
 
     /**
      * Implement this method to define the ordered list of chained commands that will get executed
      *
      * @return An ordered list of ChainableCommand's
+     * @param compositeCommand
      */
-    protected abstract List<ChainableCommand> getCompositeCommandChain();
+    protected abstract List<ChainableCommand> getCompositeCommandChain(T compositeCommand);
 
     /**
      * If you command doesn't require that the environment yaml be supplied, you can override this to false.

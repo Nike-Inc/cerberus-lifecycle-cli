@@ -16,33 +16,22 @@
 
 package com.nike.cerberus.command.core;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.RollingRebootWithHealthCheckOperation;
+import com.nike.cerberus.operation.core.DeleteOldestCertificatesOperation;
 
-import static com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.DeleteOldestCertificatesCommand.COMMAND_NAME;
 
-/**
- * Command to reboot the CMS cluster.
- */
 @Parameters(
-        commandNames = COMMAND_NAME,
-        commandDescription = "Performs a safe rolling reboot on instances in the given cluster, checking that " +
-                "the previous instance is healthy before rebooting the next one."
+        commandNames = {
+                COMMAND_NAME
+        },
+        commandDescription = "Deletes the oldest certificates from S3 and the identity management service"
 )
-public class RollingRebootWithHealthCheckCommand implements Command {
+public class DeleteOldestCertificatesCommand implements Command {
 
-    public static final String COMMAND_NAME = "rolling-reboot";
-
-    @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to reboot.")
-    private Stack stack = Stack.CMS;
-
-    public Stack getStack() {
-        return stack;
-    }
+    public static final String COMMAND_NAME = "delete-oldest-certificates";
 
     @Override
     public String getCommandName() {
@@ -51,6 +40,6 @@ public class RollingRebootWithHealthCheckCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return RollingRebootWithHealthCheckOperation.class;
+        return DeleteOldestCertificatesOperation.class;
     }
 }
