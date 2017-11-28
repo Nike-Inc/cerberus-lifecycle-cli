@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Named;
 import javax.net.ssl.*;
 import java.io.InputStream;
+import java.net.Proxy;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -52,13 +53,17 @@ public class HttpClientFactory {
 
     private final ObjectMapper objectMapper;
     private final ConfigStore configStore;
+    private final Proxy proxy;
 
     @Inject
-    public HttpClientFactory(@Named(CerberusModule.CONFIG_OBJECT_MAPPER) ObjectMapper objectMapper,
-                             ConfigStore configStore) {
+    public HttpClientFactory(@Named(CerberusModule.CONFIG_OBJECT_MAPPER)
+                                         ObjectMapper objectMapper,
+                             ConfigStore configStore,
+                             Proxy proxy) {
 
         this.objectMapper = objectMapper;
         this.configStore = configStore;
+        this.proxy = proxy;
     }
 
     /**
@@ -70,6 +75,7 @@ public class HttpClientFactory {
                 new DefaultVaultCredentialsProviderChain(),
                 new OkHttpClient.Builder()
                         .hostnameVerifier(new NoopHostnameVerifier())
+                        .proxy(proxy)
                         .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                         .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                         .readTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
@@ -84,6 +90,7 @@ public class HttpClientFactory {
     public OkHttpClient getGenericClient() {
         return new OkHttpClient.Builder()
                 .hostnameVerifier(new NoopHostnameVerifier())
+                .proxy(proxy)
                 .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                 .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                 .readTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
@@ -113,6 +120,7 @@ public class HttpClientFactory {
 
             return new OkHttpClient.Builder()
                     .hostnameVerifier(new NoopHostnameVerifier())
+                    .proxy(proxy)
                     .sslSocketFactory(sslSocketFactory, trustManager)
                     .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
                     .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
