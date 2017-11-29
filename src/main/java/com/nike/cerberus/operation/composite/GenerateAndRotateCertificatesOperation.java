@@ -22,6 +22,7 @@ import com.nike.cerberus.command.composite.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.service.CloudFormationService;
 
 import javax.inject.Inject;
@@ -107,7 +108,19 @@ public class GenerateAndRotateCertificatesOperation extends CompositeOperation<G
 
     @Override
     public boolean isRunnable(GenerateAndRotateCertificatesCommand command) {
-        return RotateCertificatesOperation
-                .areRequiredStacksPresentToRotateCertificates(cloudFormationService, environmentMetadata);
+        boolean isRunnable = true;
+        String environmentName = environmentMetadata.getName();
+
+        if (! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
+            log.error("The load-balancer stack must be present in order to rotate certificates");
+            isRunnable = false;
+        }
+
+        if (! cloudFormationService.isStackPresent(Stack.CMS.getFullName(environmentName))) {
+            log.error("The cms stack must be present to rotate certificates");
+            isRunnable = false;
+        }
+
+        return isRunnable;
     }
 }

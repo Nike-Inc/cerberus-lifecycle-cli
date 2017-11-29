@@ -76,22 +76,16 @@ public class RotateCertificatesOperation extends CompositeOperation<RotateCertif
 
     @Override
     public boolean isRunnable(RotateCertificatesCommand command) {
-        return areRequiredStacksPresentToRotateCertificates(cloudFormationService, environmentMetadata);
-    }
-
-    public static boolean areRequiredStacksPresentToRotateCertificates(CloudFormationService cloudFormationService,
-                                                                       EnvironmentMetadata environmentMetadata) {
-
         boolean isRunnable = true;
         String environmentName = environmentMetadata.getName();
 
         if (! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
-            System.err.println("The load-balancer stack must be present in order to rotate certificates");
+            log.error("The load-balancer stack must be present in order to rotate certificates");
             isRunnable = false;
         }
 
         if (! cloudFormationService.isStackPresent(Stack.CMS.getFullName(environmentName))) {
-            System.err.println("The cms stack must be present to rotate certificates");
+            log.error("The cms stack must be present to rotate certificates");
             isRunnable = false;
         }
 

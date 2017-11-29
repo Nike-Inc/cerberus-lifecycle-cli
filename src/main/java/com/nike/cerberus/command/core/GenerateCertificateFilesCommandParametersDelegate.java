@@ -63,7 +63,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
             names = {
                     ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG
             },
-            description = "origin domain name defaults to origin.{environment-name}.{base-domain}, " +
+            description = "Origin domain name defaults to origin.{environment-name}.{base-domain}, " +
                     "this command automatically creates a subject alternate name for this, override it with this option"
     )
     private String originDomainNameOverride;
@@ -72,7 +72,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
             names = {
                     LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG
             },
-            description = "the load balancer domain name defaults to {environment-name}.{primary-primaryRegion}.{base-domain}, " +
+            description = "The load balancer domain name defaults to {environment-name}.{primary-primaryRegion}.{base-domain}, " +
                     "this command automatically creates a subject alternate name for this, override it with this option"
     )
     private String loadBalancerDomainNameOverride;
@@ -99,7 +99,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
                     ENABLE_LE_CERTFIX_LONG_ARG
             },
             description = "This command uses the acme4j client to communicate with the ACME server, " +
-                    "it supports uses a hardcoded letsencrypt cert to get around ssl errors, you can use this " +
+                    "it supports uses a hardcoded Let'sEncrypt cert to get around SSL errors, you can use this " +
                     "flag if your truststore is not configured to trust LE certificates, which can be found " +
                     " here: https://letsencrypt.org/certificates/"
     )
