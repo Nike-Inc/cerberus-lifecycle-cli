@@ -17,7 +17,9 @@
 package com.nike.cerberus.command.composite;
 
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.composite.RotateCertificatesOperation;
 
@@ -31,9 +33,15 @@ import static com.nike.cerberus.command.composite.RotateCertificatesCommand.COMM
 public class RotateCertificatesCommand implements Command {
 
     public static final String COMMAND_NAME = "rotate-certificates";
-    public static final String COMMAND_DESCRIPTION = "Rotates the certificates used by the ALB and CMS. " +
-            "Generates new certs optionally, uploads the certs to IAM and S3, updating the ALB to use them, " +
-            "generates new cms config, followed by a rolling reboot of CMS finalized by the deletion the old certificates.";
+    public static final String COMMAND_DESCRIPTION = "Rotates the certificates used by the ALB and CMS.";
+
+    @ParametersDelegate
+    private UploadCertificateFilesCommandParametersDelegate uploadCertificateFilesCommandParametersDelegate
+            = new UploadCertificateFilesCommandParametersDelegate();
+
+    public UploadCertificateFilesCommandParametersDelegate getUploadCertificateFilesCommandParametersDelegate() {
+        return uploadCertificateFilesCommandParametersDelegate;
+    }
 
     @Override
     public String getCommandName() {

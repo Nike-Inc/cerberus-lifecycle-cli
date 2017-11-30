@@ -46,7 +46,7 @@ public class UploadCertificatesFilesOperation implements Operation<UploadCertifi
 
     @Override
     public void run(final UploadCertificateFilesCommand command) {
-        certificateService.uploadCertFiles(command.getCertPath().toFile());
+        certificateService.uploadCertFiles(command.getUploadCertificatesPathParametersDelegate().getCertPath().toFile());
     }
 
     @Override

@@ -52,6 +52,33 @@ public class ArgsBuilder {
         return this;
     }
 
+    /**
+     * Adds an argument option to the args list using the supplied value unless passed args contains the option and a value.
+     * @param optionKey The option to add to the args
+     * @param optionValue The option value to use if passed args doesn't already contain the option key and value
+     * @param passedArgs The passed args from the user
+     *
+     * @return The builder
+     */
+    public ArgsBuilder addOptionUsingPassedArgIfPresent(String optionKey, String optionValue, String [] passedArgs) {
+        int index = -1;
+        for (int i = 0; i < passedArgs.length; i++) {
+            if (optionKey.equals(passedArgs[i])) {
+                index = i;
+                break;
+            }
+        }
+
+        args.add(optionKey);
+        if (index > -1 && index < passedArgs.length - 2) {
+            args.add(passedArgs[index + 1]);
+        } else {
+            args.add(optionValue);
+        }
+
+        return this;
+    }
+
     public List<String> build() {
         return args;
     }

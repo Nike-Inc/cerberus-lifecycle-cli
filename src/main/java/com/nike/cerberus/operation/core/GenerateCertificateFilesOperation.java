@@ -17,6 +17,7 @@
 package com.nike.cerberus.operation.core;
 
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CertificateService;
@@ -61,54 +62,67 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
     )
     @Override
     public void run(GenerateCertificateFilesCommand command) {
+        GenerateCertificateFilesCommandParametersDelegate parameters = 
+                command.getGenerateCertificateFilesCommandParametersDelegate();
+        
         // The common name ex: demo.example.com
-        String commonName = StringUtils.isNotBlank(command.getEdgeDomainNameOverride()) ?
-                command.getEdgeDomainNameOverride() :
-                String.format("%s.%s", environmentMetadata.getName(), command.getBaseDomainName());
+        String commonName = StringUtils.isNotBlank(parameters.getEdgeDomainNameOverride()) ?
+                parameters.getEdgeDomainNameOverride() :
+                String.format("%s.%s", environmentMetadata.getName(), parameters.getBaseDomainName());
 
         // origin name san ex: origin.demo.example.com
-        String originName = StringUtils.isNotBlank(command.getOriginDomainNameOverride()) ?
-                command.getOriginDomainNameOverride() :
-                String.format("origin.%s.%s", environmentMetadata.getName(), command.getBaseDomainName());
+        String originName = StringUtils.isNotBlank(parameters.getOriginDomainNameOverride()) ?
+                parameters.getOriginDomainNameOverride() :
+                String.format("origin.%s.%s", environmentMetadata.getName(), parameters.getBaseDomainName());
 
         // The region specific subject alternate name for the load balancer. EX demo.us-west-2.example.com
-        String loadBalancerName = StringUtils.isNotBlank(command.getLoadBalancerDomainNameOverride()) ?
-                command.getLoadBalancerDomainNameOverride() :
-                String.format("%s.%s.%s", environmentMetadata.getName(), environmentMetadata.getRegionName(), command.getBaseDomainName());
+        String loadBalancerName = StringUtils.isNotBlank(parameters.getLoadBalancerDomainNameOverride()) ?
+                parameters.getLoadBalancerDomainNameOverride() :
+                String.format("%s.%s.%s", environmentMetadata.getName(), environmentMetadata.getRegionName(), parameters.getBaseDomainName());
 
         Set<String> subjectAlternativeNames = new HashSet<>();
-        subjectAlternativeNames.addAll(command.getSubjectAlternativeNames());
+        subjectAlternativeNames.addAll(parameters.getSubjectAlternativeNames());
         subjectAlternativeNames.add(originName);
         subjectAlternativeNames.add(loadBalancerName);
 
         // Enable the use of the hard coded lets encrypt cert if enabled
-        if (command.enableLetsEncryptCertfix()) {
-            log.warn("Setting acme4j.le.certfix system property to 'true', this only works if you use the special acme:// lets encrypt addr. See: https://shredzone.org/maven/acme4j/usage/session.html and https://shredzone.org/maven/acme4j/provider.html");
+        if (parameters.enableLetsEncryptCertfix()) {
+            log.warn("Setting acme4j.le.certfix system property to 'true', this only works if you use the special " +
+                    "acme:// lets encrypt addr. See: https://shredzone.org/maven/acme4j/usage/session.html" +
+                    " and https://shredzone.org/maven/acme4j/provider.html");
+            
             System.setProperty("acme4j.le.certfix", "true");
         }
 
         try {
             // Use a temp dir or local dir if provided
-            File certDir = new File(command.getCertDir());
+            File certDir = new File(parameters.getCertDir());
 
             // check that we can write to the provided dir
             FileUtils.forceMkdir(certDir);
             if (!certDir.isDirectory() || !certDir.canWrite()) {
-                throw new RuntimeException("The certificate directory is not a directory or is not writable, path: " + certDir.getAbsolutePath());
+                throw new RuntimeException("The certificate directory is not a directory or is not writable, path: " 
+                        + certDir.getAbsolutePath());
             }
 
             // confirm with user
-            consoleService.askUserToProceed(String.format("Preparing to generate certs in %s with Common Name: %s and Subject Alternative Names: %s",
-                    certDir.getAbsolutePath(), commonName, String.join(", ", subjectAlternativeNames)), NO);
+            String msg = String.format("Preparing to generate certs in %s with Common Name: %s and Subject Alternative Names: %s",
+                    certDir.getAbsolutePath(), commonName, String.join(", ", subjectAlternativeNames));
+            if (command.getGenerateCertificateFilesCommandParametersDelegate().isTty()) {
+                consoleService.askUserToProceed(msg, NO);
+            } else {
+                log.info(msg);
+            }
 
             // generate the certs
             certService.generateCerts(
                     certDir,
-                    command.getAcmeApiUrl(),
+                    parameters.getAcmeApiUrl(),
                     commonName,
                     subjectAlternativeNames,
-                    command.getHostedZoneId(),
-                    command.getContactEmail()
+                    parameters.getHostedZoneId(),
+                    parameters.getContactEmail(),
+                    command.getGenerateCertificateFilesCommandParametersDelegate().isAutoAcceptAcmeTos()
             );
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate certs", e);

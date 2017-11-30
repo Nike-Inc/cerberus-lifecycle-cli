@@ -79,6 +79,12 @@ public class ChainableCommand {
             return this;
         }
 
+        public Builder withOption(String key, String value) {
+            additionalArgs.add(key);
+            additionalArgs.add(value);
+            return this;
+        }
+
         public ChainableCommand build() {
             ChainableCommand chainableCommand = new ChainableCommand();
             chainableCommand.command = this.command;

@@ -177,7 +177,7 @@ public class CertificateService {
      * @param session {@link Session} to bind with
      * @return {@link Registration} connected to your account
      */
-    protected Registration findOrRegisterAccount(Session session, String contactEmail) throws AcmeException, IOException {
+    protected Registration findOrRegisterAccount(Session session, String contactEmail, boolean autoAcceptTos) throws AcmeException, IOException {
         Registration reg;
         try {
             // Try to create a new Registration.
@@ -189,7 +189,7 @@ public class CertificateService {
             URI agreement = reg.getAgreement();
 
             if (!(agreement == null)) {
-                acceptAgreement(reg, agreement);
+                acceptAgreement(reg, agreement, autoAcceptTos);
             }
         } catch (AcmeConflictException ex) {
             // The Key Pair is already registered. getLocation() contains the
@@ -206,13 +206,20 @@ public class CertificateService {
      * @param reg       The registration object
      * @param agreement The link to the TOS
      */
-    protected void acceptAgreement(Registration reg, URI agreement) {
+    protected void acceptAgreement(Registration reg, URI agreement, boolean autoAcceptTos) {
         try {
             log.info("Please download and review the Terms of Service: " + agreement);
-            String userResponse = console.readLine("Type \"I Accept\" to accept the Terms of Service, anything else will exit: ");
-            if (!StringUtils.equalsIgnoreCase("I Accept", userResponse)) {
-                throw new RuntimeException("User did not accept the Terms of Service");
+
+            if (! autoAcceptTos) {
+                String userResponse = console.readLine("Type \"I Accept\" to accept the Terms of Service, anything else will exit: ");
+                if (!StringUtils.equalsIgnoreCase("I Accept", userResponse)) {
+                    throw new RuntimeException("User did not accept the Terms of Service");
+                }
+            } else {
+                log.info("The auto accept flag was passed with the understanding that you have downloaded, " +
+                        "reviewed and agree to the TOS: {},", agreement);
             }
+
             reg.modify().setAgreement(agreement).commit();
             log.info("Updated user's ToS");
         } catch (AcmeException | IOException e) {
@@ -293,7 +300,8 @@ public class CertificateService {
                               String commonName,
                               Set<String> subjectAlternativeNames,
                               String hostedZoneId,
-                              String contactEmail) {
+                              String contactEmail,
+                              boolean autoAcceptTos) {
 
         try {
             List<String> names = new LinkedList<>();
@@ -303,7 +311,7 @@ public class CertificateService {
             KeyPair userKeyPair = loadOrCreateKeyPair(new File(certDir.getAbsolutePath() + File.separator + USER_KEY_FILE));
 
             Session session = new Session(acmeServerUrl, userKeyPair);
-            Registration registration = findOrRegisterAccount(session, contactEmail);
+            Registration registration = findOrRegisterAccount(session, contactEmail, autoAcceptTos);
 
             Map<String, Collection<Challenge>> domainChallengeCollectionMap = new HashMap<>();
             for (String name : names) {
