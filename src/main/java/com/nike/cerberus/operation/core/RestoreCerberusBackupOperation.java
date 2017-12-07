@@ -25,7 +25,6 @@ import com.amazonaws.services.s3.AmazonS3EncryptionClient;
 import com.amazonaws.services.s3.model.CryptoConfiguration;
 import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.inject.Inject;
@@ -36,10 +35,6 @@ import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.service.S3StoreService;
-import com.nike.vault.client.VaultAdminClient;
-import com.nike.vault.client.VaultClientException;
-import com.nike.vault.client.model.VaultListResponse;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +42,6 @@ import javax.inject.Named;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -112,7 +106,7 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
 
         String kmsCustomerMasterKeyId = getKmsCmkId(CERBERUS_BACKUP_METADATA_JSON_FILE_KEY, s3StoreService);
         S3StoreService s3EncryptionStoreService = getS3EncryptionStoreService(kmsCustomerMasterKeyId, command);
-        CerberusAdminClient cerberusAdminClient = cerberusAdminClientFactory.createCerberusAdminClient(command.getCerberusUrl());
+        CerberusAdminClient cerberusAdminClient = cerberusAdminClientFactory.createCerberusAdminClient();
 
         validateRestore(s3EncryptionStoreService, command);
 
@@ -123,8 +117,8 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
             try {
                 Double percent = i / keys.size() * 100;
                 System.out.print(String.format("Restoring backups %s%% complete\r", df.format(percent)));
-                String json = getDecryptedJson(sdbBackupKey, s3EncryptionStoreService);
-                processBackup(json, cerberusAdminClient);
+                String sdbBackupJson = getDecryptedJson(sdbBackupKey, s3EncryptionStoreService);
+                cerberusAdminClient.restoreMetadata(command.getCerberusUrl(), sdbBackupJson);
             } catch (Throwable t) {
                 logger.error("Failed to process backup json for {}", Chalk.on(sdbBackupKey).red().toString(), t);
             }
@@ -236,79 +230,6 @@ public class RestoreCerberusBackupOperation implements Operation<RestoreCerberus
             logger.error("Failed to get json from S3 for {}", sdbBackupKey);
         }
         return json.get();
-    }
-
-    /**
-     * Process the stored backup json
-     * Step 1: Restores the metadata to CMS
-     * Step 2: Restores the secrete data to Vault
-     *
-     * @param sdbBackupJson the json string from s3
-     */
-    protected void processBackup(String sdbBackupJson, CerberusAdminClient cerberusAdminClient) throws IOException {
-
-        JsonNode sdb = objectMapper.readTree(sdbBackupJson);
-
-        // restore metadata to cms
-        cerberusAdminClient.restoreMetadata(sdbBackupJson);
-        deleteAllSecrets(sdb.get("path").asText(), cerberusAdminClient);
-        // restore secret vault data
-        JsonNode data = sdb.get("data");
-        Map<String, Map<String, JsonNode>> kvPairs = objectMapper.convertValue(data,
-                new TypeReference<HashMap<String, Map<String, JsonNode>>>() {
-                });
-
-        kvPairs.forEach((String path, Map<String, JsonNode> secretData) -> {
-            Map<String, Object> genericDataMap = new HashMap<>();
-            secretData.forEach((String key, JsonNode valueNode) -> {
-                if (valueNode.isObject()) {
-                    genericDataMap.put(key, objectMapper.convertValue(valueNode,
-                            new TypeReference<HashMap<Object, Object>>() {
-                            })
-                    );
-                } else if (valueNode.isTextual()) {
-                    genericDataMap.put(key, valueNode.textValue());
-                } else if (valueNode.isBoolean()) {
-                    genericDataMap.put(key, valueNode.booleanValue());
-                } else {
-                    throw new RuntimeException("Unexpected value type for secret value. Type: " + valueNode.getClass());
-                }
-            });
-            cerberusAdminClient.writeJson(path, genericDataMap);
-        });
-    }
-
-    /**
-     * Deletes all of the secrets from Vault stored at the safe deposit box's path.
-     *
-     * @param path path to start deleting at.
-     */
-    protected void deleteAllSecrets(final String path, VaultAdminClient vaultAdminClient) {
-        try {
-            String fixedPath = path;
-
-            if (StringUtils.endsWith(path, "/")) {
-                fixedPath = StringUtils.substring(path, 0, StringUtils.lastIndexOf(path, "/"));
-            }
-
-            final VaultListResponse listResponse = vaultAdminClient.list(fixedPath);
-            final List<String> keys = listResponse.getKeys();
-
-            if (keys == null || keys.isEmpty()) {
-                return;
-            }
-
-            for (final String key : keys) {
-                if (StringUtils.endsWith(key, "/")) {
-                    final String fixedKey = StringUtils.substring(key, 0, key.lastIndexOf("/"));
-                    deleteAllSecrets(fixedPath + "/" + fixedKey, vaultAdminClient);
-                } else {
-                    vaultAdminClient.delete(fixedPath + "/" + key);
-                }
-            }
-        } catch (VaultClientException vce) {
-            throw new RuntimeException("Failed to delete secrets from Vault. for path: " + path);
-        }
     }
 
     @Override
