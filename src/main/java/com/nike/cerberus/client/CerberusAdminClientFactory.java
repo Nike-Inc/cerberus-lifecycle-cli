@@ -38,9 +38,8 @@ public class CerberusAdminClientFactory {
     /**
      * Admin client for doing admin cms tasks
      */
-    public CerberusAdminClient createCerberusAdminClient(String url) {
+    public CerberusAdminClient createCerberusAdminClient() {
         return new CerberusAdminClient(
-                new StaticVaultUrlResolver(url),
                 new DefaultVaultCredentialsProviderChain(),
                 httpClientFactory.getGenericClient(),
                 objectMapper
