@@ -46,14 +46,14 @@ public class HttpClientFactory {
     public static final int DEFAULT_TIMEOUT = 15;
     public static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
-    private final ConfigStore stateService;
+    private final ConfigStore configStore;
     private final Proxy proxy;
 
     @Inject
-    public HttpClientFactory(ConfigStore stateService,
+    public HttpClientFactory(ConfigStore configStore,
                              Proxy proxy) {
 
-        this.stateService = stateService;
+        this.configStore = configStore;
         this.proxy = proxy;
     }
 
@@ -78,9 +78,9 @@ public class HttpClientFactory {
     public OkHttpClient getGenericClientWithCustomTruststore() {
         try {
             List<String> caChains = new LinkedList<>();
-            for (CertificateInformation certInfo : stateService.getCertificationInformationList()) {
+            for (CertificateInformation certInfo : configStore.getCertificationInformationList()) {
                 String certificateName = certInfo.getCertificateName();
-                caChains.add(stateService.getCertPart(certificateName, ConfigConstants.CERT_PART_CA)
+                caChains.add(configStore.getCertPart(certificateName, ConfigConstants.CERT_PART_CA)
                         .orElseThrow(() -> new RuntimeException("Failed to download ca chain")));
             }
 
