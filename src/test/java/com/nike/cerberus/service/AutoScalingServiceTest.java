@@ -16,7 +16,7 @@
 
 package com.nike.cerberus.service;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
@@ -24,34 +24,49 @@ import com.amazonaws.services.autoscaling.model.EnterStandbyRequest;
 import com.amazonaws.services.autoscaling.model.ExitStandbyRequest;
 import com.amazonaws.services.autoscaling.model.Instance;
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest;
-import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.Reservation;
+import com.nike.cerberus.store.ConfigStore;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class AutoScalingServiceTest {
 
-    private AmazonAutoScaling autoScalingClient;
+    @Mock
+    private ConfigStore configStore;
 
-    private AmazonEC2 ec2Client;
+    @Mock
+    private AmazonAutoScalingClient autoScalingClient;
+
+    @Mock
+    private AmazonEC2Client ec2Client;
+
+    @Mock
+    private AwsClientFactory<AmazonEC2Client> amazonEC2ClientFactory;
+
+    @Mock
+    private AwsClientFactory<AmazonAutoScalingClient> amazonAutoScalingClientFactory;
 
     private AutoScalingService autoScalingService;
 
     @Before
     public void setup() {
-        autoScalingClient = mock(AmazonAutoScaling.class);
-        ec2Client = mock(AmazonEC2.class);
+        initMocks(this);
+        when(amazonEC2ClientFactory.getClient(any())).thenReturn(ec2Client);
+        when(amazonAutoScalingClientFactory.getClient(any())).thenReturn(autoScalingClient);
 
-        autoScalingService = new AutoScalingService(autoScalingClient, ec2Client);
+        autoScalingService = new AutoScalingService(amazonAutoScalingClientFactory, amazonEC2ClientFactory, configStore);
     }
 
     @Test

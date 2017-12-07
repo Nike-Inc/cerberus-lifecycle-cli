@@ -16,59 +16,68 @@
 
 package com.nike.cerberus.service;
 
+import com.amazonaws.regions.Regions;
 import com.google.common.collect.Maps;
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.store.ConfigStore;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.nio.charset.Charset;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
+
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Service for generating EC2 user data for Cerberus instances.
  */
 public class Ec2UserDataService {
-    private final EnvironmentMetadata environmentMetadata;
 
+    private final String environmentName;
     private final ConfigStore configStore;
 
     @Inject
-    public Ec2UserDataService(final EnvironmentMetadata environmentMetadata,
-                              final ConfigStore configStore) {
-        this.environmentMetadata = environmentMetadata;
+    public Ec2UserDataService(@Named(ENV_NAME) String environmentName,
+                              ConfigStore configStore) {
+
+        this.environmentName = environmentName;
         this.configStore = configStore;
     }
 
-    public String getUserData(final Stack stack) {
+    public String getUserData(Regions region, Stack stack, Optional<String> group) {
         if (stack.equals(Stack.CMS)) {
-            return getCmsUserData();
+            return getCmsUserData(region, group);
         } else {
             throw new IllegalArgumentException("The stack specified does not support user data. stack: "
                     + stack.getName());
         }
     }
 
-    private String getCmsUserData() {
-        final Map<String, String> userDataMap = Maps.newHashMap();
-        addStandardEnvironmentVariables(userDataMap, Stack.CMS.getName());
+    private String getCmsUserData(Regions region, Optional<String> group) {
+        Map<String, String> userDataMap = Maps.newHashMap();
+        addStandardEnvironmentVariables(region, userDataMap, Stack.CMS.getName(), group);
 
         return encodeUserData(writeExportEnvVars(userDataMap));
     }
 
-    private void addStandardEnvironmentVariables(final Map<String, String> userDataMap,
-                                                 final String appName) {
-        userDataMap.put("CLOUD_ENVIRONMENT", ConfigConstants.ENV_PREFIX + environmentMetadata.getName());
+    private void addStandardEnvironmentVariables(Regions region,
+                                                 Map<String, String> userDataMap,
+                                                 String appName,
+                                                 Optional<String> group) {
+
+        userDataMap.put("CLOUD_ENVIRONMENT", ConfigConstants.ENV_PREFIX + environmentName);
         userDataMap.put("CLOUD_MONITOR_BUCKET", appName);
         userDataMap.put("CLOUD_APP", appName);
+        userDataMap.put("CLOUD_APP_GROUP", group.orElse("cerberus"));
         userDataMap.put("CLOUD_CLUSTER", appName);
         userDataMap.put("CLASSIFICATION", "Gold");
-        userDataMap.put("EC2_REGION", environmentMetadata.getRegionName());
-        userDataMap.put("AWS_REGION", environmentMetadata.getRegionName());
-        userDataMap.put("CONFIG_S3_BUCKET", environmentMetadata.getBucketName());
-        userDataMap.put("CONFIG_KEY_ID", configStore.getBaseStackOutputs().getConfigFileKeyId());
+        userDataMap.put("EC2_REGION", region.getName());
+        userDataMap.put("AWS_REGION", region.getName());
+        userDataMap.put("CONFIG_S3_BUCKET", configStore.getConfigBucketForRegion(region));
+        userDataMap.put("CONFIG_KEY_ID", configStore.getEnvironmentDataSecureDataKmsCmkRegion(region));
     }
 
     private String writeExportEnvVars(Map<String, String> userDataMap) {

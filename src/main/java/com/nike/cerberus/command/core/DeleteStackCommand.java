@@ -38,6 +38,8 @@ public class DeleteStackCommand implements Command {
 
     public static final String STACK_NAME_LONG_ARG = "--stack-name";
 
+    public static final String REGION_LONG_ARG = "--region";
+
     @Parameter(
             names = {STACK_NAME_LONG_ARG},
             required = true,
@@ -45,8 +47,18 @@ public class DeleteStackCommand implements Command {
             converter = StackConverter.class)
     private Stack stack;
 
+    @Parameter(
+            names = {REGION_LONG_ARG},
+            description = "Region to delete stack in, defaults to primary region"
+    )
+    private String region;
+
     public Stack getStack() {
         return stack;
+    }
+
+    public String getRegion() {
+        return region;
     }
 
     @Override

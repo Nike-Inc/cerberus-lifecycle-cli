@@ -17,7 +17,9 @@
 package com.nike.cerberus.service;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.route53.AmazonRoute53;
+import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.route53.model.Change;
 import com.amazonaws.services.route53.model.ChangeAction;
 import com.amazonaws.services.route53.model.ChangeBatch;
@@ -31,7 +33,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.CertificateInformation;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.UuidSupplier;
@@ -64,6 +65,7 @@ import org.xbill.DNS.SimpleResolver;
 import org.xbill.DNS.Type;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -87,6 +89,9 @@ import java.util.StringJoiner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static com.nike.cerberus.module.CerberusModule.CONFIG_REGION;
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Service for managing Cerificates and calls to the ACME cert provider
@@ -146,22 +151,24 @@ public class CertificateService {
     private final UuidSupplier uuidSupplier;
     private final ConfigStore configStore;
     private final IdentityManagementService identityManagementService;
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
 
     @Inject
     public CertificateService(ConsoleService console,
-                              AmazonRoute53 route53,
+                              AwsClientFactory<AmazonRoute53Client> route53ClientFactory,
                               UuidSupplier uuidSupplier,
                               ConfigStore configStore,
                               IdentityManagementService identityManagementService,
-                              EnvironmentMetadata environmentMetadata) {
+                              @Named(ENV_NAME) String environmentName,
+                              @Named(CONFIG_REGION) String configRegion) {
 
         this.console = console;
-        this.route53 = route53;
+        // not a region specific AWS service so the config region is fine
+        this.route53 = route53ClientFactory.getClient(Regions.fromName(configRegion));
         this.uuidSupplier = uuidSupplier;
         this.configStore = configStore;
         this.identityManagementService = identityManagementService;
-        this.environmentMetadata = environmentMetadata;
+        this.environmentName = environmentName;
     }
 
     /**
@@ -515,12 +522,12 @@ public class CertificateService {
         final String keyContents = getFileContents(certDir, DOMAIN_PKCS1_KEY_FILE);
         final String pkcs8KeyContents = getFileContents(certDir, DOMAIN_PKCS8_KEY_FILE);
         final String pubKeyContents = getFileContents(certDir, DOMAIN_PUBLIC_KEY_FILE);
-        final String certificateName = String.format("cerberus_%s_%s",  environmentMetadata.getName(), uuidSupplier.get());
+        final String certificateName = String.format("cerberus_%s_%s",  environmentName, uuidSupplier.get());
 
         log.info("Uploading certificate files to IAM with name of {}.", certificateName);
-        String identityManagementCertificateName = identityManagementService.uploadServerCertificate(certificateName, getPath(),
+        String certificateId = identityManagementService.uploadServerCertificate(certificateName, getPath(),
                 certContents, caContents, keyContents);
-        log.info("Identity Management Cert Name: {}", identityManagementCertificateName);
+        log.info("Identity Management Cert Name: {}", certificateName);
 
         log.info("Sleeping to let iam cert become eventually consistent");
         try {
@@ -545,7 +552,8 @@ public class CertificateService {
         }
 
         CertificateInformation certificateInformation = CertificateInformation.Builder.create()
-                .withCertificateName(identityManagementCertificateName)
+                .withCertificateName(certificateName)
+                .withCertificateId(certificateId)
                 .withIdentityManagementCertificateArn(identityManagementService.getServerCertificateArn(certificateName).get())
                 .withCommonName(StringUtils.removeStart(certificate.getSubjectX500Principal().getName(), "CN="))
                 .withSubjectAlternateNames(sans)
@@ -563,7 +571,7 @@ public class CertificateService {
      *
      * @param certDir The directory that contains the required files
      */
-    private void checkForRequiredFiles(File certDir) {
+    public void checkForRequiredFiles(File certDir) {
 
         final Set<String> filenames = Sets.newHashSet();
 
@@ -598,7 +606,7 @@ public class CertificateService {
     }
 
     private String getPath() {
-        return "/cerberus/" + environmentMetadata.getName() + "/";
+        return "/cerberus/" + environmentName + "/";
     }
 
     /**
@@ -607,6 +615,7 @@ public class CertificateService {
      * @param certificateName the certificate to delete
      */
     public void deleteCertificate(String certificateName) {
+        log.info("Attempting to delete certificate with name: {}", certificateName);
         try {
             identityManagementService.deleteServerCertificate(certificateName);
         } catch (AmazonServiceException e) {

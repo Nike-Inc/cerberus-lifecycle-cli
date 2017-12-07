@@ -17,7 +17,6 @@
 package com.nike.cerberus.operation.core;
 
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.LoadBalancerParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.environment.Stack;
@@ -30,7 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Map;
+
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -39,7 +41,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
 
     private final CloudFormationService cloudFormationService;
 
@@ -48,26 +50,26 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
     private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     @Inject
-    public CreateLoadBalancerOperation(final EnvironmentMetadata environmentMetadata,
-                                       final CloudFormationService cloudFormationService,
-                                       final ConfigStore configStore,
-                                       final CloudFormationObjectMapper cloudFormationObjectMapper) {
-        this.environmentMetadata = environmentMetadata;
+    public CreateLoadBalancerOperation(@Named(ENV_NAME) String environmentName,
+                                       CloudFormationService cloudFormationService,
+                                       ConfigStore configStore,
+                                       CloudFormationObjectMapper cloudFormationObjectMapper) {
+
+        this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
-    public void run(final CreateLoadBalancerCommand command) {
-        final String environmentName = environmentMetadata.getName();
-        final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
+    public void run(CreateLoadBalancerCommand command) {
+        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
 
         // Use latest cert, if there happens to be more than one for some reason
-        final String sslCertificateArn = configStore.getCertificationInformationList()
+        String sslCertificateArn = configStore.getCertificationInformationList()
                 .getLast().getIdentityManagementCertificateArn();
 
-        final LoadBalancerParameters loadBalancerParameters = new LoadBalancerParameters()
+        LoadBalancerParameters loadBalancerParameters = new LoadBalancerParameters()
                 .setVpcId(vpcOutputs.getVpcId())
                 .setSslCertificateArn(sslCertificateArn)
                 .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName))
@@ -79,18 +81,22 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
             loadBalancerParameters.setSslPolicy(command.getLoadBalancerSslPolicyOverride());
         }
 
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters);
+        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters);
 
-        cloudFormationService.createStackAndWait(Stack.LOAD_BALANCER, parameters, true,
+        cloudFormationService.createStackAndWait(
+                configStore.getPrimaryRegion(),
+                Stack.LOAD_BALANCER,
+                parameters,
+                true,
                 command.getTagsDelegate().getTags());
     }
 
     @Override
-    public boolean isRunnable(final CreateLoadBalancerCommand command) {
+    public boolean isRunnable(CreateLoadBalancerCommand command) {
         boolean isRunnable = true;
-        String environmentName = environmentMetadata.getName();
 
-        if (!cloudFormationService.isStackPresent(Stack.SECURITY_GROUPS.getFullName(environmentName))) {
+        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+                Stack.SECURITY_GROUPS.getFullName(environmentName))) {
             logger.error("The security group stack must exist to create the load balancer!");
             isRunnable = false;
         }
@@ -100,7 +106,8 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
             isRunnable = false;
         }
 
-        if (cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
+        if (cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+                Stack.LOAD_BALANCER.getFullName(environmentName))) {
             logger.error("The load balancer stack already exists");
             isRunnable = false;
         }

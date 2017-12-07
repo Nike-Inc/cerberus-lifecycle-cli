@@ -16,44 +16,59 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.iterable.S3Versions;
 import com.amazonaws.services.s3.model.S3VersionSummary;
 import com.google.inject.Inject;
 import com.nike.cerberus.command.core.DeleteStackCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.operation.Operation;
+import com.nike.cerberus.service.AwsClientFactory;
 import com.nike.cerberus.service.CloudFormationService;
+import com.nike.cerberus.store.ConfigStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Named;
+
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 public class DeleteStackOperation implements Operation<DeleteStackCommand> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
 
     private final CloudFormationService cloudFormationService;
 
-    private final AmazonS3 amazonS3;
+    private final AwsClientFactory<AmazonS3Client> amazonS3Factory;
+
+    private final ConfigStore configStore;
 
     @Inject
-    public DeleteStackOperation(EnvironmentMetadata environmentMetadata,
-                                CloudFormationService cloudFormationService, AmazonS3 amazonS3) {
+    public DeleteStackOperation(@Named(ENV_NAME) String environmentName,
+                                CloudFormationService cloudFormationService,
+                                AwsClientFactory<AmazonS3Client> amazonS3Factory,
+                                ConfigStore configStore) {
 
-        this.environmentMetadata = environmentMetadata;
+        this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
-        this.amazonS3 = amazonS3;
+        this.amazonS3Factory = amazonS3Factory;
+        this.configStore = configStore;
     }
 
     @Override
     public void run(DeleteStackCommand command) {
-        String stackName = command.getStack().getFullName(environmentMetadata.getName());
-        cloudFormationService.getStackResources(stackName)
+        Regions region = getRegion(command);
+
+        String stackName = command.getStack().getFullName(environmentName);
+        cloudFormationService.getStackResources(region, stackName)
                 .forEach(stackResourceSummary -> {
                     if (stackResourceSummary.getResourceType().equals("AWS::S3::Bucket")) {
                         String bucketName = stackResourceSummary.getPhysicalResourceId();
                         log.info("Detected S3 Bucket: {}, emptying contents before deleting stack", bucketName);
+                        AmazonS3 amazonS3 = amazonS3Factory.getClient(region);
                         for (S3VersionSummary version : S3Versions.inBucket(amazonS3, bucketName)) {
                             String key = version.getKey();
                             String versionId = version.getVersionId();
@@ -62,15 +77,20 @@ public class DeleteStackOperation implements Operation<DeleteStackCommand> {
                     }
                 });
 
-        log.info("Deleting stack: {}", stackName);
-        cloudFormationService.deleteStackAndWait(stackName);
-        log.info("Finished deleting stack: {}", stackName);
+        log.info("Deleting stack: {} in region: {}", stackName, region);
+        cloudFormationService.deleteStackAndWait(region, stackName);
+        log.info("Finished deleting stack: {} in regionL {}", stackName, region);
+    }
+
+    private Regions getRegion(DeleteStackCommand command) {
+        return command.getRegion() == null ? configStore.getPrimaryRegion() : Regions.fromName(command.getRegion());
     }
 
     @Override
     public boolean isRunnable(DeleteStackCommand command) {
-        if (! cloudFormationService.isStackPresent(command.getStack().getFullName(environmentMetadata.getName()))) {
-            log.error("The stack: {} does not exists", command.getStack());
+        Regions region = getRegion(command);
+        if (! cloudFormationService.isStackPresent(region, command.getStack().getFullName(environmentName))) {
+            log.error("The stack: {} does not exist in region: {}", command.getStack(), region.getName());
             return false;
         }
 

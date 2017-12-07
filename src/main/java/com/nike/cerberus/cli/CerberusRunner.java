@@ -28,14 +28,13 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
-import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
 import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.composite.RotateCertificatesCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
@@ -53,7 +52,7 @@ import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.domain.input.EnvironmentConfig;
+import com.nike.cerberus.domain.input.EnvironmentInput;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
@@ -149,7 +148,7 @@ public class CerberusRunner {
         commander.setAcceptUnknownOptions(true);
         commander.parseWithoutValidation(args);
 
-        EnvironmentConfig environmentConfig = cerberusCommand.getEnvironmentConfig();
+        EnvironmentInput environmentConfig = cerberusCommand.getEnvironmentInput();
 
         if (environmentConfig != null) {
             return EnvironmentConfigToArgsMapper.getArgs(environmentConfig, args);
@@ -169,11 +168,10 @@ public class CerberusRunner {
      * Convenience method for registering all top level commands.
      */
     private void registerAllCommands() {
-        registerCommand(new CreateBaseCommand());
+        registerCommand(new InitializeEnvironmentCommand());
         registerCommand(new UploadCertificateFilesCommand());
         registerCommand(new CreateCmsConfigCommand());
         registerCommand(new CreateCmsClusterCommand());
-        registerCommand(new CreateCmsCmkCommand());
         registerCommand(new UpdateStackCommand());
         registerCommand(new PrintStackInfoCommand());
         registerCommand(new PrintAllStackInformationCommand());

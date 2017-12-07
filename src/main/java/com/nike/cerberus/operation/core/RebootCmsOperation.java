@@ -17,15 +17,16 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.*;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.inject.Inject;
 import com.nike.cerberus.client.HttpClientFactory;
 import com.nike.cerberus.command.core.RebootCmsCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.AutoScalingService;
+import com.nike.cerberus.service.AwsClientFactory;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2Service;
 import com.nike.cerberus.store.ConfigStore;
@@ -39,10 +40,12 @@ import org.apache.commons.net.util.SubnetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Named;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 import static com.nike.cerberus.service.CloudFormationService.MIN_INSTANCES_STACK_PARAMETER_KEY;
 import static com.nike.cerberus.service.Ec2Service.EC2_ASG_GROUP_NAME_TAG_KEY;
 import static com.nike.cerberus.service.Ec2Service.INSTANCE_STATE_FILTER_NAME;
@@ -77,7 +80,7 @@ public class RebootCmsOperation implements Operation<RebootCmsCommand> {
 
     private final AutoScalingService autoScalingService;
 
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
 
     private final AmazonEC2 ec2Client;
 
@@ -88,16 +91,16 @@ public class RebootCmsOperation implements Operation<RebootCmsCommand> {
                               CloudFormationService cloudFormationService,
                               Ec2Service ec2Service,
                               AutoScalingService autoScalingService,
-                              EnvironmentMetadata environmentMetadata,
-                              AmazonEC2 ec2Client,
+                              @Named(ENV_NAME) String environmentName,
+                              AwsClientFactory<AmazonEC2Client> amazonS3ClientFactory,
                               HttpClientFactory httpClientFactory) {
 
         this.configStore = configStore;
         this.cloudFormationService = cloudFormationService;
         this.ec2Service = ec2Service;
         this.autoScalingService = autoScalingService;
-        this.environmentMetadata = environmentMetadata;
-        this.ec2Client = ec2Client;
+        this.environmentName = environmentName;
+        this.ec2Client = amazonS3ClientFactory.getClient(configStore.getPrimaryRegion());
         this.httpClientFactory = httpClientFactory;
     }
 
@@ -117,10 +120,11 @@ public class RebootCmsOperation implements Operation<RebootCmsCommand> {
 
         try {
             final Stack stack = Stack.CMS;
-            final String stackId = stack.getFullName(environmentMetadata.getName());
-            final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(stackId);
+            final String stackId = stack.getFullName(environmentName);
+            final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(configStore.getPrimaryRegion(), stackId);
 
-            final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
+            final Map<String, String> stackParameters =
+                    cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
             final int minInstances = Integer.parseInt(stackParameters.get(MIN_INSTANCES_STACK_PARAMETER_KEY));
 
             final String autoScalingGroupId = stackOutputs.get(CloudFormationService.AUTO_SCALING_GROUP_LOGICAL_ID_OUTPUT_KEY);
@@ -254,8 +258,9 @@ public class RebootCmsOperation implements Operation<RebootCmsCommand> {
     @Override
     public boolean isRunnable(final RebootCmsCommand command) {
         final Stack stack = Stack.CMS;
-        final String stackId = stack.getFullName(environmentMetadata.getName());
-        final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
+        final String stackId = stack.getFullName(environmentName);
+        final Map<String, String> stackParameters =
+                cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
 
         if (!stackParameters.containsKey(MIN_INSTANCES_STACK_PARAMETER_KEY)) {
             log.error("Could not find parameter 'minInstances' on stack: {}", stackId);

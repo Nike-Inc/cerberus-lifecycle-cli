@@ -16,10 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.environment.Stack;
@@ -31,7 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Map;
+
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -40,7 +40,7 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
 
     private final CloudFormationService cloudFormationService;
 
@@ -49,33 +49,37 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
     private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
     @Inject
-    public CreateSecurityGroupsOperation(final EnvironmentMetadata environmentMetadata,
-                                         final CloudFormationService cloudFormationService,
-                                         final ConfigStore configStore,
-                                         final CloudFormationObjectMapper cloudFormationObjectMapper) {
-        this.environmentMetadata = environmentMetadata;
+    public CreateSecurityGroupsOperation(@Named(ENV_NAME) String environmentName,
+                                         CloudFormationService cloudFormationService,
+                                         ConfigStore configStore,
+                                         CloudFormationObjectMapper cloudFormationObjectMapper) {
+        this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
-    public void run(final CreateSecurityGroupsCommand command) {
-        final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
+    public void run(CreateSecurityGroupsCommand command) {
+        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
 
-        final SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
+        SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
                 .setVpcId(vpcOutputs.getVpcId());
 
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters);
+        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters);
 
-        cloudFormationService.createStackAndWait(Stack.SECURITY_GROUPS, parameters, true,
+        cloudFormationService.createStackAndWait(
+                configStore.getPrimaryRegion(),
+                Stack.SECURITY_GROUPS,
+                parameters,
+                true,
                 command.getTagParameters().getTags());
     }
 
     @Override
-    public boolean isRunnable(final CreateSecurityGroupsCommand command) {
-        String environmentName = environmentMetadata.getName();
-        return !cloudFormationService.isStackPresent(Stack.SECURITY_GROUPS.getFullName(environmentName));
+    public boolean isRunnable(CreateSecurityGroupsCommand command) {
+        return !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+                Stack.SECURITY_GROUPS.getFullName(environmentName));
     }
 
 }

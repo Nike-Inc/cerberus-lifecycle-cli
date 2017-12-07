@@ -16,10 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.google.common.collect.Sets;
 import com.nike.cerberus.command.core.CreateWafCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.cloudformation.WafParameters;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
@@ -30,7 +27,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Map;
+
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -39,49 +39,53 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
 
     private final CloudFormationService cloudFormationService;
 
-    private final ConfigStore configStore;
-
     private final CloudFormationObjectMapper cloudFormationObjectMapper;
 
+    private final ConfigStore configStore;
+
     @Inject
-    public CreateWafOperation(final EnvironmentMetadata environmentMetadata,
-                              final CloudFormationService cloudFormationService,
-                              final ConfigStore configStore,
-                              final CloudFormationObjectMapper cloudFormationObjectMapper) {
-        this.environmentMetadata = environmentMetadata;
+    public CreateWafOperation(@Named(ENV_NAME) String environmentName,
+                              CloudFormationService cloudFormationService,
+                              CloudFormationObjectMapper cloudFormationObjectMapper,
+                              ConfigStore configStore) {
+
+        this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
-        this.configStore = configStore;
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
+        this.configStore = configStore;
     }
 
     @Override
-    public void run(final CreateWafCommand command) {
-        final String environmentName = environmentMetadata.getName();
-
-        final WafParameters wafParameters = new WafParameters()
+    public void run(CreateWafCommand command) {
+        WafParameters wafParameters = new WafParameters()
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setWafName("cerberus-" + environmentName + "-waf");
 
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafParameters);
+        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafParameters);
 
-        cloudFormationService.createStackAndWait(Stack.WAF, parameters, true,
-                command.getTagsDelegate().getTags());
+        cloudFormationService.createStackAndWait(
+                configStore.getPrimaryRegion(),
+                Stack.WAF,
+                parameters,
+                true,
+                command.getTagsDelegate().getTags()
+        );
     }
 
     @Override
-    public boolean isRunnable(final CreateWafCommand command) {
-        String environmentName = environmentMetadata.getName();
+    public boolean isRunnable(CreateWafCommand command) {
         try {
-            cloudFormationService.getStackId(Stack.LOAD_BALANCER.getFullName(environmentName));
+            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.LOAD_BALANCER.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             logger.error("The load balancer stack must exist to create the WAF!");
             return false;
         }
 
-        return !cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+                Stack.ROUTE53.getFullName(environmentName));
     }
 }

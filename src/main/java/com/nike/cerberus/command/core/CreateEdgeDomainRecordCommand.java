@@ -37,7 +37,7 @@ public class CreateEdgeDomainRecordCommand implements Command {
 
     public static final String HOSTED_ZONE_ID_LONG_ARG = "--hosted-zone-id";
 
-    public static final String EDGE_DOMAIN_NAME_OVERRIDE = "edge-domain-name-override";
+    public static final String EDGE_DOMAIN_NAME_OVERRIDE = "--edge-domain-name-override";
 
     @Parameter(names = BASE_DOMAIN_NAME_LONG_ARG,
             description = "The base domain name for Cerberus (e.g. url: https://env.cerberus.example.com => base hostname: cerberus.example.com)",

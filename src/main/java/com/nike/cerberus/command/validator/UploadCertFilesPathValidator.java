@@ -37,11 +37,11 @@ public class UploadCertFilesPathValidator implements IValueValidator<Path> {
         final File certDirectory = value.toFile();
 
         if (!certDirectory.canRead()) {
-            throw new ParameterException("Specified path is not readable.");
+            throw new ParameterException(String.format("Specified path: %s is not readable.", certDirectory.getAbsolutePath()));
         }
 
         if (!certDirectory.isDirectory()) {
-            throw new ParameterException("Specified path is not a directory.");
+            throw new ParameterException(String.format("Specified path: %s is not a directory.", certDirectory.getAbsolutePath()));
         }
     }
 }

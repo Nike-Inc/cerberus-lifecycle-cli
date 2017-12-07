@@ -16,7 +16,9 @@
 
 package com.nike.cerberus.service;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.route53.AmazonRoute53;
+import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.route53.model.Change;
 import com.amazonaws.services.route53.model.ChangeAction;
 import com.amazonaws.services.route53.model.ChangeBatch;
@@ -30,7 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Optional;
+
+import static com.nike.cerberus.module.CerberusModule.CONFIG_REGION;
 
 /**
  * Service wrapper for AWS CloudFormation.
@@ -42,8 +47,11 @@ public class Route53Service {
     private final AmazonRoute53 route53Client;
 
     @Inject
-    public Route53Service(final AmazonRoute53 route53Client) {
-        this.route53Client = route53Client;
+    public Route53Service(AwsClientFactory<AmazonRoute53Client> route53ClientFactory,
+                          @Named(CONFIG_REGION) String configRegion) {
+
+        // not region specific config region works
+        this.route53Client = route53ClientFactory.getClient(Regions.fromName(configRegion));
     }
 
     public void createRoute53RecordSet(String hostedZoneId,
@@ -53,14 +61,14 @@ public class Route53Service {
                                        String resourceRecordTtl) {
         logger.info("Creating Route53 record name: {}, value: {}", recordSetName, recordValue);
 
-        final ResourceRecord record = new ResourceRecord().withValue(recordValue);
-        final ResourceRecordSet recordSet = new ResourceRecordSet()
+        ResourceRecord record = new ResourceRecord().withValue(recordValue);
+        ResourceRecordSet recordSet = new ResourceRecordSet()
                 .withResourceRecords(record)
                 .withName(recordSetName)
                 .withType(recordSetType)
                 .withTTL(Long.parseLong(resourceRecordTtl));
 
-        final ChangeBatch recordSetChangeBatch = new ChangeBatch()
+        ChangeBatch recordSetChangeBatch = new ChangeBatch()
                 .withChanges(new Change()
                         .withAction(ChangeAction.UPSERT)
                         .withResourceRecordSet(recordSet));
@@ -70,8 +78,8 @@ public class Route53Service {
                 .withChangeBatch(recordSetChangeBatch));
     }
 
-    public Optional<ResourceRecordSet> getRecordSetByName(final String recordSetName, final String hostedZoneId) {
-        final ListResourceRecordSetsResult recordSets = route53Client.listResourceRecordSets(
+    public Optional<ResourceRecordSet> getRecordSetByName(String recordSetName, String hostedZoneId) {
+        ListResourceRecordSetsResult recordSets = route53Client.listResourceRecordSets(
                 new ListResourceRecordSetsRequest()
                         .withHostedZoneId(hostedZoneId));
 

@@ -21,7 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.nike.cerberus.cli.EnvironmentConfigToArgsMapper;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.input.EnvironmentConfig;
+import com.nike.cerberus.domain.input.EnvironmentInput;
 import com.nike.cerberus.operation.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
 
     private Injector injector;
 
-    protected EnvironmentConfig environmentConfig;
+    protected EnvironmentInput environmentConfig;
 
     @Inject
     public void setInjector(Injector injector) {
@@ -49,7 +49,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
     }
 
     @Inject
-    public void setEnvironmentConfig(@Nullable EnvironmentConfig environmentConfig) {
+    public void setEnvironmentConfig(@Nullable EnvironmentInput environmentConfig) {
         this.environmentConfig = environmentConfig;
     }
 
@@ -65,7 +65,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
      */
     @SuppressWarnings("unchecked")
     public void run(T compositeCommand) {
-        if (isEnvironmentConfigRequired() && environmentConfig == null) {
+        if (isEnvironmentInputRequired() && environmentConfig == null) {
             throw new RuntimeException(String.format("The %s command requires that -f or --file must be supplied as a global option with " +
                     "a path to a valid environment yaml", compositeCommand.getCommandName()));
         }
@@ -88,7 +88,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
             }
 
             // Use jcommander to bind the resolved args to the command object
-            JCommander.newBuilder().addObject(chainedCommand).build().parse(args);
+            new JCommander(chainedCommand).parse(args);
 
             // Get the instance of the operation from guice
             Operation operation = getOperationInstance(chainedCommand);
@@ -124,11 +124,11 @@ public abstract class CompositeOperation<T extends Command> implements Operation
     protected abstract List<ChainableCommand> getCompositeCommandChain(T compositeCommand);
 
     /**
-     * If you command doesn't require that the environment yaml be supplied, you can override this to false.
+     * If your command doesn't require that the environment yaml be supplied, you can override this to false.
      *
      * @return boolean of whether or not the environment yaml is required.
      */
-    public boolean isEnvironmentConfigRequired() {
+    public boolean isEnvironmentInputRequired() {
         return true;
     }
 

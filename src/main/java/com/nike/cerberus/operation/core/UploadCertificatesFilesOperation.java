@@ -17,10 +17,9 @@
 package com.nike.cerberus.operation.core;
 
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CertificateService;
-import org.apache.commons.lang3.StringUtils;
+import com.nike.cerberus.store.ConfigStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,14 +32,14 @@ public class UploadCertificatesFilesOperation implements Operation<UploadCertifi
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final EnvironmentMetadata environmentMetadata;
+    private final ConfigStore configStore;
     private final CertificateService certificateService;
 
     @Inject
-    public UploadCertificatesFilesOperation(EnvironmentMetadata environmentMetadata,
+    public UploadCertificatesFilesOperation(ConfigStore configStore,
                                             CertificateService certificateService) {
 
-        this.environmentMetadata = environmentMetadata;
+        this.configStore = configStore;
         this.certificateService = certificateService;
     }
 
@@ -51,11 +50,12 @@ public class UploadCertificatesFilesOperation implements Operation<UploadCertifi
 
     @Override
     public boolean isRunnable(final UploadCertificateFilesCommand command) {
-        if (StringUtils.isBlank(environmentMetadata.getBucketName())) {
-            logger.error("Environment isn't initialized, unable to upload certificate.");
-            return false;
+        boolean isRunnable = true;
+        if (configStore.getConfigEnabledRegions().isEmpty()) {
+            logger.error("The environment has not been initialized");
+            isRunnable = false;
         }
 
-        return true;
+        return isRunnable;
     }
 }

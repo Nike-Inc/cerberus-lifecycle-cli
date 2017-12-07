@@ -18,7 +18,9 @@ package com.nike.cerberus.service;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceRequest;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
+import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.cloudformation.model.CreateStackRequest;
 import com.amazonaws.services.cloudformation.model.CreateStackResult;
 import com.amazonaws.services.cloudformation.model.DeleteStackRequest;
@@ -45,9 +47,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
+import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -56,6 +58,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -69,49 +72,53 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
+
 /**
  * Service wrapper for AWS CloudFormation.
  */
 public class CloudFormationService {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public final static String AUTO_SCALING_GROUP_LOGICAL_ID_OUTPUT_KEY = "autoscalingGroupLogicalId";
 
     public final static String MIN_INSTANCES_STACK_PARAMETER_KEY = "minimumInstances";
 
-    private final AmazonCloudFormation cloudFormationClient;
+    private final AwsClientFactory<AmazonCloudFormationClient> cloudFormationClientFactory;
 
-    private final EnvironmentMetadata environmentMetadata;
-
-    private final AmazonCloudFormationWaiters waiters;
+    private final String environmentName;
 
     @Inject
-    public CloudFormationService(final AmazonCloudFormation cloudFormationClient,
-                                 final EnvironmentMetadata environmentMetadata) {
-        this.cloudFormationClient = cloudFormationClient;
-        this.environmentMetadata = environmentMetadata;
+    public CloudFormationService(AwsClientFactory<AmazonCloudFormationClient> cloudFormationClientFactory,
+                                 @Named(ENV_NAME) String environmentName) {
 
-        waiters = new AmazonCloudFormationWaiters(cloudFormationClient);
+        this.cloudFormationClientFactory = cloudFormationClientFactory;
+        this.environmentName = environmentName;
     }
 
     /**
-     * Creates a new stack.
+     * Creates a new stack in the provided region.
      *
-     * @param parameters Input parameters.
+     * @param region The region for the stack
+     * @param stack the stack that is being updated
+     * @param parameters the parameters to send to the cloud formation
+     * @param iamCapabilities flag for iam capabilities
+     * @param globalTags map of tags to apply to all resources created/updated
      * @return Stack ID
      */
-    public String createStackAndWait(final Stack stack,
-                                     final Map<String, String> parameters,
-                                     final boolean iamCapabilities,
-                                     final Map<String, String> globalTags) {
+    public String createStackAndWait(Regions region,
+                                     Stack stack,
+                                     Map<String, String> parameters,
+                                     boolean iamCapabilities,
+                                     Map<String, String> globalTags) {
 
-        String stackName = stack.getFullName(environmentMetadata.getName());
+        String stackName = stack.getFullName(environmentName);
 
-        logger.info(String.format("Executing the Cloud Formation: %s, Stack Name: %s", stack.getTemplatePath(), stackName));
+        log.info("Creating: Cloud Formation Template: {}, Stack Name: {}, Region: {}", stack.getTemplatePath(), stackName, region.getName());
 
-        final CreateStackRequest request = new CreateStackRequest()
-                .withStackName(stack.getFullName(environmentMetadata.getName()))
+        CreateStackRequest request = new CreateStackRequest()
+                .withStackName(stack.getFullName(environmentName))
                 .withParameters(convertParameters(parameters))
                 .withTemplateBody(stack.getTemplateText())
                 .withTags(getTags(globalTags));
@@ -120,42 +127,43 @@ public class CloudFormationService {
             request.getCapabilities().add("CAPABILITY_IAM");
         }
 
-        final CreateStackResult result = cloudFormationClient.createStack(request);
-
-        waitAndPrintCFEvents(stackName, waiters.stackCreateComplete());
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
+        CreateStackResult result = cloudFormationClient.createStack(request);
+        waitAndPrintCFEvents(region, stackName, new AmazonCloudFormationWaiters(cloudFormationClient).stackCreateComplete());
 
         return result.getStackId();
     }
 
     /**
      * Uses AWS CF Aync Waiters to wait for Cloud Formation actions to complete, while logging events and verifying success
+     *
+     * @param region The Region to use
      * @param stackName The stack that is having an action performed
      * @param waiter The Amazon waiter
      */
-    private void waitAndPrintCFEvents(String stackName, Waiter waiter) {
+    private void waitAndPrintCFEvents(Regions region, String stackName, Waiter waiter) {
         SuccessTrackingWaiterHandler handler = new SuccessTrackingWaiterHandler();
 
         @SuppressWarnings("unchecked")
         Future future = waiter
                 .runAsync(new WaiterParameters<>(new DescribeStacksRequest().withStackName(stackName)), handler);
 
+        Set<String> recordedStackEvents = Sets.newHashSet();
         do {
             try {
                 DateTime now = DateTime.now(DateTimeZone.UTC).minusSeconds(10);
-                Set<String> recordedStackEvents = Sets.newHashSet();
 
                 TimeUnit.SECONDS.sleep(5);
 
-                StackStatus stackStatus = getStackStatus(stackName);
-
+                StackStatus stackStatus = getStackStatus(region, stackName);
                 if (stackStatus != null) {
-                    List<StackEvent> stackEvents = getStackEvents(stackName);
+                    List<StackEvent> stackEvents = getStackEvents(region, stackName);
                     stackEvents.sort(Comparator.comparing(StackEvent::getTimestamp));
 
                     for (StackEvent stackEvent : stackEvents) {
                         DateTime eventTime = new DateTime(stackEvent.getTimestamp());
                         if (!recordedStackEvents.contains(stackEvent.getEventId()) && now.isBefore(eventTime)) {
-                            logger.info(
+                            log.info(
                                     String.format("TS: %s, Status: %s, Type: %s, Reason: %s",
                                             Chalk.on(stackEvent.getTimestamp().toString()).yellow(),
                                             getStatusColor(stackEvent.getResourceStatus()),
@@ -167,10 +175,10 @@ public class CloudFormationService {
                     }
                 }
             } catch (InterruptedException e) {
-                logger.error("Polling interrupted", e);
+                log.error("Polling interrupted", e);
                 Thread.currentThread().interrupt();
             } catch (Exception e) {
-                logger.error("Failed to poll and print stack", e);
+                log.error("Failed to poll and print stack", e);
             }
         } while (!future.isDone());
 
@@ -181,16 +189,26 @@ public class CloudFormationService {
     }
 
     /**
-     * Updates an existing stack
+     * Updates an existing stack in the provided region
+     * @param region The region for the stack
+     * @param stack the stack that is being updated
+     * @param parameters the parameters to send to the cloud formation
+     * @param iamCapabilities flag for iam capabilities
+     * @param overwrite overwrite the deployed template with the current template in the cli
+     * @param globalTags map of tags to apply to all resources created/updated
      */
-    public void updateStackAndWait(final Stack stack,
-                                   final Map<String, String> parameters,
-                                   final boolean iamCapabilities,
-                                   final boolean overwrite,
-                                   final Map<String, String> globalTags) {
+    public void updateStackAndWait(Regions region,
+                                   Stack stack,
+                                   Map<String, String> parameters,
+                                   boolean iamCapabilities,
+                                   boolean overwrite,
+                                   Map<String, String> globalTags) {
 
-        String stackName = stack.getFullName(environmentMetadata.getName());
-        final UpdateStackRequest request = new UpdateStackRequest()
+        String stackName = stack.getFullName(environmentName);
+
+        log.info("Updating: Cloud Formation Template: {}, Stack Name: {}, Region: {}", stack.getTemplatePath(), stackName, region.getName());
+
+        UpdateStackRequest request = new UpdateStackRequest()
                 .withStackName(stackName)
                 .withParameters(convertParameters(parameters));
 
@@ -206,44 +224,50 @@ public class CloudFormationService {
 
         request.setTags(getTags(globalTags));
 
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
         cloudFormationClient.updateStack(request);
 
-        waitAndPrintCFEvents(stackName, waiters.stackUpdateComplete());
+        waitAndPrintCFEvents(region, stackName, new AmazonCloudFormationWaiters(cloudFormationClient).stackUpdateComplete());
 
     }
 
     /**
-     * Deletes an existing stack by name.
+     * Deletes an existing stack by name in the region provided.
      *
+     * @param region The Region to use
      * @param stackName Stack ID.
      */
-    public void deleteStackAndWait(final String stackName) {
-        final DeleteStackRequest request = new DeleteStackRequest().withStackName(stackName);
+    public void deleteStackAndWait(Regions region, String stackName) {
+        log.info("Deleting the Stack Name: {}, Region: {}", stackName, region.getName());
+        DeleteStackRequest request = new DeleteStackRequest().withStackName(stackName);
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
         cloudFormationClient.deleteStack(request);
-        waitAndPrintCFEvents(stackName, waiters.stackDeleteComplete());
+        waitAndPrintCFEvents(region, stackName, new AmazonCloudFormationWaiters(cloudFormationClient).stackDeleteComplete());
     }
 
     /**
      * Returns the current status of the named stack.
      *
+     * @param region The Region to use
      * @param stackName Stack ID.
      * @return Stack status data.
      */
     @Nullable
-    public StackStatus getStackStatus(final String stackName) {
-        final DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
+    public StackStatus getStackStatus(Regions region, String stackName) {
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
+        DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
 
         try {
-            final DescribeStacksResult result = cloudFormationClient.describeStacks(request);
+            DescribeStacksResult result = cloudFormationClient.describeStacks(request);
 
             if (result.getStacks().size() > 0) {
-                final String status = result.getStacks().get(0).getStackStatus();
+                String status = result.getStacks().get(0).getStackStatus();
 
                 if (StringUtils.isNotBlank(status)) {
                     return StackStatus.fromValue(status);
                 }
             }
-        } catch (final AmazonServiceException ase) {
+        } catch (AmazonServiceException ase) {
             // Stack doesn't exist, just return with no status
             if (ase.getStatusCode() != 400) {
                 throw ase;
@@ -254,15 +278,17 @@ public class CloudFormationService {
     }
 
     /**
-     * Returns the current status of the named stack.
+     * Returns the current status of the named stack in the provided region.
      *
+     * @param region The Region to use
      * @param stackName Stack name.
      * @return Stack outputs data.
      */
-    public Map<String, String> getStackParameters(final String stackName) {
-        final DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
-        final DescribeStacksResult result = cloudFormationClient.describeStacks(request);
-        final Map<String, String> parameters = Maps.newHashMap();
+    public Map<String, String> getStackParameters(Regions region, String stackName) {
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
+        DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
+        DescribeStacksResult result = cloudFormationClient.describeStacks(request);
+        Map<String, String> parameters = Maps.newHashMap();
 
         if (result.getStacks().size() > 0) {
             parameters.putAll(result.getStacks().get(0).getParameters().stream().collect(
@@ -276,13 +302,15 @@ public class CloudFormationService {
     /**
      * Returns the current status of the named stack.
      *
+     * @param region The Region to use
      * @param stackName Stack name.
      * @return Stack outputs data.
      */
-    public Map<String, String> getStackOutputs(final String stackName) {
-        final DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
-        final DescribeStacksResult result = cloudFormationClient.describeStacks(request);
-        final Map<String, String> outputs = Maps.newHashMap();
+    public Map<String, String> getStackOutputs(Regions region, String stackName) {
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
+        DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
+        DescribeStacksResult result = cloudFormationClient.describeStacks(request);
+        Map<String, String> outputs = Maps.newHashMap();
 
         if (result.getStacks().size() > 0) {
             outputs.putAll(result.getStacks().get(0).getOutputs().stream().collect(
@@ -293,7 +321,15 @@ public class CloudFormationService {
         return outputs;
     }
 
-    public List<StackResourceSummary> getStackResources(String stackName) {
+    /**
+     * Returns list of StackResourceSummary for stack provided in region provided
+     *
+     * @param region The region to use
+     * @param stackName The stack name to use
+     * @return list of StackResourceSummary
+     */
+    public List<StackResourceSummary> getStackResources(Regions region, String stackName) {
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
         List<StackResourceSummary> stackResourceSummaries = new LinkedList<>();
         ListStackResourcesResult result;
         do {
@@ -310,15 +346,17 @@ public class CloudFormationService {
      * Returns the events for a named stack.
      *
      * @param stackName Stack ID.
+     * @param region The Region to use
      * @return Collection of events
      */
-    public List<StackEvent> getStackEvents(final String stackName) {
-        final DescribeStackEventsRequest request = new DescribeStackEventsRequest().withStackName(stackName);
+    public List<StackEvent> getStackEvents(Regions region, String stackName) {
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
+        DescribeStackEventsRequest request = new DescribeStackEventsRequest().withStackName(stackName);
 
         try {
-            final DescribeStackEventsResult result = cloudFormationClient.describeStackEvents(request);
+            DescribeStackEventsResult result = cloudFormationClient.describeStackEvents(request);
             return result.getStackEvents();
-        } catch (final AmazonServiceException ase) {
+        } catch (AmazonServiceException ase) {
             // Stack doesn't exist, just return with no status
             if (ase.getStatusCode() != 400) {
                 throw ase;
@@ -329,12 +367,14 @@ public class CloudFormationService {
     }
 
     /**
-     * Get the full ID of the stack
+     * Get stack id for stack in region provided.
      *
-     * @param stackName - The stack logical id / full stack name
-     * @return
+     * @param stackName The stack logical id / full stack name
+     * @param region The Region to use
+     * @return The full ID of the stack
      */
-    public String getStackId(String stackName) {
+    public String getStackId(Regions region, String stackName) {
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
         Preconditions.checkArgument(StringUtils.isNotBlank(stackName), "Stack name cannot be blank");
 
         DescribeStacksResult result = cloudFormationClient.describeStacks(
@@ -345,7 +385,7 @@ public class CloudFormationService {
         if (stacks.isEmpty()) {
             throw new IllegalArgumentException("No stack found with name: " + stackName);
         } else if (stacks.size() > 1) {
-            logger.warn("Found more than stack with name: {}. Selecting the first one: stack id: {}",
+            log.warn("Found more than stack with name: {}. Selecting the first one: stack id: {}",
                     stackName,
                     stacks.get(0).getStackId());
         }
@@ -356,13 +396,14 @@ public class CloudFormationService {
     /**
      * Checks if a stack exists with the specified ID.
      *
+     * @param region The Region to use
      * @param stackName Stack ID.
      * @return boolean
      */
-    public boolean isStackPresent(final String stackName) {
+    public boolean isStackPresent(Regions region, String stackName) {
         Preconditions.checkArgument(StringUtils.isNotBlank(stackName), "Stack ID cannot be blank");
 
-        return getStackStatus(stackName) != null;
+        return getStackStatus(region, stackName) != null;
     }
 
     /**
@@ -371,46 +412,17 @@ public class CloudFormationService {
      * @param parameterMap Map to be converted.
      * @return Collection of parameters.
      */
-    public Collection<Parameter> convertParameters(final Map<String, String> parameterMap) {
-        final List<Parameter> parameterList = Lists.newArrayListWithCapacity(parameterMap.size());
+    public Collection<Parameter> convertParameters(Map<String, String> parameterMap) {
+        List<Parameter> parameterList = Lists.newArrayListWithCapacity(parameterMap.size());
 
         for (Map.Entry<String, String> entry : parameterMap.entrySet()) {
-            final Parameter param = new Parameter()
+            Parameter param = new Parameter()
                     .withParameterKey(entry.getKey())
                     .withParameterValue(entry.getValue());
             parameterList.add(param);
         }
 
         return parameterList;
-    }
-
-
-    /**
-     * Since there doesn't appear to be a first class way through the SDK at this time to get a CF export. We can
-     * iterate through the stacks for a given output key and return the value.
-     *
-     * @param outputKey The exported CF variable to search and retrieve the value of.
-     * @return The value for the export if found
-     */
-    public Optional<String> searchStacksForOutput(String outputKey) {
-        DescribeStacksResult describeStacksResult = null;
-        do {
-            DescribeStacksRequest request = new DescribeStacksRequest();
-            if (describeStacksResult != null && describeStacksResult.getNextToken() != null) {
-                request.withNextToken(describeStacksResult.getNextToken());
-            }
-            describeStacksResult = cloudFormationClient.describeStacks();
-            for (com.amazonaws.services.cloudformation.model.Stack stack : describeStacksResult.getStacks()) {
-                for (Output output : stack.getOutputs()) {
-                    if (StringUtils.equals(output.getOutputKey(), outputKey)) {
-                        return Optional.of(output.getOutputValue());
-                    }
-                }
-            }
-
-        } while (describeStacksResult.getNextToken() != null);
-
-        return Optional.empty();
     }
 
     /**
@@ -427,7 +439,7 @@ public class CloudFormationService {
 
         tags.add(new Tag()
                 .withKey("Name")
-                .withValue(ConfigConstants.ENV_PREFIX + environmentMetadata.getName())
+                .withValue(ConfigConstants.ENV_PREFIX + environmentName)
         );
 
         return tags;

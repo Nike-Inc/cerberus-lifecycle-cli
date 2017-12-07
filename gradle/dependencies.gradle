@@ -36,9 +36,12 @@ allprojects {
         compile group: 'com.amazonaws', name: 'aws-java-sdk-route53', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-elasticloadbalancingv2', version: awsSDKVersion
 
+        // https://mvnrepository.com/artifact/com.amazonaws/aws-encryption-sdk-java
+        compile group: 'com.amazonaws', name: 'aws-encryption-sdk-java', version: '1.3.1'
+
         compile 'com.nike:vault-client:1.4.1'
         compile 'com.squareup.okhttp3:okhttp:3.3.1'
-        compile 'com.beust:jcommander:1.72'
+        compile 'com.beust:jcommander:1.55' // newer version up to at least 1.71 have broken variableAirity, which breaks create cms cmk command
 
         compile 'com.fasterxml.jackson.core:jackson-core:2.7.+'
         compile 'com.fasterxml.jackson.core:jackson-databind:2.7.+'
@@ -46,11 +49,16 @@ allprojects {
         compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7+'
         compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.8.5'
         compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-joda', version: '2.4.3'
+        compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jdk8', version: '2.9.2'
+
 
         compile 'org.slf4j:slf4j-api:1.7.+'
         compile 'ch.qos.logback:logback-classic:1.1.+'
         compile 'commons-cli:commons-cli:1.3.1'
-        compile 'com.google.inject:guice:4.0'
+        compile 'com.google.inject:guice:4.1.0'
+        compile group: 'com.google.inject.extensions', name: 'guice-multibindings', version: '4.1.0'
+        compile group: 'com.google.guava', name: 'guava', version: '23.5-jre'
+
         compile 'com.google.code.findbugs:jsr305:3.0.+'
         compile 'com.github.tomas-langer:chalk:1.0.2'
         compile 'commons-net:commons-net:3.4'
@@ -76,7 +84,13 @@ allprojects {
 
     configurations.all {
         // check for updates every build
-        resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+        resolutionStrategy {
+            cacheChangingModulesFor 0, 'seconds'
+
+            // aws-encryption-sdk-java brings in a slightly older version with some constants missing
+            def bouncyVersion = 1.58
+            force "org.bouncycastle:bcpkix-jdk15on:$bouncyVersion", "org.bouncycastle:bcprov-ext-jdk15on:$bouncyVersion"
+        }
     }
 
 }

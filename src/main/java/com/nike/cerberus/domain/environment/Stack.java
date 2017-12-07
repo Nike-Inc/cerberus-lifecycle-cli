@@ -32,10 +32,9 @@ import java.util.stream.Collectors;
  */
 public class Stack implements Comparable<Stack> {
 
-    public static final Stack BASE = new Stack("base", "base.yaml", false);
-    public static final Stack VAULT = new Stack("vault", null, false);
+    public static final Stack CMS_IAM_ROLE = new Stack("cms-iam-role", "cms-iam-role.yaml", false);
+    public static final Stack REGION_BUCKET_AND_CMKS = new Stack("region-bucket-and-cmks", "region-bucket-and-cmks.yaml", false);
     public static final Stack CMS = new Stack("cms", "cms-cluster.yaml", true);
-    public static final Stack GATEWAY = new Stack("gateway", null, false);
     public static final Stack VPC = new Stack("vpc", "vpc.yaml", false);
     public static final Stack DATABASE = new Stack("database", "database.yaml", false);
     public static final Stack SECURITY_GROUPS = new Stack("security-groups", "security-groups.yaml", false);
@@ -43,7 +42,7 @@ public class Stack implements Comparable<Stack> {
     public static final Stack ROUTE53 = new Stack("route53", "route53.yaml", false);
     public static final Stack WAF = new Stack("web-app-firewall", "web-app-firewall.yaml", false);
 
-    public static final ImmutableList<Stack> ALL_STACKS = ImmutableList.of(BASE, VAULT, CMS, GATEWAY, VPC, DATABASE, SECURITY_GROUPS, LOAD_BALANCER, ROUTE53, WAF);
+    public static final ImmutableList<Stack> ALL_STACKS = ImmutableList.of(CMS_IAM_ROLE, CMS, VPC, DATABASE, SECURITY_GROUPS, LOAD_BALANCER, ROUTE53, WAF, REGION_BUCKET_AND_CMKS);
 
     public static final ImmutableList<String> ALL_STACK_NAMES = ImmutableList.copyOf(ALL_STACKS.stream().map(Stack::getName).collect(Collectors.toList()));
 

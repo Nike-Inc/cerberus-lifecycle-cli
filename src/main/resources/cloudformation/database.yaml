@@ -29,7 +29,7 @@ Parameters:
     AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
     Description: The third availability zone for the DB Instances
     Type: String
-  cmsDbInstanceSize:
+  cmsDbInstanceClass:
     Default: db.r3.large
     Description: MySQL DB instance class
     Type: String
@@ -85,7 +85,7 @@ Resources:
     Properties:
       AvailabilityZone: !Ref 'cmsDbInstanceAz1'
       DBClusterIdentifier: !Ref CmsDatabaseCluster
-      DBInstanceClass: !Ref 'cmsDbInstanceSize'
+      DBInstanceClass: !Ref 'cmsDbInstanceClass'
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
       Engine: aurora
@@ -95,7 +95,7 @@ Resources:
     Properties:
       AvailabilityZone: !Ref 'cmsDbInstanceAz2'
       DBClusterIdentifier: !Ref CmsDatabaseCluster
-      DBInstanceClass: !Ref 'cmsDbInstanceSize'
+      DBInstanceClass: !Ref 'cmsDbInstanceClass'
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
       Engine: aurora

@@ -1,22 +1,18 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Creates the necessary IAM roles, S3 buckets, and KMS keys for Cerberus
+Description: Creates the necessary S3 buckets, and KMS CMKs for Cerberus
 Outputs:
   configBucketDomainName:
     Value: !GetAtt 'CerberusConfigBucket.DomainName'
   configBucketName:
     Value: !Ref 'CerberusConfigBucket'
-  configFileKeyId:
-    Value: !Ref 'ConfigFileKey'
-  cmsIamRoleArn:
-    Value: !GetAtt 'CmsIamRole.Arn'
-  cmsIamRoleName:
-    Value: !Ref 'CmsIamRole'
-    Export:
-      Name: !Sub "${AWS::StackName}-cmsIamRoleName"
-  cmsKmsPolicyId:
-    Description: The policy id for CMS managing KMS keys
-    Value: !Ref 'CmsKmsPolicy'
+  environmentDataKmsCmkArn:
+    Value: !GetAtt 'EnvironmentDataKmsCmk.Arn'
+  cmsSecureDataKmsCmkArn:
+    Value: !GetAtt 'CmsSecureDataKmsCmk.Arn'
 Parameters:
+  cmsIamRoleArn:
+    Description: The ARN for for the management service IAM Role.
+    Type: String
   accountAdminArn:
     Description: The ARN for a IAM user, group or role that can create this stack.
     Type: String
@@ -37,7 +33,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !GetAtt 'CmsIamRole.Arn'
+                !Ref 'cmsIamRoleArn'
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket']]
               - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /*]]
@@ -47,7 +43,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !GetAtt 'CmsIamRole.Arn'
+                !Ref 'cmsIamRoleArn'
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /certificates/*]]
               - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /certificates]]
@@ -56,59 +52,7 @@ Resources:
             Sid: Allow-Bucket-Access-For-CMS
         Version: '2012-10-17'
     Type: AWS::S3::BucketPolicy
-  CmsIamRole:
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Action:
-              - sts:AssumeRole
-            Effect: Allow
-            Principal:
-              Service:
-                - ec2.amazonaws.com
-        Version: '2012-10-17'
-      Path: /
-      Policies:
-        - PolicyDocument:
-            Statement:
-              - Action:
-                  - EC2:Describe*
-                  - cloudformation:SignalResource
-                Effect: Allow
-                Resource: '*'
-          PolicyName: cmsPolicy
-    Type: AWS::IAM::Role
-  CmsKmsPolicy:
-    Properties:
-      PolicyDocument:
-        Statement:
-          - Action:
-              - kms:CreateAlias
-              - kms:CreateKey
-              - kms:DeleteAlias
-              - kms:DescribeKey
-              - kms:DisableKey
-              - kms:DisableKeyRotation
-              - kms:EnableKey
-              - kms:EnableKeyRotation
-              - kms:GetKeyPolicy
-              - kms:GetKeyRotationStatus
-              - kms:ListAliases
-              - kms:ListKeyPolicies
-              - kms:ListKeys
-              - kms:PutKeyPolicy
-              - kms:TagResource
-              - kms:UpdateAlias
-              - kms:UpdateKeyDescription
-            Effect: Allow
-            Resource:
-              - '*'
-        Version: '2012-10-17'
-      PolicyName: CmsKmsPolicy
-      Roles:
-        - Ref: 'CmsIamRole'
-    Type: AWS::IAM::Policy
-  ConfigFileKey:
+  EnvironmentDataKmsCmk:
     Properties:
       Description: Cerberus encryption key for storing config files in an encrypted
         state.
@@ -128,7 +72,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !GetAtt 'CmsIamRole.Arn'
+                - !Ref 'cmsIamRoleArn'
             Resource: '*'
             Sid: Allow-Decrypt-From-Instances
           - Action:
@@ -136,7 +80,40 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                Ref: 'accountAdminArn'
+                !Ref 'accountAdminArn'
+            Resource: '*'
+            Sid: Allow-Account-Admin
+        Version: '2012-10-17'
+    Type: AWS::KMS::Key
+  CmsSecureDataKmsCmk:
+    Properties:
+      Description: CMS KMS CMK for storing secure data in RDS.
+        state.
+      Enabled: 'true'
+      KeyPolicy:
+        Statement:
+          - Action:
+              - kms:*
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
+            Resource: '*'
+            Sid: Allow-Root-User
+          - Action:
+              - kms:Decrypt
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Ref 'cmsIamRoleArn'
+            Resource: '*'
+            Sid: Allow-Decrypt-From-Instances
+          - Action:
+              - kms:*
+            Effect: Allow
+            Principal:
+              AWS:
+                !Ref 'accountAdminArn'
             Resource: '*'
             Sid: Allow-Account-Admin
         Version: '2012-10-17'

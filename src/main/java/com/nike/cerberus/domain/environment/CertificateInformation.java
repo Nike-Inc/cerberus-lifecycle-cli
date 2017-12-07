@@ -25,6 +25,7 @@ import java.util.List;
 public class CertificateInformation {
 
     private String certificateName;
+    private String certificateId;
     private String identityManagementCertificateArn;
     private DateTime notBefore;
     private DateTime notAfter;
@@ -38,6 +39,14 @@ public class CertificateInformation {
 
     public void setCertificateName(String certificateName) {
         this.certificateName = certificateName;
+    }
+
+    public String getCertificateId() {
+        return certificateId;
+    }
+
+    public void setCertificateId(String certificateId) {
+        this.certificateId = certificateId;
     }
 
     public DateTime getNotBefore() {
@@ -93,6 +102,7 @@ public class CertificateInformation {
         DateTimeFormatter fmt = DateTimeFormat.fullDateTime();
         return "CertificateInformation{" +
                 "certificateName='" + certificateName + '\'' +
+                ", certificateId='" + certificateId + '\'' +
                 ", identityManagementCertificateArn='" + identityManagementCertificateArn + '\'' +
                 ", notBefore=" + fmt.print(notBefore) +
                 ", notAfter=" + fmt.print(notAfter) +
@@ -104,6 +114,7 @@ public class CertificateInformation {
 
     public static final class Builder {
         private String certificateName;
+        private String certificateId;
         private String identityManagementCertificateArn;
         private DateTime notBefore;
         private DateTime notAfter;
@@ -120,6 +131,11 @@ public class CertificateInformation {
 
         public Builder withCertificateName(String certificateName) {
             this.certificateName = certificateName;
+            return this;
+        }
+
+        public Builder withCertificateId(String certificateId) {
+            this.certificateId = certificateId;
             return this;
         }
 
@@ -156,6 +172,7 @@ public class CertificateInformation {
         public CertificateInformation build() {
             CertificateInformation certificateInformation = new CertificateInformation();
             certificateInformation.setCertificateName(certificateName);
+            certificateInformation.setCertificateId(certificateId);
             certificateInformation.setIdentityManagementCertificateArn(identityManagementCertificateArn);
             certificateInformation.setNotBefore(notBefore);
             certificateInformation.setNotAfter(notAfter);

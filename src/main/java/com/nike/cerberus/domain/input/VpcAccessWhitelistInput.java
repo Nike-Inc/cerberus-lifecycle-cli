@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Stores CIDRs to whitelist for VPC access
  */
-public class VpcAccessWhitelist {
+public class VpcAccessWhitelistInput {
     private List<String> cidrs;
     private List<String> ports;
 
