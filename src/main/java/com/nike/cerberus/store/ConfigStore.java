@@ -559,15 +559,18 @@ public class ConfigStore {
     private String findConfigBucketInSuppliedConfigRegion() {
         AmazonS3Client s3Client = amazonS3ClientFactory.getClient(configRegion);
         List<Bucket> buckets = s3Client.listBuckets();
-
         String envBucket = null;
         for (Bucket bucket : buckets) {
             String bucketName = bucket.getName();
             if (StringUtils.contains(bucket.getName(), ConfigConstants.CONFIG_BUCKET_KEY)) {
-                String tokenizedEnvName = StringUtils.replaceAll(environmentName, "_", "-");
-                if (StringUtils.startsWith(bucketName, tokenizedEnvName)) {
-                    envBucket = bucketName;
-                    break;
+                String bucketLocationResult = s3Client.getBucketLocation(bucketName);
+                Regions bucketRegion = StringUtils.equals("US", bucketLocationResult) ? Regions.US_EAST_1 : Regions.fromName(bucketLocationResult);
+                if (configRegion.equals(bucketRegion)) {
+                    String tokenizedEnvName = StringUtils.replaceAll(environmentName, "_", "-");
+                    if (StringUtils.startsWith(bucketName, tokenizedEnvName)) {
+                        envBucket = bucketName;
+                        break;
+                    }
                 }
             }
         }

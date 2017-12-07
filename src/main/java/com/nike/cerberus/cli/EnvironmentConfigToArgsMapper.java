@@ -267,7 +267,7 @@ public class EnvironmentConfigToArgsMapper {
 
         if (config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().isPresent()) {
             args.addOption(CreateRoute53Command.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE,
-                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElseGet(null));
+                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null));
         }
 
         return args.build();
@@ -295,9 +295,9 @@ public class EnvironmentConfigToArgsMapper {
             args.addOption(CreateRoute53Command.ORIGIN_DOMAIN_NAME_OVERRIDE, config.getOriginDomainNameOverride());
         }
 
-        if (StringUtils.isNotBlank(config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElseGet(null))) {
+        if (StringUtils.isNotBlank(config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null))) {
             args.addOption(GenerateCertificateFilesCommandParametersDelegate.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG,
-                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElseGet(null));
+                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null));
         }
 
         if (config.isEnableLeCertFix()) {
