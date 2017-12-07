@@ -84,7 +84,7 @@ public class DeleteEnvironmentOperation extends CompositeOperation<DeleteEnviron
     }
 
     @Override
-    public boolean isEnvironmentInputRequired() {
+    public boolean isEnvironmentConfigRequired() {
         return false;
     }
 

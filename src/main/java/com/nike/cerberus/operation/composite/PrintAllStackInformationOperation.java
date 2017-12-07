@@ -46,7 +46,7 @@ public class PrintAllStackInformationOperation extends CompositeOperation<PrintA
     }
 
     @Override
-    public boolean isEnvironmentInputRequired() {
+    public boolean isEnvironmentConfigRequired() {
         return false;
     }
 

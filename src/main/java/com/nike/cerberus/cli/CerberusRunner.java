@@ -52,7 +52,7 @@ import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.domain.input.EnvironmentInput;
+import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
@@ -148,7 +148,7 @@ public class CerberusRunner {
         commander.setAcceptUnknownOptions(true);
         commander.parseWithoutValidation(args);
 
-        EnvironmentInput environmentConfig = cerberusCommand.getEnvironmentInput();
+        EnvironmentConfig environmentConfig = cerberusCommand.getEnvironmentConfig();
 
         if (environmentConfig != null) {
             return EnvironmentConfigToArgsMapper.getArgs(environmentConfig, args);

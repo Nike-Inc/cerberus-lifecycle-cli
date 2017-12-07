@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nike.cerberus.command.validator.EnvironmentNameValidator;
-import com.nike.cerberus.domain.input.EnvironmentInput;
+import com.nike.cerberus.domain.input.EnvironmentConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public class CerberusCommand {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private EnvironmentInput environmentConfig;
+    private EnvironmentConfig environmentConfig;
 
     @Parameter
     private List<String> parameters = new ArrayList<>();
@@ -91,7 +91,7 @@ public class CerberusCommand {
         return parameters;
     }
 
-    public EnvironmentInput getEnvironmentInput() {
+    public EnvironmentConfig getEnvironmentConfig() {
         if (environmentConfig != null) {
             return environmentConfig;
         }
@@ -108,7 +108,7 @@ public class CerberusCommand {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         mapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
         try {
-            environmentConfig = mapper.readValue(environmentConfigFile, EnvironmentInput.class);
+            environmentConfig = mapper.readValue(environmentConfigFile, EnvironmentConfig.class);
         } catch (IOException e) {
             throw new IllegalArgumentException("Failed to deserialize environment yaml", e);
         }
@@ -124,7 +124,7 @@ public class CerberusCommand {
      */
     public String getEnvironmentName() {
         String commandLinePassedEnvironment = environment;
-        String environmentConfigFileEnvironment = getEnvironmentInput() == null ? null : getEnvironmentInput().getEnvironmentName();
+        String environmentConfigFileEnvironment = getEnvironmentConfig() == null ? null : getEnvironmentConfig().getEnvironmentName();
         String EnvironmentalVarEnvironment = System.getenv("CERBERUS_CLI_ENV");
 
         String calculatedEnv = StringUtils.isNotBlank(commandLinePassedEnvironment) ? commandLinePassedEnvironment :
@@ -147,7 +147,7 @@ public class CerberusCommand {
      */
     public String getConfigRegion() {
         String commandLinePassedRegion = region;
-        String environmentConfigFileRegion = getEnvironmentInput() == null ? null : getEnvironmentInput().getPrimaryRegion();
+        String environmentConfigFileRegion = getEnvironmentConfig() == null ? null : getEnvironmentConfig().getPrimaryRegion();
         String EnvironmentalVarRegion = System.getenv("CERBERUS_CLI_REGION");
 
         String calculatedRegion = StringUtils.isNotBlank(commandLinePassedRegion) ? commandLinePassedRegion :

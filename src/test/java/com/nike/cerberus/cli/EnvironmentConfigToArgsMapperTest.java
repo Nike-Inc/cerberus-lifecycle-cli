@@ -26,7 +26,7 @@ import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.domain.input.EnvironmentInput;
+import com.nike.cerberus.domain.input.EnvironmentConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,14 +39,14 @@ import static org.junit.Assert.fail;
 
 public class EnvironmentConfigToArgsMapperTest {
 
-    private EnvironmentInput environmentConfig;
+    private EnvironmentConfig environmentConfig;
 
     @Before
     public void before() throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         mapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
         InputStream yamlStream = getClass().getClassLoader().getResourceAsStream("environment.yaml");
-        environmentConfig = mapper.readValue(yamlStream, EnvironmentInput.class);
+        environmentConfig = mapper.readValue(yamlStream, EnvironmentConfig.class);
     }
 
     @Test

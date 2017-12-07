@@ -36,7 +36,7 @@ import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
-import com.nike.cerberus.domain.input.EnvironmentInput;
+import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementServiceInput;
 import com.nike.cerberus.domain.input.ManagementServiceRegionSpecificInput;
 import com.nike.cerberus.domain.input.RegionSpecificConfigurationInput;
@@ -55,7 +55,7 @@ public class EnvironmentConfigToArgsMapper {
 
     }
 
-    public static String[] getArgs(EnvironmentInput environmentConfig, String[] passedArgs) {
+    public static String[] getArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
         List<String> args = new LinkedList<>();
         String commandName = null;
 
@@ -85,7 +85,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.toArray(new String[args.size()]);
     }
 
-    public static List<String> getArgsForCommand(EnvironmentInput environmentConfig, String commandName, String[] passedArgs) {
+    public static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
         List<String> args = new LinkedList<>();
         switch (commandName) {
             case InitializeEnvironmentCommand.COMMAND_NAME:
@@ -144,7 +144,7 @@ public class EnvironmentConfigToArgsMapper {
         return args;
     }
 
-    private static List<String> getCreateEdgeDomainRecordCommandArgs(EnvironmentInput environmentConfig) {
+    private static List<String> getCreateEdgeDomainRecordCommandArgs(EnvironmentConfig environmentConfig) {
         ArgsBuilder args = ArgsBuilder.create()
                 .addOption(CreateEdgeDomainRecordCommand.BASE_DOMAIN_NAME_LONG_ARG, environmentConfig.getBaseDomainName())
                 .addOption(CreateEdgeDomainRecordCommand.HOSTED_ZONE_ID_LONG_ARG, environmentConfig.getHostedZoneId());
@@ -156,7 +156,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateCmsConfigCommandArgs(EnvironmentInput environmentConfig) {
+    private static List<String> getCreateCmsConfigCommandArgs(EnvironmentConfig environmentConfig) {
         ArgsBuilder args = ArgsBuilder.create();
         ManagementServiceInput managementService = environmentConfig.getManagementService();
         args.addOption(CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, managementService.getAdminGroup());
@@ -166,7 +166,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getWhitelistCidrForVpcAccessCommandArgs(EnvironmentInput environmentConfig) {
+    private static List<String> getWhitelistCidrForVpcAccessCommandArgs(EnvironmentConfig environmentConfig) {
         ArgsBuilder args = ArgsBuilder.create();
 
         VpcAccessWhitelistInput vpcAccessWhitelist = environmentConfig.getVpcAccessWhitelist();
@@ -182,7 +182,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentInput config) {
+    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig config) {
         RegionSpecificConfigurationInput primaryRegion = config.getPrimaryRegionConfig();
         ManagementServiceRegionSpecificInput cmsConfig = primaryRegion.getManagementService().orElseThrow(() ->
                 new RuntimeException("management service config not defined in primary region config"));
@@ -195,7 +195,7 @@ public class EnvironmentConfigToArgsMapper {
                 .build();
     }
 
-    private static List<String> getGlobalTags(EnvironmentInput environmentConfig) {
+    private static List<String> getGlobalTags(EnvironmentConfig environmentConfig) {
         ArgsBuilder args = ArgsBuilder.create();
         environmentConfig.getGlobalTags().forEach((key, value) ->
                 args.addDynamicProperty(TagParametersDelegate.TAG_SHORT_ARG, key, value)
@@ -203,7 +203,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getUploadCertFilesCommandArgs(EnvironmentInput environmentConfig, String[] passedArgs) {
+    private static List<String> getUploadCertFilesCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
         return ArgsBuilder.create()
                 .addOptionUsingPassedArgIfPresent(
                         UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG,
@@ -213,7 +213,7 @@ public class EnvironmentConfigToArgsMapper {
                 .build();
     }
 
-    private static List<String> getInitializeEnvironmentCommandArgs(EnvironmentInput config) {
+    private static List<String> getInitializeEnvironmentCommandArgs(EnvironmentConfig config) {
         ArgsBuilder args = ArgsBuilder.create()
                 .addAll(getGlobalTags(config))
                 .addOption(InitializeEnvironmentCommand.ADMIN_ROLE_ARN_LONG_ARG, config.getAdminRoleArn())
@@ -226,15 +226,15 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateVpcCommandArgs(EnvironmentInput config) {
+    private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config) {
         return getGlobalTags(config);
     }
 
-    private static List<String> getCreateSecurityGroupsCommandArgs(EnvironmentInput config) {
+    private static List<String> getCreateSecurityGroupsCommandArgs(EnvironmentConfig config) {
         return getGlobalTags(config);
     }
 
-    private static List<String> getCreateDatabaseCommandArgs(EnvironmentInput config) {
+    private static List<String> getCreateDatabaseCommandArgs(EnvironmentConfig config) {
         ArgsBuilder args = ArgsBuilder.create();
         if (config.getPrimaryRegionConfig().getRds().isPresent()) {
             args.addOption(CreateDatabaseCommand.INSTANCE_CLASS_LONG_ARG,
@@ -244,7 +244,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateLoadBalancerCommandArgs(EnvironmentInput config) {
+    private static List<String> getCreateLoadBalancerCommandArgs(EnvironmentConfig config) {
         ArgsBuilder args = ArgsBuilder.create();
         if (StringUtils.isNotBlank(config.getLoadBalancerSslPolicyOverride())) {
             args.addOption(CreateLoadBalancerCommand.LOAD_BALANCER_SSL_POLICY_OVERRIDE_LONG_ARG,
@@ -255,7 +255,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateRoute53CommandArgs(EnvironmentInput config) {
+    private static List<String> getCreateRoute53CommandArgs(EnvironmentConfig config) {
         ArgsBuilder args = ArgsBuilder.create()
                 .addOption(CreateRoute53Command.BASE_DOMAIN_NAME_LONG_ARG, config.getBaseDomainName())
                 .addOption(CreateRoute53Command.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId());
@@ -273,13 +273,13 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateWafCommandArgs(EnvironmentInput config) {
+    private static List<String> getCreateWafCommandArgs(EnvironmentConfig config) {
         return ArgsBuilder.create()
                 .addAll(getGlobalTags(config))
                 .build();
     }
 
-    private static List<String> getGenerateCertificatesCommandArgs(EnvironmentInput config) {
+    private static List<String> getGenerateCertificatesCommandArgs(EnvironmentConfig config) {
         ArgsBuilder args = ArgsBuilder.create()
                 .addOption(GenerateCertificateFilesCommandParametersDelegate.BASE_DOMAIN_LONG_ARG, config.getBaseDomainName())
                 .addOption(GenerateCertificateFilesCommandParametersDelegate.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId())

@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * Stores all YAML data for a given Cerberus environment
  */
-public class EnvironmentInput {
+public class EnvironmentConfig {
 
     private String environmentName;
     private Map<String, String> globalTags;

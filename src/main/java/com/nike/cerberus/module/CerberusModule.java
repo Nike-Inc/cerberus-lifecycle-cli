@@ -49,7 +49,7 @@ import com.nike.cerberus.domain.environment.RegionDeserializer;
 import com.nike.cerberus.domain.environment.RegionKeyDeserializer;
 import com.nike.cerberus.domain.environment.RegionKeySerializer;
 import com.nike.cerberus.domain.environment.RegionSerializer;
-import com.nike.cerberus.domain.input.EnvironmentInput;
+import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.service.AwsClientFactory;
 import com.nike.cerberus.util.UuidSupplier;
 import org.apache.commons.lang3.StringUtils;
@@ -78,13 +78,13 @@ public class CerberusModule extends AbstractModule {
 
     private final String configRegionName;
 
-    private final EnvironmentInput environmentInput;
+    private final EnvironmentConfig environmentConfig;
 
     public CerberusModule(CerberusCommand cerberusCommand) {
         proxyDelegate = cerberusCommand.getProxyDelegate();
         environmentName = cerberusCommand.getEnvironmentName();
         configRegionName = cerberusCommand.getConfigRegion();
-        environmentInput = cerberusCommand.getEnvironmentInput();
+        environmentConfig = cerberusCommand.getEnvironmentConfig();
     }
 
     /**
@@ -93,8 +93,8 @@ public class CerberusModule extends AbstractModule {
     @Override
     protected void configure() {
         // If a environment yaml was provided make it injectable as an Optional
-        OptionalBinder.newOptionalBinder(binder(), EnvironmentInput.class);
-        bind(EnvironmentInput.class).toProvider(Providers.of(environmentInput));
+        OptionalBinder.newOptionalBinder(binder(), EnvironmentConfig.class);
+        bind(EnvironmentConfig.class).toProvider(Providers.of(environmentConfig));
 
         bindConstant().annotatedWith(Names.named(ENV_NAME)).to(environmentName);
         bindConstant().annotatedWith(Names.named(CONFIG_REGION)).to(configRegionName);

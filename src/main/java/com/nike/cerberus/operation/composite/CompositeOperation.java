@@ -21,7 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.nike.cerberus.cli.EnvironmentConfigToArgsMapper;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.input.EnvironmentInput;
+import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.operation.Operation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
 
     private Injector injector;
 
-    protected EnvironmentInput environmentConfig;
+    protected EnvironmentConfig environmentConfig;
 
     @Inject
     public void setInjector(Injector injector) {
@@ -49,7 +49,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
     }
 
     @Inject
-    public void setEnvironmentConfig(@Nullable EnvironmentInput environmentConfig) {
+    public void setEnvironmentConfig(@Nullable EnvironmentConfig environmentConfig) {
         this.environmentConfig = environmentConfig;
     }
 
@@ -65,7 +65,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
      */
     @SuppressWarnings("unchecked")
     public void run(T compositeCommand) {
-        if (isEnvironmentInputRequired() && environmentConfig == null) {
+        if (isEnvironmentConfigRequired() && environmentConfig == null) {
             throw new RuntimeException(String.format("The %s command requires that -f or --file must be supplied as a global option with " +
                     "a path to a valid environment yaml", compositeCommand.getCommandName()));
         }
@@ -128,7 +128,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
      *
      * @return boolean of whether or not the environment yaml is required.
      */
-    public boolean isEnvironmentInputRequired() {
+    public boolean isEnvironmentConfigRequired() {
         return true;
     }
 
