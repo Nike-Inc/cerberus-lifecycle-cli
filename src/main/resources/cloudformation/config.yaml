@@ -16,6 +16,9 @@ Parameters:
   accountAdminArn:
     Description: The ARN for a IAM user, group or role that can create this stack.
     Type: String
+  environmentName:
+    Description: The Cerberus environment name.
+    Type: String
 Resources:
   CerberusConfigBucket:
     Properties:
@@ -55,35 +58,37 @@ Resources:
   EnvironmentDataKmsCmk:
     Type: AWS::KMS::Key
     Properties:
-      Description: Cerberus encryption key for storing config files in an encrypted
-        state.
+      Description: - !Join ['', ['Environment: ', !Ref 'environmentName', ' Cerberus encryption key for storing config files in s3 buckets.']]
       Enabled: 'true'
       KeyPolicy:
         Statement:
-          - Action:
+          -
+            Sid: Allow-Root-User
+            Action:
               - kms:*
             Effect: Allow
             Principal:
               AWS:
                 - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
             Resource: '*'
-            Sid: Allow-Root-User
-          - Action:
+          -
+            Sid: Allow-Decrypt-From-Instances
+            Action:
               - kms:Decrypt
             Effect: Allow
             Principal:
               AWS:
                 - !Ref 'cmsIamRoleArn'
             Resource: '*'
-            Sid: Allow-Decrypt-From-Instances
-          - Action:
+          -
+            Sid: Allow-Account-Admin
+            Action:
               - kms:*
             Effect: Allow
             Principal:
               AWS:
                 !Ref 'accountAdminArn'
             Resource: '*'
-            Sid: Allow-Account-Admin
         Version: '2012-10-17'
       Tags:
         - Key: created_by
@@ -94,20 +99,23 @@ Resources:
   CmsSecureDataKmsCmk:
     Type: AWS::KMS::Key
     Properties:
-      Description: CMS KMS CMK for storing secure data in RDS.
+      Description: - !Join ['', ['Environment: ', !Ref 'environmentName', ' CMS KMS CMK for storing secure data in RDS.']]
         state.
       Enabled: 'true'
       KeyPolicy:
         Statement:
-          - Action:
+           -
+            Sid: Allow-Root-User
+            Action:
               - kms:*
             Effect: Allow
             Principal:
               AWS:
                 - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
             Resource: '*'
-            Sid: Allow-Root-User
-          - Action:
+          -
+            Sid: Allow-Decrypt-From-Cms-Instances
+            Action:
               - kms:Encrypt
               - kms:Decrypt
               - kms:ReEncryptTo
@@ -119,15 +127,15 @@ Resources:
               AWS:
                 - !Ref 'cmsIamRoleArn'
             Resource: '*'
-            Sid: Allow-Decrypt-From-Cms-Instances
-          - Action:
+          -
+            Sid: Allow-Account-Admin
+            Action:
               - kms:*
             Effect: Allow
             Principal:
               AWS:
                 !Ref 'accountAdminArn'
             Resource: '*'
-            Sid: Allow-Account-Admin
         Version: '2012-10-17'
       Tags:
         - Key: created_by

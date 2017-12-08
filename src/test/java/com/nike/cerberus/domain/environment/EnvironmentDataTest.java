@@ -37,7 +37,7 @@ public class EnvironmentDataTest {
         RegionData regionData = new RegionData();
         regionData.setPrimary(true);
         regionData.setConfigBucket("foo");
-        regionData.setEnvironmentDataSecureDataKmsCmkArn("bar");
+        regionData.setEnvironmentDataKmsCmkArn("bar");
         regionData.setCmsSecureDataKmsCmkArn("bam");
         expected.addRegionData(Regions.US_WEST_2, regionData);
 

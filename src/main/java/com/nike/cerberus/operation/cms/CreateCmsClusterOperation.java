@@ -93,7 +93,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
-                .setBaseStackName(Stack.BASE_IAM_ROLES.getFullName(environmentName))
+                .setBaseStackName(Stack.IAM_ROLES.getFullName(environmentName))
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName));
 
@@ -121,7 +121,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         try {
             cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.LOAD_BALANCER.getFullName(environmentName));
             cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.SECURITY_GROUPS.getFullName(environmentName));
-            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.BASE_IAM_ROLES.getFullName(environmentName));
+            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.IAM_ROLES.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             logger.error("Could not create the CMS cluster." +
                     "Make sure the load balancer, security group, and base stacks have all been created.", iae);

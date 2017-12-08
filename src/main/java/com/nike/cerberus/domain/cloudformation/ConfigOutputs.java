@@ -16,7 +16,7 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
-public class BaseOutputs {
+public class ConfigOutputs {
 
     private String configBucketDomainName;
 
@@ -30,7 +30,7 @@ public class BaseOutputs {
         return configBucketDomainName;
     }
 
-    public BaseOutputs setConfigBucketDomainName(String configBucketDomainName) {
+    public ConfigOutputs setConfigBucketDomainName(String configBucketDomainName) {
         this.configBucketDomainName = configBucketDomainName;
         return this;
     }
@@ -39,7 +39,7 @@ public class BaseOutputs {
         return configBucketName;
     }
 
-    public BaseOutputs setConfigBucketName(String configBucketName) {
+    public ConfigOutputs setConfigBucketName(String configBucketName) {
         this.configBucketName = configBucketName;
         return this;
     }

@@ -18,8 +18,8 @@ package com.nike.cerberus.operation.core;
 
 import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
-import com.nike.cerberus.domain.cloudformation.BaseParameters;
-import com.nike.cerberus.domain.cloudformation.BaseOutputs;
+import com.nike.cerberus.domain.cloudformation.ConfigParameters;
+import com.nike.cerberus.domain.cloudformation.ConfigOutputs;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -67,23 +67,24 @@ public class InitializeEnvironmentOperation implements Operation<InitializeEnvir
         Regions primaryRegion = Regions.fromName(command.getPrimaryRegion());
 
         // create the global cms iam role
-        cloudFormationService.createStackAndWait(primaryRegion, Stack.BASE_IAM_ROLES, new HashMap<>(), true,
+        cloudFormationService.createStackAndWait(primaryRegion, Stack.IAM_ROLES, new HashMap<>(), true,
                 command.getTagsDelegate().getTags());
 
         String cmsIamRoleArn = configStore.getCmsIamRoleOutputs(primaryRegion).getCmsIamRoleArn();
 
-        BaseParameters baseParameters = new BaseParameters()
+        ConfigParameters configParameters = new ConfigParameters()
                 .setAccountAdminArn(command.getAdminRoleArn())
-                .setCmsIamRoleArn(cmsIamRoleArn);
-        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters);
+                .setCmsIamRoleArn(cmsIamRoleArn)
+                .setEnvironmentName(environmentName);
+        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(configParameters);
 
-        Map<Regions, BaseOutputs> regionConfigOutputsMap = new HashMap<>();
+        Map<Regions, ConfigOutputs> regionConfigOutputsMap = new HashMap<>();
         // for each region, create a config bucket and kms cmk for encrypting environment data
         command.getRegions().forEach(regionName -> {
             Regions region = Regions.fromName(regionName);
             cloudFormationService.createStackAndWait(
                     region,
-                    Stack.BASE, parameters, true,
+                    Stack.CONFIG, parameters, true,
                     command.getTagsDelegate().getTags()
             );
             regionConfigOutputsMap.put(region, configStore.getConfigBucketStackOutputs(region));
@@ -109,7 +110,7 @@ public class InitializeEnvironmentOperation implements Operation<InitializeEnvir
         }
 
         if (cloudFormationService.isStackPresent(Regions.fromName(command.getPrimaryRegion()),
-                Stack.BASE_IAM_ROLES.getFullName(environmentName))) {
+                Stack.IAM_ROLES.getFullName(environmentName))) {
 
             log.error("The IAM Role stack has already been created");
             isRunnable = false;

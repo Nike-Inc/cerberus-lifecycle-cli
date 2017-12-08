@@ -31,9 +31,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.domain.cloudformation.BaseIamRolesOutputs;
+import com.nike.cerberus.domain.cloudformation.IamRolesOutputs;
 import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
-import com.nike.cerberus.domain.cloudformation.BaseOutputs;
+import com.nike.cerberus.domain.cloudformation.ConfigOutputs;
 import com.nike.cerberus.domain.cloudformation.Route53Outputs;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
@@ -344,8 +344,8 @@ public class ConfigStore {
      *
      * @return Base outputs
      */
-    public BaseIamRolesOutputs getCmsIamRoleOutputs() {
-        return getStackOutputs(getPrimaryRegion(), getCloudFormationStackName(Stack.BASE_IAM_ROLES), BaseIamRolesOutputs.class);
+    public IamRolesOutputs getCmsIamRoleOutputs() {
+        return getStackOutputs(getPrimaryRegion(), getCloudFormationStackName(Stack.IAM_ROLES), IamRolesOutputs.class);
     }
 
     /**
@@ -353,8 +353,8 @@ public class ConfigStore {
      *
      * @return Base outputs
      */
-    public BaseIamRolesOutputs getCmsIamRoleOutputs(Regions region) {
-        return getStackOutputs(region, getCloudFormationStackName(Stack.BASE_IAM_ROLES), BaseIamRolesOutputs.class);
+    public IamRolesOutputs getCmsIamRoleOutputs(Regions region) {
+        return getStackOutputs(region, getCloudFormationStackName(Stack.IAM_ROLES), IamRolesOutputs.class);
     }
 
     /**
@@ -362,8 +362,8 @@ public class ConfigStore {
      *
      * @return Base outputs
      */
-    public BaseOutputs getConfigBucketStackOutputs(Regions region) {
-        return getStackOutputs(region, getCloudFormationStackName(Stack.BASE), BaseOutputs.class);
+    public ConfigOutputs getConfigBucketStackOutputs(Regions region) {
+        return getStackOutputs(region, getCloudFormationStackName(Stack.CONFIG), ConfigOutputs.class);
     }
 
     /**
@@ -522,7 +522,7 @@ public class ConfigStore {
 
         List<String> environmentDataKmsCmkArns = new LinkedList<>();
         environmentData.getRegionData().forEach((region, regionData) ->
-                regionData.getEnvironmentDataSecureDataKmsCmkArn().ifPresent(environmentDataKmsCmkArns::add));
+                regionData.getEnvironmentDataKmsCmkArn().ifPresent(environmentDataKmsCmkArns::add));
         MasterKeyProvider<KmsMasterKey> encryptProvider = initializeKeyProvider(environmentDataKmsCmkArns);
 
         String encryptedObject = encryptionService.encrypt(encryptProvider, plaintextSerializedObject);
@@ -609,7 +609,7 @@ public class ConfigStore {
     public void initializeEnvironment(String adminRoleArn,
                                       String cmsIamRoleArn,
                                       Regions primaryRegion,
-                                      Map<Regions, BaseOutputs> regionConfigOutputsMap) {
+                                      Map<Regions, ConfigOutputs> regionConfigOutputsMap) {
 
         AWSSecurityTokenService securityTokenService = securityTokenServiceFactory.getClient(configRegion);
         GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
@@ -627,7 +627,7 @@ public class ConfigStore {
                 regionData.setPrimary(true);
             }
             regionData.setConfigBucket(output.getConfigBucketName());
-            regionData.setEnvironmentDataSecureDataKmsCmkArn(output.getEnvironmentDataKmsCmkArn());
+            regionData.setEnvironmentDataKmsCmkArn(output.getEnvironmentDataKmsCmkArn());
             regionData.setCmsSecureDataKmsCmkArn(output.getCmsSecureDataKmsCmkArn());
             environmentData.addRegionData(region, regionData);
         });
@@ -658,7 +658,7 @@ public class ConfigStore {
             throw new RuntimeException("There is no region data for region: " + region.getName());
         }
         RegionData data = getDecryptedEnvironmentData().getRegionData().get(region);
-        return data.getEnvironmentDataSecureDataKmsCmkArn().orElseThrow(() ->
+        return data.getEnvironmentDataKmsCmkArn().orElseThrow(() ->
                 new RuntimeException("There is no cms cmk configured for region: " + region.getName()));
     }
 

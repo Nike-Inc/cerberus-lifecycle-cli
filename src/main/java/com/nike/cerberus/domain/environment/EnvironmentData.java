@@ -18,7 +18,6 @@ package com.nike.cerberus.domain.environment;
 
 import com.amazonaws.regions.Regions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.common.base.Joiner;
 
 import javax.inject.Singleton;
 import java.util.HashMap;
@@ -119,7 +118,7 @@ public class EnvironmentData {
     public List<Regions> getConfigRegions() {
         List<Regions> configRegions = new LinkedList<>();
         regionData.forEach((region, rData) -> {
-            if (rData.getEnvironmentDataSecureDataKmsCmkArn().isPresent()
+            if (rData.getEnvironmentDataKmsCmkArn().isPresent()
                     && rData.getConfigBucket().isPresent()) {
                 configRegions.add(region);
             }

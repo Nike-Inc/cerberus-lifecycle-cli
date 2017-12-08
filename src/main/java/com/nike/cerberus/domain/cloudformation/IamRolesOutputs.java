@@ -17,29 +17,29 @@
 package com.nike.cerberus.domain.cloudformation;
 
 /**
- * Represents the base stack inputs.
+ * Represents the base stack outputs.
  */
-public class BaseParameters {
-
-    private String accountAdminArn;
+public class IamRolesOutputs {
 
     private String cmsIamRoleArn;
 
-    public String getAccountAdminArn() {
-        return accountAdminArn;
-    }
-
-    public BaseParameters setAccountAdminArn(String accountAdminArn) {
-        this.accountAdminArn = accountAdminArn;
-        return this;
-    }
+    private String cmsIamRoleName;
 
     public String getCmsIamRoleArn() {
         return cmsIamRoleArn;
     }
 
-    public BaseParameters setCmsIamRoleArn(String cmsIamRoleArn) {
+    public IamRolesOutputs setCmsIamRoleArn(String cmsIamRoleArn) {
         this.cmsIamRoleArn = cmsIamRoleArn;
+        return this;
+    }
+
+    public String getCmsIamRoleName() {
+        return cmsIamRoleName;
+    }
+
+    public IamRolesOutputs setCmsIamRoleName(String cmsIamRoleName) {
+        this.cmsIamRoleName = cmsIamRoleName;
         return this;
     }
 }
