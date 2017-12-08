@@ -18,6 +18,7 @@ package com.nike.cerberus.domain.environment;
 
 import com.amazonaws.regions.Regions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Joiner;
 
 import javax.inject.Singleton;
 import java.util.HashMap;
@@ -128,16 +129,10 @@ public class EnvironmentData {
 
     @JsonIgnore
     public Regions getPrimaryRegion() {
-        final Regions[] primaryRegion = {null};
-        regionData.forEach((region, regionData) -> {
-            if (regionData.isPrimary()) {
-                primaryRegion[0] = region;
-            }
-        });
-        if (primaryRegion[0] == null) {
-        throw new RuntimeException("Failed to find primary region in region specific state");
-    }
-        return primaryRegion[0];
+        return regionData.entrySet().stream()
+                .filter(entry -> entry.getValue().isPrimary()).findFirst()
+                .orElseThrow(() -> new RuntimeException("Failed to find primary region in region specific state"))
+                .getKey();
     }
 
     public void addCmksCmkForRegion(Regions region, String arn) {
