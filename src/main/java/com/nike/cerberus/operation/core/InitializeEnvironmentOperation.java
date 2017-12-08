@@ -18,8 +18,8 @@ package com.nike.cerberus.operation.core;
 
 import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
-import com.nike.cerberus.domain.cloudformation.RegionBaseParameters;
-import com.nike.cerberus.domain.cloudformation.RegionBaseOutputs;
+import com.nike.cerberus.domain.cloudformation.BaseParameters;
+import com.nike.cerberus.domain.cloudformation.BaseOutputs;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -72,18 +72,18 @@ public class InitializeEnvironmentOperation implements Operation<InitializeEnvir
 
         String cmsIamRoleArn = configStore.getCmsIamRoleOutputs(primaryRegion).getCmsIamRoleArn();
 
-        RegionBaseParameters regionBaseParameters = new RegionBaseParameters()
+        BaseParameters baseParameters = new BaseParameters()
                 .setAccountAdminArn(command.getAdminRoleArn())
                 .setCmsIamRoleArn(cmsIamRoleArn);
-        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(regionBaseParameters);
+        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(baseParameters);
 
-        Map<Regions, RegionBaseOutputs> regionConfigOutputsMap = new HashMap<>();
+        Map<Regions, BaseOutputs> regionConfigOutputsMap = new HashMap<>();
         // for each region, create a config bucket and kms cmk for encrypting environment data
         command.getRegions().forEach(regionName -> {
             Regions region = Regions.fromName(regionName);
             cloudFormationService.createStackAndWait(
                     region,
-                    Stack.REGION_BASE, parameters, true,
+                    Stack.BASE, parameters, true,
                     command.getTagsDelegate().getTags()
             );
             regionConfigOutputsMap.put(region, configStore.getConfigBucketStackOutputs(region));

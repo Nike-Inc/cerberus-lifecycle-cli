@@ -33,7 +33,7 @@ import com.github.tomaslanger.chalk.Chalk;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.cloudformation.CmsIamRoleOutputs;
 import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
-import com.nike.cerberus.domain.cloudformation.RegionBaseOutputs;
+import com.nike.cerberus.domain.cloudformation.BaseOutputs;
 import com.nike.cerberus.domain.cloudformation.Route53Outputs;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
@@ -362,8 +362,8 @@ public class ConfigStore {
      *
      * @return Base outputs
      */
-    public RegionBaseOutputs getConfigBucketStackOutputs(Regions region) {
-        return getStackOutputs(region, getCloudFormationStackName(Stack.REGION_BASE), RegionBaseOutputs.class);
+    public BaseOutputs getConfigBucketStackOutputs(Regions region) {
+        return getStackOutputs(region, getCloudFormationStackName(Stack.BASE), BaseOutputs.class);
     }
 
     /**
@@ -609,7 +609,7 @@ public class ConfigStore {
     public void initializeEnvironment(String adminRoleArn,
                                       String cmsIamRoleArn,
                                       Regions primaryRegion,
-                                      Map<Regions, RegionBaseOutputs> regionConfigOutputsMap) {
+                                      Map<Regions, BaseOutputs> regionConfigOutputsMap) {
 
         AWSSecurityTokenService securityTokenService = securityTokenServiceFactory.getClient(configRegion);
         GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
