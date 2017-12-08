@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Creates the necessary S3 buckets, and KMS CMKs for Cerberus
+Description: Creates the necessary S3 buckets, and KMS CMK for Cerberus
 Outputs:
   configBucketDomainName:
     Value: !GetAtt 'CerberusConfigBucket.DomainName'
@@ -24,6 +24,7 @@ Resources:
         Status: Enabled
     Type: AWS::S3::Bucket
   CerberusConfigBucketAccessPolicy:
+    Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref 'CerberusConfigBucket'
       PolicyDocument:
@@ -51,8 +52,8 @@ Resources:
               - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /cms]]
             Sid: Allow-Bucket-Access-For-CMS
         Version: '2012-10-17'
-    Type: AWS::S3::BucketPolicy
   EnvironmentDataKmsCmk:
+    Type: AWS::KMS::Key
     Properties:
       Description: Cerberus encryption key for storing config files in an encrypted
         state.
@@ -84,8 +85,14 @@ Resources:
             Resource: '*'
             Sid: Allow-Account-Admin
         Version: '2012-10-17'
-    Type: AWS::KMS::Key
+      Tags:
+        - Key: created_by
+          Value: cerberus_cli
+        - Key: created_for
+          Value: cerberus_cli
+
   CmsSecureDataKmsCmk:
+    Type: AWS::KMS::Key
     Properties:
       Description: CMS KMS CMK for storing secure data in RDS.
         state.
@@ -101,13 +108,18 @@ Resources:
             Resource: '*'
             Sid: Allow-Root-User
           - Action:
+              - kms:Encrypt
               - kms:Decrypt
+              - kms:ReEncryptTo
+              - kms:ReEncryptFrom
+              - kms:GenerateDataKey
+              - kms:GenerateDataKeyWithoutPlaintext
             Effect: Allow
             Principal:
               AWS:
                 - !Ref 'cmsIamRoleArn'
             Resource: '*'
-            Sid: Allow-Decrypt-From-Instances
+            Sid: Allow-Decrypt-From-Cms-Instances
           - Action:
               - kms:*
             Effect: Allow
@@ -117,4 +129,8 @@ Resources:
             Resource: '*'
             Sid: Allow-Account-Admin
         Version: '2012-10-17'
-    Type: AWS::KMS::Key
+      Tags:
+        - Key: created_by
+          Value: cerberus_cli
+        - Key: created_for
+          Value: cerberus_cms
