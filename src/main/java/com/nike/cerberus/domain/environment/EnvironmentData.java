@@ -135,7 +135,7 @@ public class EnvironmentData {
                 .getKey();
     }
 
-    public void addCmksCmkForRegion(Regions region, String arn) {
+    public void addCmsSecureDataKmsCmkArn(Regions region, String arn) {
         RegionData rData;
         if (!regionData.containsKey(region)) {
             rData = new RegionData();

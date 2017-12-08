@@ -664,7 +664,7 @@ public class ConfigStore {
 
     public void storeCmsCmkForRegion(Regions region, String arn) {
         EnvironmentData environmentData = getDecryptedEnvironmentData();
-        environmentData.addCmksCmkForRegion(region, arn);
+        environmentData.addCmsSecureDataKmsCmkArn(region, arn);
         saveEnvironmentData(environmentData);
     }
 
