@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public class Stack implements Comparable<Stack> {
 
-    public static final Stack CMS_IAM_ROLE = new Stack("cms-iam-role", "cms-iam-role.yaml", false);
+    public static final Stack BASE_IAM_ROLES = new Stack("base-iam-roles", "base-iam-roles.yaml", false);
     public static final Stack BASE = new Stack("base", "base.yaml", false);
     public static final Stack CMS = new Stack("cms", "cms-cluster.yaml", true);
     public static final Stack VPC = new Stack("vpc", "vpc.yaml", false);
@@ -42,7 +42,7 @@ public class Stack implements Comparable<Stack> {
     public static final Stack ROUTE53 = new Stack("route53", "route53.yaml", false);
     public static final Stack WAF = new Stack("web-app-firewall", "web-app-firewall.yaml", false);
 
-    public static final ImmutableList<Stack> ALL_STACKS = ImmutableList.of(CMS_IAM_ROLE, CMS, VPC, DATABASE, SECURITY_GROUPS, LOAD_BALANCER, ROUTE53, WAF, BASE);
+    public static final ImmutableList<Stack> ALL_STACKS = ImmutableList.of(BASE_IAM_ROLES, CMS, VPC, DATABASE, SECURITY_GROUPS, LOAD_BALANCER, ROUTE53, WAF, BASE);
 
     public static final ImmutableList<String> ALL_STACK_NAMES = ImmutableList.copyOf(ALL_STACKS.stream().map(Stack::getName).collect(Collectors.toList()));
 

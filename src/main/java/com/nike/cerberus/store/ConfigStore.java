@@ -31,7 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.domain.cloudformation.CmsIamRoleOutputs;
+import com.nike.cerberus.domain.cloudformation.BaseIamRolesOutputs;
 import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
 import com.nike.cerberus.domain.cloudformation.BaseOutputs;
 import com.nike.cerberus.domain.cloudformation.Route53Outputs;
@@ -344,8 +344,8 @@ public class ConfigStore {
      *
      * @return Base outputs
      */
-    public CmsIamRoleOutputs getCmsIamRoleOutputs() {
-        return getStackOutputs(getPrimaryRegion(), getCloudFormationStackName(Stack.CMS_IAM_ROLE), CmsIamRoleOutputs.class);
+    public BaseIamRolesOutputs getCmsIamRoleOutputs() {
+        return getStackOutputs(getPrimaryRegion(), getCloudFormationStackName(Stack.CMS_IAM_ROLE), BaseIamRolesOutputs.class);
     }
 
     /**
@@ -353,8 +353,8 @@ public class ConfigStore {
      *
      * @return Base outputs
      */
-    public CmsIamRoleOutputs getCmsIamRoleOutputs(Regions region) {
-        return getStackOutputs(region, getCloudFormationStackName(Stack.CMS_IAM_ROLE), CmsIamRoleOutputs.class);
+    public BaseIamRolesOutputs getCmsIamRoleOutputs(Regions region) {
+        return getStackOutputs(region, getCloudFormationStackName(Stack.CMS_IAM_ROLE), BaseIamRolesOutputs.class);
     }
 
     /**

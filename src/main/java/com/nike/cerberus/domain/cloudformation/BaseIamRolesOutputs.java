@@ -19,7 +19,7 @@ package com.nike.cerberus.domain.cloudformation;
 /**
  * Represents the base stack outputs.
  */
-public class CmsIamRoleOutputs {
+public class BaseIamRolesOutputs {
 
     private String cmsIamRoleArn;
 
@@ -29,7 +29,7 @@ public class CmsIamRoleOutputs {
         return cmsIamRoleArn;
     }
 
-    public CmsIamRoleOutputs setCmsIamRoleArn(String cmsIamRoleArn) {
+    public BaseIamRolesOutputs setCmsIamRoleArn(String cmsIamRoleArn) {
         this.cmsIamRoleArn = cmsIamRoleArn;
         return this;
     }
@@ -38,7 +38,7 @@ public class CmsIamRoleOutputs {
         return cmsIamRoleName;
     }
 
-    public CmsIamRoleOutputs setCmsIamRoleName(String cmsIamRoleName) {
+    public BaseIamRolesOutputs setCmsIamRoleName(String cmsIamRoleName) {
         this.cmsIamRoleName = cmsIamRoleName;
         return this;
     }
