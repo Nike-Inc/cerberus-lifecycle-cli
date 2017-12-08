@@ -36,7 +36,7 @@ import static com.nike.cerberus.command.core.InitializeEnvironmentCommand.COMMAN
                 "bootstrap a Cerberus environment and store env infrastructure state")
 public class InitializeEnvironmentCommand implements Command {
 
-    public static final String COMMAND_NAME = "initialize-environment";
+    public static final String COMMAND_NAME = "init-env";
     public static final String ADMIN_ROLE_ARN_LONG_ARG = "--admin-role-arn";
     public static final String REGION_LONG_ARG = "--region";
     public static final String PRIMARY_REGION = "--primary-region";
@@ -50,10 +50,10 @@ public class InitializeEnvironmentCommand implements Command {
 
     @Parameter(
             names = REGION_LONG_ARG,
-            description = "The regions to use with the cerberus environment, you must declare at least 2 regions, " +
-                    "The CLI and the Management service use an AWS encryption library that supports encrypting payloads " +
+            description = "The regions to use with the Cerberus environment, you must declare at least 2 regions, " +
+                    "The CLI and the Management service use the AWS Encryption SDK that supports encrypting payloads " +
                     "with data keys from multiple regions so that the data can be decrypted in other regions in case of " +
-                    "region outages. We require at least 2 regions to ensure HA of config and secure data",
+                    "region outages. We require at least 2 regions to ensure high availability of config and secure data",
             variableArity = true,
             required = true
     )
