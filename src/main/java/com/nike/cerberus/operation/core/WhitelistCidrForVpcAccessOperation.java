@@ -106,7 +106,7 @@ public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCi
     @Override
     public boolean isRunnable(WhitelistCidrForVpcAccessCommand command) {
         try {
-            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.CMS_IAM_ROLE.getFullName(environmentName));
+            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.BASE_IAM_ROLES.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             logger.error("Could not create the CMS cluster." +
                     "Make sure the load balancer, security group, and base stacks have all been created.", iae);

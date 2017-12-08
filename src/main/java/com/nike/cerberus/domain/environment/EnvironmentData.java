@@ -135,17 +135,6 @@ public class EnvironmentData {
                 .getKey();
     }
 
-    public void addCmsSecureDataKmsCmkArn(Regions region, String arn) {
-        RegionData rData;
-        if (!regionData.containsKey(region)) {
-            rData = new RegionData();
-            regionData.put(region, rData);
-        } else {
-            rData = regionData.get(region);
-        }
-        rData.setCmsSecureDataKmsCmkArn(arn);
-    }
-
     public List<String> getCmsCmkArns() {
         return regionData.entrySet().stream()
                 .filter(entry -> entry.getValue().getCmsSecureDataKmsCmkArn().isPresent())

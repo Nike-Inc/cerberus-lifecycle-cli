@@ -345,7 +345,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public BaseIamRolesOutputs getCmsIamRoleOutputs() {
-        return getStackOutputs(getPrimaryRegion(), getCloudFormationStackName(Stack.CMS_IAM_ROLE), BaseIamRolesOutputs.class);
+        return getStackOutputs(getPrimaryRegion(), getCloudFormationStackName(Stack.BASE_IAM_ROLES), BaseIamRolesOutputs.class);
     }
 
     /**
@@ -354,7 +354,7 @@ public class ConfigStore {
      * @return Base outputs
      */
     public BaseIamRolesOutputs getCmsIamRoleOutputs(Regions region) {
-        return getStackOutputs(region, getCloudFormationStackName(Stack.CMS_IAM_ROLE), BaseIamRolesOutputs.class);
+        return getStackOutputs(region, getCloudFormationStackName(Stack.BASE_IAM_ROLES), BaseIamRolesOutputs.class);
     }
 
     /**
@@ -660,12 +660,6 @@ public class ConfigStore {
         RegionData data = getDecryptedEnvironmentData().getRegionData().get(region);
         return data.getEnvironmentDataSecureDataKmsCmkArn().orElseThrow(() ->
                 new RuntimeException("There is no cms cmk configured for region: " + region.getName()));
-    }
-
-    public void storeCmsCmkForRegion(Regions region, String arn) {
-        EnvironmentData environmentData = getDecryptedEnvironmentData();
-        environmentData.addCmsSecureDataKmsCmkArn(region, arn);
-        saveEnvironmentData(environmentData);
     }
 
     public EnvironmentData getEnvironmentData() {

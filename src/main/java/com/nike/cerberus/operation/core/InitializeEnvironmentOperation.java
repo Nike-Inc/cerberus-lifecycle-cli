@@ -67,7 +67,7 @@ public class InitializeEnvironmentOperation implements Operation<InitializeEnvir
         Regions primaryRegion = Regions.fromName(command.getPrimaryRegion());
 
         // create the global cms iam role
-        cloudFormationService.createStackAndWait(primaryRegion, Stack.CMS_IAM_ROLE, new HashMap<>(), true,
+        cloudFormationService.createStackAndWait(primaryRegion, Stack.BASE_IAM_ROLES, new HashMap<>(), true,
                 command.getTagsDelegate().getTags());
 
         String cmsIamRoleArn = configStore.getCmsIamRoleOutputs(primaryRegion).getCmsIamRoleArn();
@@ -109,7 +109,7 @@ public class InitializeEnvironmentOperation implements Operation<InitializeEnvir
         }
 
         if (cloudFormationService.isStackPresent(Regions.fromName(command.getPrimaryRegion()),
-                Stack.CMS_IAM_ROLE.getFullName(environmentName))) {
+                Stack.BASE_IAM_ROLES.getFullName(environmentName))) {
 
             log.error("The IAM Role stack has already been created");
             isRunnable = false;
