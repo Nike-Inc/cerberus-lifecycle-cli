@@ -33,7 +33,7 @@ public class UploadCertificateFilesCommand implements Command {
     public static final String COMMAND_NAME = "upload-certificate-files";
 
     @ParametersDelegate
-    private final UploadCertificateFilesCommandParametersDelegate uploadCertificatesPathParametersDelegate =
+    private UploadCertificateFilesCommandParametersDelegate uploadCertificatesPathParametersDelegate =
             new UploadCertificateFilesCommandParametersDelegate();
 
     public UploadCertificateFilesCommandParametersDelegate getUploadCertificatesPathParametersDelegate() {

@@ -1,0 +1,144 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates the necessary S3 buckets, and KMS CMK for Cerberus
+Outputs:
+  configBucketDomainName:
+    Value: !GetAtt 'CerberusConfigBucket.DomainName'
+  configBucketName:
+    Value: !Ref 'CerberusConfigBucket'
+  environmentDataKmsCmkArn:
+    Value: !GetAtt 'EnvironmentDataKmsCmk.Arn'
+  cmsSecureDataKmsCmkArn:
+    Value: !GetAtt 'CmsSecureDataKmsCmk.Arn'
+Parameters:
+  cmsIamRoleArn:
+    Description: The ARN for for the management service IAM Role.
+    Type: String
+  accountAdminArn:
+    Description: The ARN for a IAM user, group or role that can create this stack.
+    Type: String
+  environmentName:
+    Description: The Cerberus environment name.
+    Type: String
+Resources:
+  CerberusConfigBucket:
+    Properties:
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+    Type: AWS::S3::Bucket
+  CerberusConfigBucketAccessPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 'CerberusConfigBucket'
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:ListBucket
+            Effect: Allow
+            Principal:
+              AWS:
+                !Ref 'cmsIamRoleArn'
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket']]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /*]]
+            Sid: Allow-ListBucket-Access
+          - Action:
+              - s3:*
+            Effect: Allow
+            Principal:
+              AWS:
+                !Ref 'cmsIamRoleArn'
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /certificates/*]]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /certificates]]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /cms/*]]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /cms]]
+            Sid: Allow-Bucket-Access-For-CMS
+        Version: '2012-10-17'
+  EnvironmentDataKmsCmk:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: - !Join ['', ['Environment: ', !Ref 'environmentName', ' Cerberus encryption key for storing config files in s3 buckets.']]
+      Enabled: 'true'
+      KeyPolicy:
+        Statement:
+          -
+            Sid: Allow-Root-User
+            Action:
+              - kms:*
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
+            Resource: '*'
+          -
+            Sid: Allow-Decrypt-From-Instances
+            Action:
+              - kms:Decrypt
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Ref 'cmsIamRoleArn'
+            Resource: '*'
+          -
+            Sid: Allow-Account-Admin
+            Action:
+              - kms:*
+            Effect: Allow
+            Principal:
+              AWS:
+                !Ref 'accountAdminArn'
+            Resource: '*'
+        Version: '2012-10-17'
+      Tags:
+        - Key: created_by
+          Value: cerberus_cli
+        - Key: created_for
+          Value: cerberus_cli
+
+  CmsSecureDataKmsCmk:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: - !Join ['', ['Environment: ', !Ref 'environmentName', ' CMS KMS CMK for storing secure data in RDS.']]
+        state.
+      Enabled: 'true'
+      KeyPolicy:
+        Statement:
+           -
+            Sid: Allow-Root-User
+            Action:
+              - kms:*
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
+            Resource: '*'
+          -
+            Sid: Allow-Decrypt-From-Cms-Instances
+            Action:
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:ReEncryptTo
+              - kms:ReEncryptFrom
+              - kms:GenerateDataKey
+              - kms:GenerateDataKeyWithoutPlaintext
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Ref 'cmsIamRoleArn'
+            Resource: '*'
+          -
+            Sid: Allow-Account-Admin
+            Action:
+              - kms:*
+            Effect: Allow
+            Principal:
+              AWS:
+                !Ref 'accountAdminArn'
+            Resource: '*'
+        Version: '2012-10-17'
+      Tags:
+        - Key: created_by
+          Value: cerberus_cli
+        - Key: created_for
+          Value: cerberus_cms

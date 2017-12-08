@@ -16,10 +16,9 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.google.common.collect.Sets;
+import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
 import com.nike.cerberus.domain.cloudformation.DatabaseParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
@@ -33,7 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Map;
+
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -42,7 +44,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
 
     private final CloudFormationService cloudFormationService;
 
@@ -53,24 +55,26 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
     private RandomStringGenerator passwordGenerator = new RandomStringGenerator();
 
     @Inject
-    public CreateDatabaseOperation(final EnvironmentMetadata environmentMetadata,
-                                   final CloudFormationService cloudFormationService,
-                                   final ConfigStore configStore,
-                                   final CloudFormationObjectMapper cloudFormationObjectMapper) {
-        this.environmentMetadata = environmentMetadata;
+    public CreateDatabaseOperation(@Named(ENV_NAME) String environmentName,
+                                   CloudFormationService cloudFormationService,
+                                   ConfigStore configStore,
+                                   CloudFormationObjectMapper cloudFormationObjectMapper) {
+
+        this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
 
     @Override
-    public void run(final CreateDatabaseCommand command) {
-        final String environmentName = environmentMetadata.getName();
-        final VpcParameters vpcParameters = configStore.getVpcStackParameters();
-        final VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
-        final String databasePassword = passwordGenerator.get();
+    public void run(CreateDatabaseCommand command) {
+        Regions region = configStore.getPrimaryRegion();
 
-        final DatabaseParameters databaseParameters = new DatabaseParameters()
+        VpcParameters vpcParameters = configStore.getVpcStackParameters();
+        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
+        String databasePassword = passwordGenerator.get();
+
+        DatabaseParameters databaseParameters = new DatabaseParameters()
                 .setCmsDbMasterPassword(databasePassword)
                 .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName))
                 .setCmsDbInstanceAz1(vpcParameters.getAz1())
@@ -78,26 +82,31 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
                 .setCmsDbInstanceAz3(vpcParameters.getAz3())
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
-                .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
+                .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
+                .setCmsDbInstanceClass(command.getInstanceClass());
 
-        final Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters);
-
-        cloudFormationService.createStackAndWait(Stack.DATABASE, parameters, true,
-                command.getTagsDelegate().getTags());
+        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters);
 
         configStore.storeCmsDatabasePassword(databasePassword);
+
+        cloudFormationService.createStackAndWait(
+                region,
+                Stack.DATABASE,
+                parameters,
+                true,
+                command.getTagsDelegate().getTags()
+        );
     }
 
     @Override
-    public boolean isRunnable(final CreateDatabaseCommand command) {
-        String environmentName = environmentMetadata.getName();
+    public boolean isRunnable(CreateDatabaseCommand command) {
         try {
-            cloudFormationService.getStackId(Stack.SECURITY_GROUPS.getFullName(environmentName));
+            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.SECURITY_GROUPS.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             logger.error("The security group stack must exist to create the the data base stack!");
             return false;
         }
 
-        return !cloudFormationService.isStackPresent(Stack.DATABASE.getFullName(environmentName));
+        return !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.DATABASE.getFullName(environmentName));
     }
 }

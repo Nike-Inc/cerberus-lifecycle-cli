@@ -88,7 +88,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
             }
 
             // Use jcommander to bind the resolved args to the command object
-            JCommander.newBuilder().addObject(chainedCommand).build().parse(args);
+            new JCommander(chainedCommand).parse(args);
 
             // Get the instance of the operation from guice
             Operation operation = getOperationInstance(chainedCommand);
@@ -124,7 +124,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
     protected abstract List<ChainableCommand> getCompositeCommandChain(T compositeCommand);
 
     /**
-     * If you command doesn't require that the environment yaml be supplied, you can override this to false.
+     * If your command doesn't require that the environment yaml be supplied, you can override this to false.
      *
      * @return boolean of whether or not the environment yaml is required.
      */

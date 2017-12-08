@@ -16,7 +16,8 @@
 
 package com.nike.cerberus.service;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
@@ -24,9 +25,11 @@ import com.amazonaws.services.autoscaling.model.EnterStandbyRequest;
 import com.amazonaws.services.autoscaling.model.ExitStandbyRequest;
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest;
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.beust.jcommander.internal.Lists;
+import com.nike.cerberus.store.ConfigStore;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -37,34 +40,53 @@ import java.util.Optional;
  */
 public class AutoScalingService {
 
-    private final AmazonAutoScaling autoScalingClient;
-
-    private final AmazonEC2 ec2Client;
+    private final AwsClientFactory<AmazonAutoScalingClient> autoScalingClientFactory;
+    private final AwsClientFactory<AmazonEC2Client> amazonEC2ClientFactory;
+    private final ConfigStore configStore;
 
     @Inject
-    public AutoScalingService(final AmazonAutoScaling autoScalingClient, final AmazonEC2 ec2Client) {
-        this.autoScalingClient = autoScalingClient;
-        this.ec2Client = ec2Client;
+    public AutoScalingService(AwsClientFactory<AmazonAutoScalingClient> autoScalingClientFactory,
+                              AwsClientFactory<AmazonEC2Client> amazonEC2ClientFactory,
+                              ConfigStore configStore) {
+
+        this.autoScalingClientFactory = autoScalingClientFactory;
+        this.amazonEC2ClientFactory = amazonEC2ClientFactory;
+        this.configStore = configStore;
     }
 
     /**
-     * For a given AutoScaling group logical id, get the public dns names associated with each instance.
+     * For a given AutoScaling group logical id, get the public dns names associated with each instance in the
+     * primary region
      *
      * @param logicalId AutoScaling group logical id
      * @return List of public dns names
      */
-    public List<String> getPublicDnsForAutoScalingGroup(final String logicalId) {
-        final List<String> instanceIds = Lists.newLinkedList();
-        final Optional<AutoScalingGroup> autoScalingGroup = describeAutoScalingGroup(logicalId);
-        final List<String> publicDnsNames = Lists.newLinkedList();
+    public List<String> getPublicDnsForAutoScalingGroup(String logicalId) {
+        return getPublicDnsForAutoScalingGroup(configStore.getPrimaryRegion(), logicalId);
+    }
+
+    /**
+     * For a given AutoScaling group logical id, get the public dns names associated with each instance in the
+     * provided region
+     *
+     * @param region The region to use
+     * @param logicalId AutoScaling group logical id
+     * @return List of public dns names
+     */
+    public List<String> getPublicDnsForAutoScalingGroup(Regions region, String logicalId) {
+        AmazonEC2 ec2Client = amazonEC2ClientFactory.getClient(region);
+
+        List<String> instanceIds = Lists.newLinkedList();
+        Optional<AutoScalingGroup> autoScalingGroup = describeAutoScalingGroup(region, logicalId);
+        List<String> publicDnsNames = Lists.newLinkedList();
 
         if (autoScalingGroup.isPresent()) {
             autoScalingGroup.get()
                     .getInstances().stream().forEach(instance -> instanceIds.add(instance.getInstanceId()));
 
-            final DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest()
+            DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest()
                     .withInstanceIds(instanceIds);
-            final DescribeInstancesResult describeInstancesResult =
+            DescribeInstancesResult describeInstancesResult =
                     ec2Client.describeInstances(describeInstancesRequest);
 
             describeInstancesResult.getReservations().forEach(reservation ->
@@ -77,13 +99,24 @@ public class AutoScalingService {
     }
 
     /**
-     * Updates the minimum number of instances allowed in the auto scaling group
+     * Updates the minimum number of instances allowed in the auto scaling group in the primary region
      *
      * @param logicalId - Name of the auto scaling group
      */
-    public void updateMinInstancesForAutoScalingGroup(final String logicalId, final int minInstances) {
+    public void updateMinInstancesForAutoScalingGroup(String logicalId, int minInstances) {
+        updateMinInstancesForAutoScalingGroup(configStore.getPrimaryRegion(), logicalId, minInstances);
+    }
 
-        final UpdateAutoScalingGroupRequest request = new UpdateAutoScalingGroupRequest()
+    /**
+     * Updates the minimum number of instances allowed in the auto scaling group
+     *
+     * @param region The region to use
+     * @param logicalId - Name of the auto scaling group
+     */
+    public void updateMinInstancesForAutoScalingGroup(Regions region, String logicalId, int minInstances) {
+        AmazonAutoScalingClient autoScalingClient = autoScalingClientFactory.getClient(region);
+
+        UpdateAutoScalingGroupRequest request = new UpdateAutoScalingGroupRequest()
                 .withAutoScalingGroupName(logicalId)
                 .withMinSize(minInstances);
 
@@ -95,11 +128,28 @@ public class AutoScalingService {
      * and a new instance is not spun up on instance reboot. This also removes the instance from the ELB, so that the
      * instance is not terminated when the health check fails.
      *
+     * uses the primary region
+     *
      * @param logicalId  - Name of the auto scaling group
      * @param instanceId - ID of the EC2 instance
      */
-    public void setInstanceStateToStandby(final String logicalId, final String instanceId) {
-        final EnterStandbyRequest request = new EnterStandbyRequest()
+    public void setInstanceStateToStandby(String logicalId, String instanceId) {
+        setInstanceStateToStandby(configStore.getPrimaryRegion(), logicalId, instanceId);
+    }
+
+    /**
+     * Set an EC2 instance to standby state, so that the desired instance count on the AutoScaling group is decreased
+     * and a new instance is not spun up on instance reboot. This also removes the instance from the ELB, so that the
+     * instance is not terminated when the health check fails.
+     *
+     * @param region The region to use
+     * @param logicalId  - Name of the auto scaling group
+     * @param instanceId - ID of the EC2 instance
+     */
+    public void setInstanceStateToStandby(Regions region, String logicalId, String instanceId) {
+        AmazonAutoScalingClient autoScalingClient = autoScalingClientFactory.getClient(region);
+
+        EnterStandbyRequest request = new EnterStandbyRequest()
                 .withAutoScalingGroupName(logicalId)
                 .withInstanceIds(instanceId)
                 .withShouldDecrementDesiredCapacity(true);
@@ -109,23 +159,46 @@ public class AutoScalingService {
 
     /**
      * Signify that the EC2 instance is now in service and ready to be re-added to the ELB and AutoScaling group. This
-     * will also increase the desired instance count for the ASG.
+     * will also increase the desired instance count for the ASG in the primary region.
      *
      * @param logicalId  - Name of the auto scaling group
      * @param instanceId - ID of the EC2 instance
      */
-    public void setInstanceStateToInService(final String logicalId, final String instanceId) {
-        final ExitStandbyRequest request = new ExitStandbyRequest()
+    public void setInstanceStateToInService(String logicalId, String instanceId) {
+        setInstanceStateToInService(configStore.getPrimaryRegion(), logicalId, instanceId);
+    }
+
+    /**
+     * Signify that the EC2 instance is now in service and ready to be re-added to the ELB and AutoScaling group. This
+     * will also increase the desired instance count for the ASG in the provided region.
+     *
+     * @param region The region to use
+     * @param logicalId  - Name of the auto scaling group
+     * @param instanceId - ID of the EC2 instance
+     */
+    public void setInstanceStateToInService(Regions region, String logicalId, String instanceId) {
+
+        AmazonAutoScalingClient autoScalingClient = autoScalingClientFactory.getClient(region);
+
+        ExitStandbyRequest request = new ExitStandbyRequest()
                 .withAutoScalingGroupName(logicalId)
                 .withInstanceIds(instanceId);
 
         autoScalingClient.exitStandby(request);
     }
 
-    private Optional<AutoScalingGroup> describeAutoScalingGroup(final String autoscalingGroupName) {
-        final DescribeAutoScalingGroupsRequest describeAsg = new DescribeAutoScalingGroupsRequest()
-                .withAutoScalingGroupNames(autoscalingGroupName);
-        final DescribeAutoScalingGroupsResult result = autoScalingClient.describeAutoScalingGroups(describeAsg);
+    /**
+     *
+     * @param region The region to look for the ASG
+     * @param autoScalingGroupName The ASG name to look for.
+     * @return AutoScalingGroup details
+     */
+    private Optional<AutoScalingGroup> describeAutoScalingGroup(Regions region, String autoScalingGroupName) {
+        AmazonAutoScalingClient autoScalingClient = autoScalingClientFactory.getClient(region);
+
+        DescribeAutoScalingGroupsRequest describeAsg = new DescribeAutoScalingGroupsRequest()
+                .withAutoScalingGroupNames(autoScalingGroupName);
+        DescribeAutoScalingGroupsResult result = autoScalingClient.describeAutoScalingGroups(describeAsg);
 
         return result.getAutoScalingGroups().stream().findFirst();
     }

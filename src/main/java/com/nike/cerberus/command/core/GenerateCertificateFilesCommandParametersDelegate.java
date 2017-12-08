@@ -138,7 +138,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
             },
             description = "Flag to supply when running command in an environment without TTY, such as a build job"
     )
-    private boolean tty = false;
+    private boolean isNoTty = false;
 
     @Parameter(
             names = {
@@ -190,7 +190,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
     }
 
     public boolean isTty() {
-        return tty;
+        return ! isNoTty;
     }
 
     public boolean isAutoAcceptAcmeTos() {

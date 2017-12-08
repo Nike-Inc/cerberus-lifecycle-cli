@@ -18,6 +18,7 @@ package com.nike.cerberus.service;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AvailabilityZone;
 import com.amazonaws.services.ec2.model.AvailabilityZoneState;
 import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
@@ -32,8 +33,10 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.KeyPairInfo;
 import com.amazonaws.services.ec2.model.RebootInstancesRequest;
 import com.amazonaws.services.ec2.model.Reservation;
+import com.nike.cerberus.store.ConfigStore;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.List;
 
@@ -44,21 +47,30 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class Ec2ServiceTest {
 
-    private AmazonEC2 ec2Client;
+    @Mock
+    ConfigStore configStore;
+
+    @Mock
+    AmazonEC2Client ec2Client;
+
+    @Mock
+    AwsClientFactory<AmazonEC2Client> amazonEC2ClientFactory;
 
     private Ec2Service ec2Service;
 
     @Before
     public void setup() {
-        ec2Client = mock(AmazonEC2.class);
-
-        ec2Service = new Ec2Service(ec2Client);
+        initMocks(this);
+        when(amazonEC2ClientFactory.getClient(any())).thenReturn(ec2Client);
+        ec2Service = new Ec2Service(amazonEC2ClientFactory, configStore);
     }
 
     @Test

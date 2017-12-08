@@ -28,14 +28,13 @@ import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
-import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
 import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.composite.RotateCertificatesCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
@@ -169,11 +168,10 @@ public class CerberusRunner {
      * Convenience method for registering all top level commands.
      */
     private void registerAllCommands() {
-        registerCommand(new CreateBaseCommand());
+        registerCommand(new InitializeEnvironmentCommand());
         registerCommand(new UploadCertificateFilesCommand());
         registerCommand(new CreateCmsConfigCommand());
         registerCommand(new CreateCmsClusterCommand());
-        registerCommand(new CreateCmsCmkCommand());
         registerCommand(new UpdateStackCommand());
         registerCommand(new PrintStackInfoCommand());
         registerCommand(new PrintAllStackInformationCommand());

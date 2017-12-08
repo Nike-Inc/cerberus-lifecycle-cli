@@ -18,12 +18,11 @@ package com.nike.cerberus.cli;
 
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
-import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.GenerateAndRotateCertificatesCommand;
 import com.nike.cerberus.command.composite.RotateCertificatesCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
@@ -38,9 +37,12 @@ import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDel
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
-import com.nike.cerberus.domain.input.ManagementService;
-import com.nike.cerberus.domain.input.VpcAccessWhitelist;
+import com.nike.cerberus.domain.input.ManagementServiceInput;
+import com.nike.cerberus.domain.input.ManagementServiceRegionSpecificInput;
+import com.nike.cerberus.domain.input.RegionSpecificConfigurationInput;
+import com.nike.cerberus.domain.input.VpcAccessWhitelistInput;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -84,65 +86,73 @@ public class EnvironmentConfigToArgsMapper {
     }
 
     public static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
+        List<String> args = new LinkedList<>();
         switch (commandName) {
-            case CreateBaseCommand.COMMAND_NAME:
-                return getCreateBaseCommandArgs(environmentConfig);
+            case InitializeEnvironmentCommand.COMMAND_NAME:
+                args = getInitializeEnvironmentCommandArgs(environmentConfig);
+                break;
             case UploadCertificateFilesCommand.COMMAND_NAME:
-                return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
+                args = getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
+                break;
             case CreateCmsClusterCommand.COMMAND_NAME:
-                return getCreateCmsClusterCommandArgs(environmentConfig);
+                args = getCreateCmsClusterCommandArgs(environmentConfig);
+                break;
             case WhitelistCidrForVpcAccessCommand.COMMAND_NAME:
-                return getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
+                args = getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
+                break;
             case CreateCmsConfigCommand.COMMAND_NAME:
-                return getCreateCmsConfigCommandArgs(environmentConfig);
+                args = getCreateCmsConfigCommandArgs(environmentConfig);
+                break;
             case UpdateCmsConfigCommand.COMMAND_NAME:
-                return getCreateCmsConfigCommandArgs(environmentConfig);
+                args = getCreateCmsConfigCommandArgs(environmentConfig);
+                break;
             case CreateVpcCommand.COMMAND_NAME:
-                return getCreateVpcCommandArgs(environmentConfig);
+                args = getCreateVpcCommandArgs(environmentConfig);
+                break;
             case CreateSecurityGroupsCommand.COMMAND_NAME:
-                return getCreateSecurityGroupsCommandArgs(environmentConfig);
+                args = getCreateSecurityGroupsCommandArgs(environmentConfig);
+                break;
             case CreateDatabaseCommand.COMMAND_NAME:
-                return getCreateDatabaseCommandArgs(environmentConfig);
+                args = getCreateDatabaseCommandArgs(environmentConfig);
+                break;
             case CreateLoadBalancerCommand.COMMAND_NAME:
-                return getCreateLoadBalancerCommandArgs(environmentConfig);
+                args = getCreateLoadBalancerCommandArgs(environmentConfig);
+                break;
             case CreateRoute53Command.COMMAND_NAME:
-                return getCreateRoute53CommandArgs(environmentConfig);
+                args = getCreateRoute53CommandArgs(environmentConfig);
+                break;
             case CreateWafCommand.COMMAND_NAME:
-                return getCreateWafCommandArgs(environmentConfig);
+                args = getCreateWafCommandArgs(environmentConfig);
+                break;
             case GenerateCertificateFilesCommand.COMMAND_NAME:
-                return getGenerateCertificatesCommandArgs(environmentConfig);
-            case CreateCmsCmkCommand.COMMAND_NAME:
-                return getCreateCmsCmkCommandArgs(environmentConfig);
+                args = getGenerateCertificatesCommandArgs(environmentConfig);
+                break;
             case CreateEdgeDomainRecordCommand.COMMAND_NAME:
-                return getCreateEdgeDomainRecordCommandArgs(environmentConfig);
+                args = getCreateEdgeDomainRecordCommandArgs(environmentConfig);
+                break;
             case GenerateAndRotateCertificatesCommand.COMMAND_NAME:
-                return getGenerateCertificatesCommandArgs(environmentConfig);
+                args = getGenerateCertificatesCommandArgs(environmentConfig);
+                break;
             case RotateCertificatesCommand.COMMAND_NAME:
-                return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
+                args = getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
+                break;
             default:
-                return new LinkedList<>();
+                break;
         }
+
+        LoggerFactory.getLogger("com.nike.cerberus.cli.EnvironmentConfigToArgsMapper")
+                .debug("Mapped the following args from the provided YAML\n" + String.join("\n", args));
+
+        return args;
     }
 
     private static List<String> getCreateEdgeDomainRecordCommandArgs(EnvironmentConfig environmentConfig) {
-        return ArgsBuilder.create()
+        ArgsBuilder args = ArgsBuilder.create()
                 .addOption(CreateEdgeDomainRecordCommand.BASE_DOMAIN_NAME_LONG_ARG, environmentConfig.getBaseDomainName())
-                .addOption(CreateEdgeDomainRecordCommand.HOSTED_ZONE_ID_LONG_ARG, environmentConfig.getHostedZoneId())
-                .addOption(CreateEdgeDomainRecordCommand.EDGE_DOMAIN_NAME_OVERRIDE, environmentConfig.getEdgeDomainNameOverride())
-                .build();
-    }
+                .addOption(CreateEdgeDomainRecordCommand.HOSTED_ZONE_ID_LONG_ARG, environmentConfig.getHostedZoneId());
 
-    private static List<String> getCreateCmsCmkCommandArgs(EnvironmentConfig environmentConfig) {
-        ArgsBuilder args = ArgsBuilder.create();
-
-        if (environmentConfig.getManagementService().getAdditionalEncryptionCmkRegions() != null
-                && environmentConfig.getManagementService().getAdditionalEncryptionCmkRegions().size() >= 1) {
-            environmentConfig.getManagementService().getAdditionalEncryptionCmkRegions().forEach(region -> {
-                args.addOption(CreateCmsCmkCommand.ADDITIONAL_REGIONS_ARG, region);
-            });
-        } else {
-            throw new RuntimeException(String.format("%s requires at least 1 additional region be specified for high " +
-                    "availability, add at least 1 region to 'encryption-cmk-regions'", CreateCmsCmkCommand.COMMAND_NAME));
+        if (StringUtils.isNotBlank(environmentConfig.getEdgeDomainNameOverride())) {
+            args.addOption(CreateEdgeDomainRecordCommand.EDGE_DOMAIN_NAME_OVERRIDE, environmentConfig.getEdgeDomainNameOverride());
         }
 
         return args.build();
@@ -150,7 +160,7 @@ public class EnvironmentConfigToArgsMapper {
 
     private static List<String> getCreateCmsConfigCommandArgs(EnvironmentConfig environmentConfig) {
         ArgsBuilder args = ArgsBuilder.create();
-        ManagementService managementService = environmentConfig.getManagementService();
+        ManagementServiceInput managementService = environmentConfig.getManagementService();
         args.addOption(CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, managementService.getAdminGroup());
         managementService.getProperties().forEach(property -> {
             args.addOption(CreateCmsConfigCommand.PROPERTY_SHORT_ARG, property);
@@ -161,7 +171,7 @@ public class EnvironmentConfigToArgsMapper {
     private static List<String> getWhitelistCidrForVpcAccessCommandArgs(EnvironmentConfig environmentConfig) {
         ArgsBuilder args = ArgsBuilder.create();
 
-        VpcAccessWhitelist vpcAccessWhitelist = environmentConfig.getVpcAccessWhitelist();
+        VpcAccessWhitelistInput vpcAccessWhitelist = environmentConfig.getVpcAccessWhitelist();
 
         vpcAccessWhitelist.getCidrs().forEach(cidr -> {
             args.addOption(WhitelistCidrForVpcAccessCommand.CIDR_LONG_ARG, cidr);
@@ -174,12 +184,16 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig environmentConfig) {
+    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig config) {
+        RegionSpecificConfigurationInput primaryRegion = config.getPrimaryRegionConfig();
+        ManagementServiceRegionSpecificInput cmsConfig = primaryRegion.getManagementService().orElseThrow(() ->
+                new RuntimeException("management service config not defined in primary region config"));
+
         return ArgsBuilder.create()
-                .addOption(StackDelegate.AMI_ID_LONG_ARG, environmentConfig.getManagementService().getAmiId())
-                .addOption(StackDelegate.INSTANCE_SIZE_LONG_ARG, environmentConfig.getManagementService().getInstanceSize())
-                .addOption(StackDelegate.KEY_PAIR_NAME_LONG_ARG, environmentConfig.getManagementService().getKeyPairName())
-                .addAll(getGlobalTags(environmentConfig))
+                .addOption(StackDelegate.AMI_ID_LONG_ARG, cmsConfig.getAmiId())
+                .addOption(StackDelegate.INSTANCE_SIZE_LONG_ARG, cmsConfig.getInstanceSize())
+                .addOption(StackDelegate.KEY_PAIR_NAME_LONG_ARG, cmsConfig.getKeyPairName())
+                .addAll(getGlobalTags(config))
                 .build();
     }
 
@@ -195,17 +209,24 @@ public class EnvironmentConfigToArgsMapper {
         return ArgsBuilder.create()
                 .addOptionUsingPassedArgIfPresent(
                         UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG,
-                        environmentConfig.getManagementService().getCertPath(),
+                        environmentConfig.getCertificateDirectory(),
                         passedArgs
                 )
                 .build();
     }
 
-    private static List<String> getCreateBaseCommandArgs(EnvironmentConfig config) {
-        return ArgsBuilder.create()
+    private static List<String> getInitializeEnvironmentCommandArgs(EnvironmentConfig config) {
+        ArgsBuilder args = ArgsBuilder.create()
                 .addAll(getGlobalTags(config))
-                .addOption(CreateBaseCommand.ADMIN_ROLE_ARN_LONG_ARG, config.getAdminRoleArn())
-                .build();
+                .addOption(InitializeEnvironmentCommand.ADMIN_ROLE_ARN_LONG_ARG, config.getAdminRoleArn())
+                .addOption(InitializeEnvironmentCommand.PRIMARY_REGION, config.getPrimaryRegion());
+
+        args.addFlag(InitializeEnvironmentCommand.REGION_LONG_ARG);
+        config.getRegionSpecificConfiguration().forEach((region, data) -> {
+            args.addFlag(region);
+        });
+
+        return args.build();
     }
 
     private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config) {
@@ -217,7 +238,13 @@ public class EnvironmentConfigToArgsMapper {
     }
 
     private static List<String> getCreateDatabaseCommandArgs(EnvironmentConfig config) {
-        return getGlobalTags(config);
+        ArgsBuilder args = ArgsBuilder.create();
+        if (config.getPrimaryRegionConfig().getRds().isPresent()) {
+            args.addOption(CreateDatabaseCommand.INSTANCE_CLASS_LONG_ARG,
+                    config.getPrimaryRegionConfig().getRds().get().getSize());
+        }
+        args.addAll(getGlobalTags(config));
+        return args.build();
     }
 
     private static List<String> getCreateLoadBalancerCommandArgs(EnvironmentConfig config) {
@@ -232,12 +259,21 @@ public class EnvironmentConfigToArgsMapper {
     }
 
     private static List<String> getCreateRoute53CommandArgs(EnvironmentConfig config) {
-        return ArgsBuilder.create()
+        ArgsBuilder args = ArgsBuilder.create()
                 .addOption(CreateRoute53Command.BASE_DOMAIN_NAME_LONG_ARG, config.getBaseDomainName())
-                .addOption(CreateRoute53Command.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId())
-                .addOption(CreateRoute53Command.ORIGIN_DOMAIN_NAME_OVERRIDE, config.getOriginDomainNameOverride())
-                .addOption(CreateRoute53Command.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE, config.getLoadBalancerDomainNameOverride())
-                .build();
+                .addOption(CreateRoute53Command.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId());
+
+
+        if (StringUtils.isNotBlank(config.getOriginDomainNameOverride())) {
+            args.addOption(CreateRoute53Command.ORIGIN_DOMAIN_NAME_OVERRIDE, config.getOriginDomainNameOverride());
+        }
+
+        if (config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().isPresent()) {
+            args.addOption(CreateRoute53Command.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE,
+                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null));
+        }
+
+        return args.build();
     }
 
     private static List<String> getCreateWafCommandArgs(EnvironmentConfig config) {
@@ -247,27 +283,37 @@ public class EnvironmentConfigToArgsMapper {
     }
 
     private static List<String> getGenerateCertificatesCommandArgs(EnvironmentConfig config) {
-        ArgsBuilder argsBuilder = ArgsBuilder.create()
+        ArgsBuilder args = ArgsBuilder.create()
                 .addOption(GenerateCertificateFilesCommandParametersDelegate.BASE_DOMAIN_LONG_ARG, config.getBaseDomainName())
-                .addOption(GenerateCertificateFilesCommandParametersDelegate.EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getEdgeDomainNameOverride())
-                .addOption(GenerateCertificateFilesCommandParametersDelegate.ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getOriginDomainNameOverride())
-                .addOption(GenerateCertificateFilesCommandParametersDelegate.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getLoadBalancerDomainNameOverride())
                 .addOption(GenerateCertificateFilesCommandParametersDelegate.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId())
                 .addOption(GenerateCertificateFilesCommandParametersDelegate.ACME_API_LONG_ARG, config.getAcmeApiUrl())
                 .addOption(GenerateCertificateFilesCommandParametersDelegate.CONTACT_EMAIL_LONG_ARG, config.getAcmeContactEmail())
-                .addOption(GenerateCertificateFilesCommandParametersDelegate.CERT_FOLDER_LONG_ARG, config.getLocalFolderToStoreCerts());
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.CERT_FOLDER_LONG_ARG, config.getCertificateDirectory());
+
+        if (StringUtils.isNotBlank(config.getEdgeDomainNameOverride())) {
+            args.addOption(GenerateCertificateFilesCommandParametersDelegate.EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getEdgeDomainNameOverride());
+        }
+
+        if (StringUtils.isNotBlank(config.getOriginDomainNameOverride())) {
+            args.addOption(CreateRoute53Command.ORIGIN_DOMAIN_NAME_OVERRIDE, config.getOriginDomainNameOverride());
+        }
+
+        if (StringUtils.isNotBlank(config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null))) {
+            args.addOption(GenerateCertificateFilesCommandParametersDelegate.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG,
+                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null));
+        }
 
         if (config.isEnableLeCertFix()) {
-            argsBuilder.addFlag(GenerateCertificateFilesCommandParametersDelegate.ENABLE_LE_CERTFIX_LONG_ARG);
+            args.addFlag(GenerateCertificateFilesCommandParametersDelegate.ENABLE_LE_CERTFIX_LONG_ARG);
         }
 
         if (config.getAdditionalSubjectNames() != null) {
             config.getAdditionalSubjectNames().forEach(sn -> {
-                argsBuilder.addOption(GenerateCertificateFilesCommandParametersDelegate.SUBJECT_ALT_NAME_LONG_ARG, sn);
+                args.addOption(GenerateCertificateFilesCommandParametersDelegate.SUBJECT_ALT_NAME_LONG_ARG, sn);
             });
         }
 
-        return argsBuilder.build();
+        return args.build();
     }
 
     private static String getStackName(String[] passedArgs) {

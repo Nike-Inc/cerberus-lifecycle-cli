@@ -27,7 +27,7 @@ public class DatabaseParameters {
 
     private String cmsDbInstanceAz3;
 
-    private String cmsDbInstanceSize;
+    private String cmsDbInstanceClass;
 
     private String cmsDbMasterPassword;
 
@@ -70,12 +70,12 @@ public class DatabaseParameters {
         return this;
     }
 
-    public String getCmsDbInstanceSize() {
-        return cmsDbInstanceSize;
+    public String getCmsDbInstanceClass() {
+        return cmsDbInstanceClass;
     }
 
-    public DatabaseParameters setCmsDbInstanceSize(String cmsDbInstanceSize) {
-        this.cmsDbInstanceSize = cmsDbInstanceSize;
+    public DatabaseParameters setCmsDbInstanceClass(String cmsDbInstanceClass) {
+        this.cmsDbInstanceClass = cmsDbInstanceClass;
         return this;
     }
 

@@ -61,6 +61,9 @@ public class ArgsBuilder {
      * @return The builder
      */
     public ArgsBuilder addOptionUsingPassedArgIfPresent(String optionKey, String optionValue, String [] passedArgs) {
+        if (passedArgs == null || passedArgs.length == 0) {
+            return addOption(optionKey, optionValue);
+        }
         int index = -1;
         for (int i = 0; i < passedArgs.length; i++) {
             if (optionKey.equals(passedArgs[i])) {

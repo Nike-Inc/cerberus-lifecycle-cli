@@ -16,12 +16,13 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.github.tomaslanger.chalk.Chalk;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CertificateService;
 import com.nike.cerberus.service.ConsoleService;
+import com.nike.cerberus.store.ConfigStore;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,11 +30,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.File;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 import static com.nike.cerberus.service.ConsoleService.DefaultAction.NO;
+import static com.nike.cerberus.service.ConsoleService.DefaultAction.YES;
 
 /**
  * Operation that uses the cert service to generate the certificates needed to enable https in a Cerberus Env.
@@ -42,17 +47,20 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private final ConfigStore configStore;
     private final CertificateService certService;
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
     private final ConsoleService consoleService;
 
     @Inject
-    public GenerateCertificateFilesOperation(CertificateService certService,
-                                             EnvironmentMetadata environmentMetadata,
+    public GenerateCertificateFilesOperation(ConfigStore configStore,
+                                             CertificateService certService,
+                                             @Named(ENV_NAME) String environmentName,
                                              ConsoleService consoleService) {
 
+        this.configStore = configStore;
         this.certService = certService;
-        this.environmentMetadata = environmentMetadata;
+        this.environmentName = environmentName;
         this.consoleService = consoleService;
     }
 
@@ -68,17 +76,18 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
         // The common name ex: demo.example.com
         String commonName = StringUtils.isNotBlank(parameters.getEdgeDomainNameOverride()) ?
                 parameters.getEdgeDomainNameOverride() :
-                String.format("%s.%s", environmentMetadata.getName(), parameters.getBaseDomainName());
+                String.format("%s.%s", environmentName, parameters.getBaseDomainName());
 
         // origin name san ex: origin.demo.example.com
         String originName = StringUtils.isNotBlank(parameters.getOriginDomainNameOverride()) ?
                 parameters.getOriginDomainNameOverride() :
-                String.format("origin.%s.%s", environmentMetadata.getName(), parameters.getBaseDomainName());
+                String.format("origin.%s.%s", environmentName, parameters.getBaseDomainName());
 
         // The region specific subject alternate name for the load balancer. EX demo.us-west-2.example.com
         String loadBalancerName = StringUtils.isNotBlank(parameters.getLoadBalancerDomainNameOverride()) ?
                 parameters.getLoadBalancerDomainNameOverride() :
-                String.format("%s.%s.%s", environmentMetadata.getName(), environmentMetadata.getRegionName(), parameters.getBaseDomainName());
+                String.format("%s.%s.%s", environmentName, configStore.getPrimaryRegion().getName(),
+                        parameters.getBaseDomainName());
 
         Set<String> subjectAlternativeNames = new HashSet<>();
         subjectAlternativeNames.addAll(parameters.getSubjectAlternativeNames());
@@ -131,6 +140,25 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
 
     @Override
     public boolean isRunnable(GenerateCertificateFilesCommand command) {
-        return true;
+        boolean isRunnable = true;
+        if (command.getGenerateCertificateFilesCommandParametersDelegate().isTty()) {
+            boolean filesAlreadyPreset = true;
+            File certDir = new File(command.getGenerateCertificateFilesCommandParametersDelegate().getCertDir());
+            try {
+                certService.checkForRequiredFiles(certDir);
+            } catch (RuntimeException e) {
+                filesAlreadyPreset = false;
+            }
+            if (filesAlreadyPreset) {
+                try {
+                    consoleService.askUserToProceed(
+                            Chalk.on(String.format("The required files already exists in %s would you like generate " +
+                                    "new files over these?", certDir.getAbsolutePath())).green().toString(), YES);
+                } catch (RuntimeException e) {
+                    isRunnable = false;
+                }
+            }
+        }
+        return isRunnable;
     }
 }

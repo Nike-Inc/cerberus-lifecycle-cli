@@ -22,22 +22,21 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
-import com.nike.cerberus.command.core.UpdateStackCommand;
+import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-@Ignore("This is completely redone in next PR")
 public class EnvironmentConfigToArgsMapperTest {
 
     private EnvironmentConfig environmentConfig;
@@ -48,6 +47,11 @@ public class EnvironmentConfigToArgsMapperTest {
         mapper.setPropertyNamingStrategy(PropertyNamingStrategy.KEBAB_CASE);
         InputStream yamlStream = getClass().getClassLoader().getResourceAsStream("environment.yaml");
         environmentConfig = mapper.readValue(yamlStream, EnvironmentConfig.class);
+    }
+
+    @Test
+    public void test_that_the_example_yaml_can_be_deserialized() {
+        assertNotNull(environmentConfig);
     }
 
     @Test
@@ -85,18 +89,21 @@ public class EnvironmentConfigToArgsMapperTest {
 
 
     @Test
-    public void test_create_base() {
-        String commandName = CreateBaseCommand.COMMAND_NAME;
+    public void test_initialize_environment() {
+        String commandName = InitializeEnvironmentCommand.COMMAND_NAME;
 
         String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
 
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
-                "--admin-role-arn", "arn:aws:iam::111111111:role/onelogin-roles-OneLoginAdminRole-2222222222",
-                "--owner-email", "obvisouly.fake@nike.com",
-                "--costcenter", "11111",
-                "--owner-group", "engineering team name"
+                InitializeEnvironmentCommand.ADMIN_ROLE_ARN_LONG_ARG, "arn:aws:iam::111111111:role/admin",
+                InitializeEnvironmentCommand.REGION_LONG_ARG, "us-west-2",
+                InitializeEnvironmentCommand.REGION_LONG_ARG, "us-east-1",
+                InitializeEnvironmentCommand.PRIMARY_REGION, "us-west-2",
+                "-TownerEmail=obvisouly.fake@nike.com",
+                "-TcostCenter=11111",
+                "-TownerGroup=engineering-team-name"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -113,8 +120,7 @@ public class EnvironmentConfigToArgsMapperTest {
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
-                "--stack-name", "cms",
-                "--cert-path", "/home/fieldju/development/cerberus_environments/demo/certs/"
+                UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG, "/path/to/certs/"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -126,14 +132,12 @@ public class EnvironmentConfigToArgsMapperTest {
     public void test_upload_cert_with_overwrite() {
         String commandName = UploadCertificateFilesCommand.COMMAND_NAME;
 
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, "--stack-name", "cms", "--overwrite"};
+        String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
 
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
-                "--stack-name", "cms",
-                "--cert-path", "/home/fieldju/development/cerberus_environments/demo/certs/",
-                "--overwrite"
+                "--cert-dir-path", "/path/to/certs/",
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -153,9 +157,9 @@ public class EnvironmentConfigToArgsMapperTest {
                 StackDelegate.AMI_ID_LONG_ARG, "ami-3333",
                 StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
                 StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
-//                TagParametersDelegate.COST_CENTER_LONG_ARG, "11111",
-//                TagParametersDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-//                TagParametersDelegate.OWNER_GROUP_LONG_ARG, "engineering team name"
+                "-TownerEmail=obvisouly.fake@nike.com",
+                "-TcostCenter=11111",
+                "-TownerGroup=engineering-team-name"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
@@ -173,11 +177,7 @@ public class EnvironmentConfigToArgsMapperTest {
                 "-f", "/path/to/environment.yaml",
                 commandName,
                 WhitelistCidrForVpcAccessCommand.CIDR_LONG_ARG, "50.39.106.150/32",
-                WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "443",
-                WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "8080",
-                WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "8200",
-                WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "8500",
-                WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "8400",
+                WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "8443",
                 WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "22"
         };
 
@@ -195,60 +195,12 @@ public class EnvironmentConfigToArgsMapperTest {
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
-                CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, "lst-cerberus-admins",
+                CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, "cerberus-admins",
                 CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "cms.auth.connector=com.nike.cerberus.auth.connector.onelogin.OneLoginAuthConnector",
                 CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.api_region=us",
                 CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.client_id=123",
                 CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.client_secret=312",
-                CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.subdomain=nike"
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
-    public void test_update_stack_with_no_overwrite_flag_or_dyn_props() {
-        String commandName = UpdateStackCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "cms"};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "cms",
-                StackDelegate.AMI_ID_LONG_ARG, "ami-3333",
-                StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
-                StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
-//                TagParametersDelegate.COST_CENTER_LONG_ARG, "11111",
-//                TagParametersDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-//                TagParametersDelegate.OWNER_GROUP_LONG_ARG, "engineering team name",
-        };
-
-        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
-
-        assertArgsAreEqual(expected, actual, commandName);
-    }
-
-    @Test
-    public void test_update_stack_with_overwrite_flag_and_dyn_props() {
-        String commandName = UpdateStackCommand.COMMAND_NAME;
-
-        String[] userInput = {"-f", "/path/to/environment.yaml", commandName, EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "cms", "--overwrite-template", "-P", "k=v"};
-
-        String[] expected = {
-                "-f", "/path/to/environment.yaml",
-                commandName,
-                EnvironmentConfigToArgsMapper.STACK_NAME_KEY, "cms",
-                StackDelegate.AMI_ID_LONG_ARG, "ami-3333",
-                StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
-                StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
-//                TagParametersDelegate.COST_CENTER_LONG_ARG, "11111",
-//                TagParametersDelegate.OWNER_EMAIL_LONG_ARG, "obvisouly.fake@nike.com",
-//                TagParametersDelegate.OWNER_GROUP_LONG_ARG, "engineering team name",
-                UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG,
-                UpdateStackCommand.PARAMETER_SHORT_ARG, "k=v",
+                CreateCmsConfigCommand.PROPERTY_SHORT_ARG, "auth.connector.onelogin.subdomain=example"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);

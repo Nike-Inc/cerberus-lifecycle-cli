@@ -18,10 +18,9 @@ package com.nike.cerberus.operation.composite;
 
 import com.google.common.collect.Lists;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
-import com.nike.cerberus.command.cms.CreateCmsCmkCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.core.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
@@ -48,7 +47,7 @@ public class CreateEnvironmentOperation extends CompositeOperation<CreateEnviron
     protected List<ChainableCommand> getCompositeCommandChain(CreateEnvironmentCommand compositeCommand) {
         List<ChainableCommand> list = Lists.newArrayList(
             // Step 1 Create the Base Cloud Formation Stack that creates S3 Buckets, Iam Roles and KMS keys needed for config
-            new ChainableCommand(new CreateBaseCommand()),
+            new ChainableCommand(new InitializeEnvironmentCommand()),
 
             // Step 2 Create the VPC Cloud Formation Stack that Cerberus will use
             new ChainableCommand(new CreateVpcCommand()),
@@ -79,20 +78,16 @@ public class CreateEnvironmentOperation extends CompositeOperation<CreateEnviron
             // Upload to S3 for CMS to download at service start
             new ChainableCommand(new CreateCmsConfigCommand()),
 
-            // Step 9 Create CMS CMK, create KMS master keys in the regions specified for CMS to use with the AWS Encryption
-            // client to encrypt secure data in a manor that is decryptable in multiple regions and store in cms props
-            new ChainableCommand(new CreateCmsCmkCommand()),
-
-            // Step 10 Create the CMS Cluster Stack
+            // Step 9 Create the CMS Cluster Stack
             new ChainableCommand(new CreateCmsClusterCommand()),
 
-            // Step 11 Create the Web Application Fire wall stack
+            // Step 10 Create the Web Application Fire wall stack
             new ChainableCommand(new CreateWafCommand()),
 
-            // Step 12 Create the Route 53 DNS Record Stack for origin and the load balancer
+            // Step 11 Create the Route 53 DNS Record Stack for origin and the load balancer
             new ChainableCommand(new CreateRoute53Command()),
 
-            // Step 13 Create the outer most domain name record that will point to the origin record
+            // Step 12 Create the outer most domain name record that will point to the origin record
             new ChainableCommand(new CreateEdgeDomainRecordCommand())
         ));
 

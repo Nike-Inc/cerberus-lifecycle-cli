@@ -18,7 +18,6 @@ package com.nike.cerberus.operation.core;
 
 import com.amazonaws.AmazonServiceException;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -29,7 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Map;
+import java.util.Optional;
+
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Operation for updating stacks.
@@ -41,32 +44,34 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
     private final CloudFormationService cloudFormationService;
     private final Ec2UserDataService ec2UserDataService;
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
     private final ConfigStore configStore;
 
     @Inject
-    public UpdateStackOperation(final CloudFormationService cloudFormationService,
-                                final Ec2UserDataService ec2UserDataService,
-                                final EnvironmentMetadata environmentMetadata,
-                                final ConfigStore configStore) {
+    public UpdateStackOperation(CloudFormationService cloudFormationService,
+                                Ec2UserDataService ec2UserDataService,
+                                @Named(ENV_NAME) String environmentName,
+                                ConfigStore configStore) {
 
         this.cloudFormationService = cloudFormationService;
         this.ec2UserDataService = ec2UserDataService;
-        this.environmentMetadata = environmentMetadata;
+        this.environmentName = environmentName;
 
 
         this.configStore = configStore;
     }
 
     @Override
-    public void run(final UpdateStackCommand command) {
-        final String stackId = command.getStack().getFullName(environmentMetadata.getName());
+    public void run(UpdateStackCommand command) {
+        String stackId = command.getStack().getFullName(environmentName);
 
-        final Map<String, String> parameters = cloudFormationService.getStackParameters(stackId);
+        Map<String, String> parameters = cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
+        Map<String, String> tags = command.getTagsDelegate().getTags();
 
         // only some stacks need user data
         if (command.getStack().needsUserData()) {
-            parameters.put("userData", ec2UserDataService.getUserData(command.getStack()));
+            parameters.put("userData", ec2UserDataService.getUserData(configStore.getPrimaryRegion(), command.getStack(),
+                    Optional.ofNullable(tags.getOrDefault("ownerGroup", null))));
         }
 
         if (Stack.CMS.equals(command.getStack())) {
@@ -83,8 +88,14 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         try {
             logger.info("Starting the update for '{}' overwrite:{}.", stackId, command.isOverwriteTemplate());
 
-            cloudFormationService.updateStackAndWait(command.getStack(), parameters, true, command.isOverwriteTemplate(),
-                    command.getTagsDelegate().getTags());
+            cloudFormationService.updateStackAndWait(
+                    configStore.getPrimaryRegion(),
+                    command.getStack(),
+                    parameters,
+                    true,
+                    command.isOverwriteTemplate(),
+                    command.getTagsDelegate().getTags()
+            );
 
             logger.info("Update complete.");
         } catch (AmazonServiceException ase) {
@@ -98,11 +109,11 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     }
 
     @Override
-    public boolean isRunnable(final UpdateStackCommand command) {
+    public boolean isRunnable(UpdateStackCommand command) {
         boolean isRunnable = true;
 
-        String fullName = command.getStack().getFullName(environmentMetadata.getName());
-        if (!cloudFormationService.isStackPresent(fullName)) {
+        String fullName = command.getStack().getFullName(environmentName);
+        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), fullName)) {
             logger.error("CloudFormation doesn't have the specified stack: {}", fullName);
             isRunnable = false;
         }

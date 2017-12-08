@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.domain.cloudformation;
+package com.nike.cerberus.domain.input;
 
 /**
- * Represents the base stack inputs.
+ * Stores the region specific RDS configuration
  */
-public class BaseParameters {
+public class RdsRegionSpecificInput {
+    private String size;
 
-    private String accountAdminArn;
-
-    public String getAccountAdminArn() {
-        return accountAdminArn;
+    public String getSize() {
+        return size;
     }
 
-    public BaseParameters setAccountAdminArn(String accountAdminArn) {
-        this.accountAdminArn = accountAdminArn;
-        return this;
+    public void setSize(String size) {
+        this.size = size;
     }
-
 }

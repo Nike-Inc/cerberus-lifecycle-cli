@@ -16,54 +16,41 @@
 
 package com.nike.cerberus.module;
 
-import com.amazonaws.AmazonWebServiceClient;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
-import com.amazonaws.auth.SystemPropertiesCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
-import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingClient;
-import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
-import com.amazonaws.services.kms.AWSKMS;
 import com.amazonaws.services.kms.AWSKMSClient;
-import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClient;
-import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53Client;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
-import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.MustacheFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
+import com.google.inject.TypeLiteral;
+import com.google.inject.multibindings.OptionalBinder;
+import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.ProxyDelegate;
-import com.nike.cerberus.domain.EnvironmentMetadata;
+import com.nike.cerberus.domain.environment.RegionDeserializer;
+import com.nike.cerberus.domain.environment.RegionKeyDeserializer;
+import com.nike.cerberus.domain.environment.RegionKeySerializer;
+import com.nike.cerberus.domain.environment.RegionSerializer;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
+import com.nike.cerberus.service.AwsClientFactory;
 import com.nike.cerberus.util.UuidSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -73,9 +60,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Guice module for enabling DI.
@@ -83,10 +67,8 @@ import java.util.UUID;
 public class CerberusModule extends AbstractModule {
 
     public static final String CONFIG_OBJECT_MAPPER = "configObjectMapper";
-
-    public static final String CERBERUS_ASSUME_ROLE_ARN = "CERBERUS_ASSUME_ROLE_ARN";
-
-    public static final String CERBERUS_ASSUME_ROLE_EXTERNAL_ID = "CERBERUS_ASSUME_ROLE_EXTERNAL_ID";
+    public static final String ENV_NAME = "environmentName";
+    public static final String CONFIG_REGION = "configRegionName";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -94,14 +76,14 @@ public class CerberusModule extends AbstractModule {
 
     private final String environmentName;
 
-    private final String regionName;
+    private final String configRegionName;
 
     private final EnvironmentConfig environmentConfig;
 
     public CerberusModule(CerberusCommand cerberusCommand) {
         proxyDelegate = cerberusCommand.getProxyDelegate();
-        environmentName = cerberusCommand.getEnvironment();
-        regionName = cerberusCommand.getRegion();
+        environmentName = cerberusCommand.getEnvironmentName();
+        configRegionName = cerberusCommand.getConfigRegion();
         environmentConfig = cerberusCommand.getEnvironmentConfig();
     }
 
@@ -110,19 +92,29 @@ public class CerberusModule extends AbstractModule {
      */
     @Override
     protected void configure() {
+        // If a environment yaml was provided make it injectable as an Optional
+        OptionalBinder.newOptionalBinder(binder(), EnvironmentConfig.class);
         bind(EnvironmentConfig.class).toProvider(Providers.of(environmentConfig));
-        final Region region = Region.getRegion(Regions.fromName(regionName));
-        bind(AmazonEC2.class).toInstance(createAmazonClientInstance(AmazonEC2Client.class, region));
-        bind(AmazonCloudFormation.class).toInstance(createAmazonClientInstance(AmazonCloudFormationClient.class, region));
-        bind(AmazonIdentityManagement.class).toInstance(createAmazonClientInstance(AmazonIdentityManagementClient.class, region));
-        bind(AWSKMS.class).toInstance(createAmazonClientInstance(AWSKMSClient.class, region));
-        bind(AmazonS3.class).toInstance(createAmazonClientInstance(AmazonS3Client.class, region));
-        bind(AmazonAutoScaling.class).toInstance(createAmazonClientInstance(AmazonAutoScalingClient.class, region));
-        bind(AWSSecurityTokenService.class).toInstance(createAmazonClientInstance(AWSSecurityTokenServiceClient.class, region));
-        bind(AWSLambda.class).toInstance(createAmazonClientInstance(AWSLambdaClient.class, region));
-        bind(AmazonSNS.class).toInstance(createAmazonClientInstance(AmazonSNSClient.class, region));
-        bind(AmazonRoute53.class).toInstance(createAmazonClientInstance(AmazonRoute53Client.class, region));
-        bind(AmazonElasticLoadBalancing.class).toInstance(createAmazonClientInstance(AmazonElasticLoadBalancingClient.class, region));
+
+        bindConstant().annotatedWith(Names.named(ENV_NAME)).to(environmentName);
+        bindConstant().annotatedWith(Names.named(CONFIG_REGION)).to(configRegionName);
+
+        // bind the aws client factories
+        bindAwsClientFactories();
+    }
+
+    private void bindAwsClientFactories() {
+        bind(new TypeLiteral<AwsClientFactory<AmazonEC2Client>>() {}).toInstance(new AwsClientFactory<AmazonEC2Client>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonCloudFormationClient>>() {}).toInstance(new AwsClientFactory<AmazonCloudFormationClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonIdentityManagementClient>>() {}).toInstance(new AwsClientFactory<AmazonIdentityManagementClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AWSKMSClient>>() {}).toInstance(new AwsClientFactory<AWSKMSClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonS3Client>>() {}).toInstance(new AwsClientFactory<AmazonS3Client>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonAutoScalingClient>>() {}).toInstance(new AwsClientFactory<AmazonAutoScalingClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AWSSecurityTokenServiceClient>>() {}).toInstance(new AwsClientFactory<AWSSecurityTokenServiceClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AWSLambdaClient>>() {}).toInstance(new AwsClientFactory<AWSLambdaClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonSNSClient>>() {}).toInstance(new AwsClientFactory<AmazonSNSClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonRoute53Client>>() {}).toInstance(new AwsClientFactory<AmazonRoute53Client>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonElasticLoadBalancingClient>>() {}).toInstance(new AwsClientFactory<AmazonElasticLoadBalancingClient>() {});
     }
 
     /**
@@ -137,6 +129,15 @@ public class CerberusModule extends AbstractModule {
         final ObjectMapper om = new ObjectMapper();
         om.findAndRegisterModules();
         om.registerModule(new JodaModule());
+        om.registerModule(new Jdk8Module());
+
+        SimpleModule cerberusCustom = new SimpleModule();
+        cerberusCustom.addSerializer(Regions.class, new RegionSerializer());
+        cerberusCustom.addDeserializer(Regions.class, new RegionDeserializer());
+        cerberusCustom.addKeyDeserializer(Regions.class, new RegionKeyDeserializer());
+        cerberusCustom.addKeySerializer(Regions.class, new RegionKeySerializer());
+
+        om.registerModule(cerberusCustom);
         om.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         om.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         om.enable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
@@ -144,26 +145,6 @@ public class CerberusModule extends AbstractModule {
         om.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
         om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return om;
-    }
-
-    /**
-     * Environment metadata object for describing the environment being executed against.
-     *
-     * @return Environment metadata
-     */
-    @Provides
-    @Singleton
-    public EnvironmentMetadata environmentMetadata() {
-        final Optional<String> bucketName = findBucket(environmentName);
-        final EnvironmentMetadata environmentMetadata = new EnvironmentMetadata(environmentName, regionName);
-
-        if (bucketName.isPresent()) {
-            environmentMetadata.setBucketName(bucketName.get());
-        } else {
-            logger.warn("Unable to determine the environment bucket for {}.", environmentName);
-        }
-
-        return environmentMetadata;
     }
 
     @Provides
@@ -198,48 +179,4 @@ public class CerberusModule extends AbstractModule {
         return new Proxy(type, new InetSocketAddress(host, port));
     }
 
-    private Optional<String> findBucket(final String environmentName) {
-        AmazonS3Client s3Client = new AmazonS3Client();
-        List<Bucket> buckets = s3Client.listBuckets();
-
-        String envBucket = null;
-        for (final Bucket bucket : buckets) {
-            String bucketName = bucket.getName();
-            if (StringUtils.contains(bucket.getName(), ConfigConstants.CONFIG_BUCKET_KEY)) {
-                String tokenizedEnvName = StringUtils.replaceAll(environmentName, "_", "-");
-                if (StringUtils.startsWith(bucketName, tokenizedEnvName)) {
-                    envBucket = bucketName;
-                    break;
-                }
-            }
-        }
-
-        return Optional.ofNullable(envBucket);
-    }
-
-    private static <M extends AmazonWebServiceClient> M createAmazonClientInstance(Class<M> clientClass, Region region) {
-        return region.createClient(clientClass, getAWSCredentialsProviderChain(), new ClientConfiguration());
-    }
-
-    public static AWSCredentialsProviderChain getAWSCredentialsProviderChain() {
-        String cerberusRoleToAssume = System.getenv(CERBERUS_ASSUME_ROLE_ARN) != null ?
-                System.getenv(CERBERUS_ASSUME_ROLE_ARN) : "";
-        String cerberusRoleToAssumeExternalId = System.getenv(CERBERUS_ASSUME_ROLE_EXTERNAL_ID) != null ?
-                System.getenv(CERBERUS_ASSUME_ROLE_EXTERNAL_ID) : "";
-
-        STSAssumeRoleSessionCredentialsProvider sTSAssumeRoleSessionCredentialsProvider =
-                new STSAssumeRoleSessionCredentialsProvider
-                        .Builder(cerberusRoleToAssume, UUID.randomUUID().toString())
-                        .withExternalId(cerberusRoleToAssumeExternalId)
-                        .build();
-
-        AWSCredentialsProviderChain chain = new AWSCredentialsProviderChain(
-                new EnvironmentVariableCredentialsProvider(),
-                new SystemPropertiesCredentialsProvider(),
-                new ProfileCredentialsProvider(),
-                sTSAssumeRoleSessionCredentialsProvider,
-                new InstanceProfileCredentialsProvider());
-
-        return chain;
-    }
 }

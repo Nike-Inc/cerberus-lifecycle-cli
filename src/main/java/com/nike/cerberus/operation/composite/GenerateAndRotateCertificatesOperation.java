@@ -21,27 +21,32 @@ import com.nike.cerberus.command.composite.GenerateAndRotateCertificatesCommand;
 import com.nike.cerberus.command.composite.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.service.CloudFormationService;
+import com.nike.cerberus.store.ConfigStore;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.List;
 
 import static com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG;
 import static com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate.*;
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 public class GenerateAndRotateCertificatesOperation extends CompositeOperation<GenerateAndRotateCertificatesCommand> {
 
     private final CloudFormationService cloudFormationService;
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
+    private final ConfigStore configStore;
 
     @Inject
     public GenerateAndRotateCertificatesOperation(CloudFormationService cloudFormationService,
-                                                  EnvironmentMetadata environmentMetadata) {
+                                                  @Named(ENV_NAME) String environmentName,
+                                                  ConfigStore configStore) {
 
         this.cloudFormationService = cloudFormationService;
-        this.environmentMetadata = environmentMetadata;
+        this.environmentName = environmentName;
+        this.configStore = configStore;
     }
 
 
@@ -89,6 +94,14 @@ public class GenerateAndRotateCertificatesOperation extends CompositeOperation<G
                         parameters.getContactEmail()
                 );
 
+                if (!parameters.isTty()) {
+                    generateCertificateFilesCommandBuilder.withAdditionalArg(NO_TTY_LONG_ARG);
+                }
+
+                if (parameters.isAutoAcceptAcmeTos()) {
+                    generateCertificateFilesCommandBuilder.withAdditionalArg(ACCEPT_ACME_TOS);
+                }
+
                 parameters.getSubjectAlternativeNames().forEach(name -> {
                     generateCertificateFilesCommandBuilder.withOption(SUBJECT_ALT_NAME_LONG_ARG, name);
                 });
@@ -109,14 +122,13 @@ public class GenerateAndRotateCertificatesOperation extends CompositeOperation<G
     @Override
     public boolean isRunnable(GenerateAndRotateCertificatesCommand command) {
         boolean isRunnable = true;
-        String environmentName = environmentMetadata.getName();
 
-        if (! cloudFormationService.isStackPresent(Stack.LOAD_BALANCER.getFullName(environmentName))) {
+        if (! cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.LOAD_BALANCER.getFullName(environmentName))) {
             log.error("The load-balancer stack must be present in order to rotate certificates");
             isRunnable = false;
         }
 
-        if (! cloudFormationService.isStackPresent(Stack.CMS.getFullName(environmentName))) {
+        if (! cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.CMS.getFullName(environmentName))) {
             log.error("The cms stack must be present to rotate certificates");
             isRunnable = false;
         }

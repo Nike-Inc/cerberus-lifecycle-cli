@@ -20,7 +20,6 @@ import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
-import com.nike.cerberus.domain.EnvironmentMetadata;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -32,8 +31,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Creates the edge domain Route53 record for Cerberus
@@ -48,30 +50,30 @@ public class CreateEdgeDomainRecordOperation implements Operation<CreateEdgeDoma
 
     private final ConfigStore configStore;
 
-    private final EnvironmentMetadata environmentMetadata;
+    private final String environmentName;
 
     private final Route53Service route53Service;
 
     private final ConsoleService consoleService;
 
     @Inject
-    public CreateEdgeDomainRecordOperation(final CloudFormationService cloudFormationService,
-                                           final ConfigStore configStore,
-                                           final EnvironmentMetadata environmentMetadata,
-                                           final Route53Service route53Service,
+    public CreateEdgeDomainRecordOperation(CloudFormationService cloudFormationService,
+                                           ConfigStore configStore,
+                                           @Named(ENV_NAME) String environmentName,
+                                           Route53Service route53Service,
                                            ConsoleService consoleService) {
 
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
-        this.environmentMetadata = environmentMetadata;
+        this.environmentName = environmentName;
         this.route53Service = route53Service;
         this.consoleService = consoleService;
     }
 
     @Override
-    public void run(final CreateEdgeDomainRecordCommand command) {
-        final String recordValue = configStore.getRoute53StackOutputs().getOriginDomainName();
-        final String recordSetName = getEdgeDomainName(command.getBaseDomainName(), command.getEdgeDomainNameOverride());
+    public void run(CreateEdgeDomainRecordCommand command) {
+        String recordValue = configStore.getRoute53StackOutputs().getOriginDomainName();
+        String recordSetName = getEdgeDomainName(command.getBaseDomainName(), command.getEdgeDomainNameOverride());
 
         route53Service.createRoute53RecordSet(command.getHostedZoneId(),
                 recordSetName,
@@ -81,13 +83,12 @@ public class CreateEdgeDomainRecordOperation implements Operation<CreateEdgeDoma
     }
 
     @Override
-    public boolean isRunnable(final CreateEdgeDomainRecordCommand command) {
-        final String environmentName = environmentMetadata.getName();
-        final String recordSetName = getEdgeDomainName(command.getBaseDomainName(), command.getEdgeDomainNameOverride());
+    public boolean isRunnable(CreateEdgeDomainRecordCommand command) {
+        String recordSetName = getEdgeDomainName(command.getBaseDomainName(), command.getEdgeDomainNameOverride());
 
         boolean isRunnable = true;
 
-        if (!cloudFormationService.isStackPresent(Stack.ROUTE53.getFullName(environmentName))) {
+        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.ROUTE53.getFullName(environmentName))) {
             logger.error("The route53 stack must be present");
             return false;
         }
@@ -116,9 +117,9 @@ public class CreateEdgeDomainRecordOperation implements Operation<CreateEdgeDoma
         return isRunnable;
     }
 
-    private String getEdgeDomainName(String baseDomainName, final String edgeDomainNameOverride) {
-        final String defaultEdgeDomainName = String.format("%s.%s",
-                environmentMetadata.getName(),
+    private String getEdgeDomainName(String baseDomainName, String edgeDomainNameOverride) {
+        String defaultEdgeDomainName = String.format("%s.%s",
+                environmentName,
                 baseDomainName);
 
         return StringUtils.isBlank(edgeDomainNameOverride) ?

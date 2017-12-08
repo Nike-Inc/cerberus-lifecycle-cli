@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.command.core;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
@@ -34,11 +35,22 @@ public class CreateDatabaseCommand implements Command {
 
     public static final String COMMAND_NAME = "create-database";
 
+    public static final String INSTANCE_CLASS_LONG_ARG = "--instance-class";
+
     @ParametersDelegate
     private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;
+    }
+
+    @Parameter(names = INSTANCE_CLASS_LONG_ARG,
+            description = "The Instance Class to use, defaults to db.r3.large"
+    )
+    private String instanceClass;
+
+    public String getInstanceClass() {
+        return instanceClass;
     }
 
     @Override

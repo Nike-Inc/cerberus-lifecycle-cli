@@ -18,25 +18,45 @@ package com.nike.cerberus.service;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Image;
+import com.nike.cerberus.store.ConfigStore;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class AmiTagCheckServiceTest {
 
+    @Mock
+    private ConfigStore configStore;
+
+    @Mock
+    private AmazonEC2Client ec2Client;
+
+    @Mock
+    private AwsClientFactory<AmazonEC2Client> amazonEC2ClientFactory;
+
+    @Before
+    public void before() {
+        initMocks(this);
+        when(amazonEC2ClientFactory.getClient(any())).thenReturn(ec2Client);
+    }
+
     @Test
     public void isAmiWithTagExistTrue() {
-        AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        AmiTagCheckService amiTagCheckService = new AmiTagCheckService(ec2Client);
+        AmiTagCheckService amiTagCheckService = new AmiTagCheckService(amazonEC2ClientFactory, configStore);
 
         String amiId = "ami-1234abcd";
         String tagName = "sometag";
@@ -58,7 +78,7 @@ public class AmiTagCheckServiceTest {
     @Test
     public void isAmiWithTagExistFalse() {
         AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        AmiTagCheckService amiTagCheckService = new AmiTagCheckService(ec2Client);
+        AmiTagCheckService amiTagCheckService = new AmiTagCheckService(amazonEC2ClientFactory, configStore);
 
         String amiId = "ami-1234abcd";
         String tagName = "sometag";
@@ -80,7 +100,7 @@ public class AmiTagCheckServiceTest {
     @Test
     public void isAmiWithTagExistNotFound() {
         AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        AmiTagCheckService amiTagCheckService = new AmiTagCheckService(ec2Client);
+        AmiTagCheckService amiTagCheckService = new AmiTagCheckService(amazonEC2ClientFactory, configStore);
 
         String amiId = "ami-1234abcd";
         String tagName = "sometag";
@@ -103,7 +123,7 @@ public class AmiTagCheckServiceTest {
     @Test
     public void isAmiWithTagExistThrowException() {
         AmazonEC2 ec2Client = mock(AmazonEC2.class);
-        AmiTagCheckService amiTagCheckService = new AmiTagCheckService(ec2Client);
+        AmiTagCheckService amiTagCheckService = new AmiTagCheckService(amazonEC2ClientFactory, configStore);
 
         String amiId = "ami-1234abcd";
         String tagName = "sometag";

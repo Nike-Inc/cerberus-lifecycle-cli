@@ -16,56 +16,17 @@
 
 package com.nike.cerberus.domain.input;
 
-import java.util.List;
-
-
 /**
- * Stores Management Service-specific parameters parsed from YAML
+ * Stores region specific Management Service parameters parsed from YAML
  */
-public class ManagementService {
+public class ManagementServiceRegionSpecificInput {
 
-    private String adminGroup;
-    private List<String> properties;
-    private List<String> additionalEncryptionCmkRegions;
-    private String certPath;
     private String amiId;
     private String instanceSize;
     private String keyPairName;
     private String desiredInstances;
     private String maxInstances;
     private String minInstances;
-
-    public String getAdminGroup() {
-        return adminGroup;
-    }
-
-    public void setAdminGroup(String adminGroup) {
-        this.adminGroup = adminGroup;
-    }
-
-    public List<String> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(List<String> properties) {
-        this.properties = properties;
-    }
-
-    public List<String> getAdditionalEncryptionCmkRegions() {
-        return additionalEncryptionCmkRegions;
-    }
-
-    public void setAdditionalEncryptionCmkRegions(List<String> additionalEncryptionCmkRegions) {
-        this.additionalEncryptionCmkRegions = additionalEncryptionCmkRegions;
-    }
-
-    public String getCertPath() {
-        return certPath;
-    }
-
-    public void setCertPath(String certPath) {
-        this.certPath = certPath;
-    }
 
     public String getAmiId() {
         return amiId;
@@ -114,4 +75,5 @@ public class ManagementService {
     public void setMinInstances(String minInstances) {
         this.minInstances = minInstances;
     }
+
 }

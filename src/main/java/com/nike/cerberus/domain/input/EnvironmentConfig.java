@@ -16,7 +16,7 @@
 
 package com.nike.cerberus.domain.input;
 
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,33 +25,23 @@ import java.util.Map;
  */
 public class EnvironmentConfig {
 
-    private String version;
     private String environmentName;
-    private String primaryRegion;
     private Map<String, String> globalTags;
     private String adminRoleArn;
     private String baseDomainName;
     private String edgeDomainNameOverride;
     private String originDomainNameOverride;
-    private String loadBalancerDomainNameOverride;
-    private String loadBalancerSslPolicyOverride;
     private List<String> additionalSubjectNames;
+    private String loadBalancerSslPolicyOverride;
     private String hostedZoneId;
-    private VpcAccessWhitelist vpcAccessWhitelist;
     private boolean generateKeysAndCerts;
     private String acmeApiUrl;
     private boolean enableLeCertFix;
     private String acmeContactEmail;
-    private String localFolderToStoreCerts;
-    private ManagementService managementService;
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
+    private String certificateDirectory;
+    private VpcAccessWhitelistInput vpcAccessWhitelist;
+    private ManagementServiceInput managementService;
+    private Map<String, RegionSpecificConfigurationInput> regionSpecificConfiguration = new HashMap<>();
 
     public String getEnvironmentName() {
         return environmentName;
@@ -59,14 +49,6 @@ public class EnvironmentConfig {
 
     public void setEnvironmentName(String environmentName) {
         this.environmentName = environmentName;
-    }
-
-    public String getPrimaryRegion() {
-        return primaryRegion;
-    }
-
-    public void setPrimaryRegion(String primaryRegion) {
-        this.primaryRegion = primaryRegion;
     }
 
     public Map<String, String> getGlobalTags() {
@@ -109,12 +91,12 @@ public class EnvironmentConfig {
         this.originDomainNameOverride = originDomainNameOverride;
     }
 
-    public String getLoadBalancerDomainNameOverride() {
-        return loadBalancerDomainNameOverride;
+    public List<String> getAdditionalSubjectNames() {
+        return additionalSubjectNames;
     }
 
-    public void setLoadBalancerDomainNameOverride(String loadBalancerDomainNameOverride) {
-        this.loadBalancerDomainNameOverride = loadBalancerDomainNameOverride;
+    public void setAdditionalSubjectNames(List<String> additionalSubjectNames) {
+        this.additionalSubjectNames = additionalSubjectNames;
     }
 
     public String getLoadBalancerSslPolicyOverride() {
@@ -125,28 +107,12 @@ public class EnvironmentConfig {
         this.loadBalancerSslPolicyOverride = loadBalancerSslPolicyOverride;
     }
 
-    public List<String> getAdditionalSubjectNames() {
-        return additionalSubjectNames;
-    }
-
-    public void setAdditionalSubjectNames(List<String> additionalSubjectNames) {
-        this.additionalSubjectNames = additionalSubjectNames;
-    }
-
     public String getHostedZoneId() {
         return hostedZoneId;
     }
 
     public void setHostedZoneId(String hostedZoneId) {
         this.hostedZoneId = hostedZoneId;
-    }
-
-    public VpcAccessWhitelist getVpcAccessWhitelist() {
-        return vpcAccessWhitelist;
-    }
-
-    public void setVpcAccessWhitelist(VpcAccessWhitelist vpcAccessWhitelist) {
-        this.vpcAccessWhitelist = vpcAccessWhitelist;
     }
 
     public boolean isGenerateKeysAndCerts() {
@@ -181,19 +147,49 @@ public class EnvironmentConfig {
         this.acmeContactEmail = acmeContactEmail;
     }
 
-    public String getLocalFolderToStoreCerts() {
-        return localFolderToStoreCerts;
+    public String getCertificateDirectory() {
+        return certificateDirectory;
     }
 
-    public void setLocalFolderToStoreCerts(String localFolderToStoreCerts) {
-        this.localFolderToStoreCerts = localFolderToStoreCerts;
+    public void setCertificateDirectory(String certificateDirectory) {
+        this.certificateDirectory = certificateDirectory;
     }
 
-    public ManagementService getManagementService() {
+    public VpcAccessWhitelistInput getVpcAccessWhitelist() {
+        return vpcAccessWhitelist;
+    }
+
+    public void setVpcAccessWhitelist(VpcAccessWhitelistInput vpcAccessWhitelist) {
+        this.vpcAccessWhitelist = vpcAccessWhitelist;
+    }
+
+    public ManagementServiceInput getManagementService() {
         return managementService;
     }
 
-    public void setManagementService(ManagementService managementService) {
+    public void setManagementService(ManagementServiceInput managementService) {
         this.managementService = managementService;
+    }
+
+    public Map<String, RegionSpecificConfigurationInput> getRegionSpecificConfiguration() {
+        return regionSpecificConfiguration;
+    }
+
+    public void setRegionSpecificConfiguration(Map<String, RegionSpecificConfigurationInput> regionSpecificConfiguration) {
+        this.regionSpecificConfiguration = regionSpecificConfiguration;
+    }
+
+    public RegionSpecificConfigurationInput getPrimaryRegionConfig() {
+        return getPrimaryEntry().getValue();
+    }
+
+    public String getPrimaryRegion() {
+        return getPrimaryEntry().getKey();
+    }
+
+    private Map.Entry<String, RegionSpecificConfigurationInput> getPrimaryEntry() {
+        return regionSpecificConfiguration.entrySet().stream()
+                .filter(entry -> entry.getValue() != null && entry.getValue().isPrimary()).findFirst()
+                .orElseThrow(() -> new RuntimeException("Failed to find primary region in region specific config"));
     }
 }
