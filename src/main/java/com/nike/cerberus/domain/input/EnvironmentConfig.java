@@ -188,11 +188,8 @@ public class EnvironmentConfig {
     }
 
     private Map.Entry<String, RegionSpecificConfigurationInput> getPrimaryEntry() {
-        for (Map.Entry<String, RegionSpecificConfigurationInput> entry : regionSpecificConfiguration.entrySet()) {
-            if (entry.getValue() != null && entry.getValue().isPrimary()) {
-                return entry;
-            }
-        }
-        throw new RuntimeException("Failed to find primary region in region specific config");
+        return regionSpecificConfiguration.entrySet().stream()
+                .filter(entry -> entry.getValue() != null && entry.getValue().isPrimary()).findFirst()
+                .orElseThrow(() -> new RuntimeException("Failed to find primary region in region specific config"));
     }
 }
