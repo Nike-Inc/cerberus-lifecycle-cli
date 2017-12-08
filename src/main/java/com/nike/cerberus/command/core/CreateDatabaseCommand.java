@@ -45,7 +45,7 @@ public class CreateDatabaseCommand implements Command {
     }
 
     @Parameter(names = INSTANCE_CLASS_LONG_ARG,
-            description = "The Instance Type to use, defaults to db.r3.large"
+            description = "The Instance Class to use, defaults to db.r3.large"
     )
     private String instanceClass;
 

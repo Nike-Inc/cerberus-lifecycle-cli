@@ -221,8 +221,9 @@ public class EnvironmentConfigToArgsMapper {
                 .addOption(InitializeEnvironmentCommand.ADMIN_ROLE_ARN_LONG_ARG, config.getAdminRoleArn())
                 .addOption(InitializeEnvironmentCommand.PRIMARY_REGION, config.getPrimaryRegion());
 
+        args.addFlag(InitializeEnvironmentCommand.REGION_LONG_ARG);
         config.getRegionSpecificConfiguration().forEach((region, data) -> {
-            args.addOption(InitializeEnvironmentCommand.REGION_LONG_ARG, region);
+            args.addFlag(region);
         });
 
         return args.build();

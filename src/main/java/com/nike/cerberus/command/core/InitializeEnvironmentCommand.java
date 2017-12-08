@@ -38,7 +38,7 @@ public class InitializeEnvironmentCommand implements Command {
 
     public static final String COMMAND_NAME = "init-env";
     public static final String ADMIN_ROLE_ARN_LONG_ARG = "--admin-role-arn";
-    public static final String REGION_LONG_ARG = "--region";
+    public static final String REGION_LONG_ARG = "--regions";
     public static final String PRIMARY_REGION = "--primary-region";
 
     @Parameter(
