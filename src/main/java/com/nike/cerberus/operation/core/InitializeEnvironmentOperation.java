@@ -18,8 +18,8 @@ package com.nike.cerberus.operation.core;
 
 import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
-import com.nike.cerberus.domain.cloudformation.EnvironmentConfigBucketParameters;
-import com.nike.cerberus.domain.cloudformation.EnvironmentConfigBucketOutputs;
+import com.nike.cerberus.domain.cloudformation.RegionBaseParameters;
+import com.nike.cerberus.domain.cloudformation.RegionBaseOutputs;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -72,18 +72,18 @@ public class InitializeEnvironmentOperation implements Operation<InitializeEnvir
 
         String cmsIamRoleArn = configStore.getCmsIamRoleOutputs(primaryRegion).getCmsIamRoleArn();
 
-        EnvironmentConfigBucketParameters environmentConfigBucketParameters = new EnvironmentConfigBucketParameters()
+        RegionBaseParameters regionBaseParameters = new RegionBaseParameters()
                 .setAccountAdminArn(command.getAdminRoleArn())
                 .setCmsIamRoleArn(cmsIamRoleArn);
-        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(environmentConfigBucketParameters);
+        Map<String, String> parameters = cloudFormationObjectMapper.convertValue(regionBaseParameters);
 
-        Map<Regions, EnvironmentConfigBucketOutputs> regionConfigOutputsMap = new HashMap<>();
+        Map<Regions, RegionBaseOutputs> regionConfigOutputsMap = new HashMap<>();
         // for each region, create a config bucket and kms cmk for encrypting environment data
         command.getRegions().forEach(regionName -> {
             Regions region = Regions.fromName(regionName);
             cloudFormationService.createStackAndWait(
                     region,
-                    Stack.REGION_BUCKET_AND_CMKS, parameters, true,
+                    Stack.REGION_BASE, parameters, true,
                     command.getTagsDelegate().getTags()
             );
             regionConfigOutputsMap.put(region, configStore.getConfigBucketStackOutputs(region));

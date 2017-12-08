@@ -55,7 +55,7 @@ public class DeleteEnvironmentOperation extends CompositeOperation<DeleteEnviron
         configStore.getConfigEnabledRegions().forEach(region -> {
             chainableCommandList.add(ChainableCommand.Builder.create()
                     .withCommand(new DeleteStackCommand())
-                    .withOption(DeleteStackCommand.STACK_NAME_LONG_ARG, REGION_BUCKET_AND_CMKS.getName())
+                    .withOption(DeleteStackCommand.STACK_NAME_LONG_ARG, REGION_BASE.getName())
                     .withOption(DeleteStackCommand.REGION_LONG_ARG, region.getName())
                     .build());
         });

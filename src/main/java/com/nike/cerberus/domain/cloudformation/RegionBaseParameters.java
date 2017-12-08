@@ -19,7 +19,7 @@ package com.nike.cerberus.domain.cloudformation;
 /**
  * Represents the base stack inputs.
  */
-public class EnvironmentConfigBucketParameters {
+public class RegionBaseParameters {
 
     private String accountAdminArn;
 
@@ -29,7 +29,7 @@ public class EnvironmentConfigBucketParameters {
         return accountAdminArn;
     }
 
-    public EnvironmentConfigBucketParameters setAccountAdminArn(String accountAdminArn) {
+    public RegionBaseParameters setAccountAdminArn(String accountAdminArn) {
         this.accountAdminArn = accountAdminArn;
         return this;
     }
@@ -38,7 +38,7 @@ public class EnvironmentConfigBucketParameters {
         return cmsIamRoleArn;
     }
 
-    public EnvironmentConfigBucketParameters setCmsIamRoleArn(String cmsIamRoleArn) {
+    public RegionBaseParameters setCmsIamRoleArn(String cmsIamRoleArn) {
         this.cmsIamRoleArn = cmsIamRoleArn;
         return this;
     }
