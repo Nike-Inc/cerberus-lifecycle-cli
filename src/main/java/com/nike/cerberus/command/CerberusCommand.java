@@ -132,8 +132,8 @@ public class CerberusCommand {
                         EnvironmentalVarEnvironment;
 
         if (StringUtils.isBlank(calculatedEnv)) {
-            log.error("Failed to determine environment, checked 'CERBERUS_CLI_ENV' env var and -e, --env, --environment command options, Will attempt to use the AWS Default region (us-west-2");
-            calculatedEnv = Regions.DEFAULT_REGION.toString();
+            throw new RuntimeException("Failed to determine environment, checked 'CERBERUS_CLI_ENV' env var and -e, --env, --environment command options, Will attempt to use the AWS Default region (us-west-2");
+
         }
 
         return calculatedEnv;
@@ -155,7 +155,8 @@ public class CerberusCommand {
                         EnvironmentalVarRegion;
 
         if (StringUtils.isBlank(calculatedRegion)) {
-            throw new IllegalArgumentException("Failed to determine environment, checked 'CERBERUS_CLI_REGION' env var and -r, --region command options, options must go before the command");
+            log.error("Failed to determine environment, checked 'CERBERUS_CLI_REGION' env var and -r, --region command options, options must go before the command");
+            calculatedRegion = Regions.DEFAULT_REGION.toString();
         }
 
         return calculatedRegion;
