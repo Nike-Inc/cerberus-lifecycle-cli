@@ -63,7 +63,7 @@ public class DeleteEnvironmentOperation extends CompositeOperation<DeleteEnviron
         chainableCommandList.add(ChainableCommand.Builder.create()
                 .withCommand(new DeleteStackCommand())
                 .withAdditionalArg(DeleteStackCommand.STACK_NAME_LONG_ARG)
-                .withAdditionalArg(CMS_IAM_ROLE.getName())
+                .withAdditionalArg(BASE_IAM_ROLES.getName())
                 .build());
 
         return chainableCommandList;
