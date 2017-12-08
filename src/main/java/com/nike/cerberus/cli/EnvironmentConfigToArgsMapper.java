@@ -149,7 +149,7 @@ public class EnvironmentConfigToArgsMapper {
                 .addOption(CreateEdgeDomainRecordCommand.BASE_DOMAIN_NAME_LONG_ARG, environmentConfig.getBaseDomainName())
                 .addOption(CreateEdgeDomainRecordCommand.HOSTED_ZONE_ID_LONG_ARG, environmentConfig.getHostedZoneId());
 
-        if (StringUtils.isBlank(environmentConfig.getEdgeDomainNameOverride())) {
+        if (StringUtils.isNotBlank(environmentConfig.getEdgeDomainNameOverride())) {
             args.addOption(CreateEdgeDomainRecordCommand.EDGE_DOMAIN_NAME_OVERRIDE, environmentConfig.getEdgeDomainNameOverride());
         }
 
