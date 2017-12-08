@@ -5,10 +5,10 @@ Outputs:
     Value: !GetAtt 'CerberusConfigBucket.DomainName'
   configBucketName:
     Value: !Ref 'CerberusConfigBucket'
-  environmentDataKmsCmkArn:
-    Value: !GetAtt 'EnvironmentDataKmsCmk.Arn'
-  cmsSecureDataKmsCmkArn:
-    Value: !GetAtt 'CmsSecureDataKmsCmk.Arn'
+  configCmkArn:
+    Value: !GetAtt 'ConfigCmk.Arn'
+  managementServiceCmkArn:
+    Value: !GetAtt 'ManagementServiceCmk.Arn'
 Parameters:
   cmsIamRoleArn:
     Description: The ARN for for the management service IAM Role.
@@ -55,7 +55,8 @@ Resources:
               - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /cms]]
             Sid: Allow-Bucket-Access-For-CMS
         Version: '2012-10-17'
-  EnvironmentDataKmsCmk:
+  # KMS Customer Master Key for this CLI to use when saving config
+  ConfigCmk:
     Type: AWS::KMS::Key
     Properties:
       Description: - !Join ['', ['Environment: ', !Ref 'environmentName', ' Cerberus encryption key for storing config files in s3 buckets.']]
@@ -96,7 +97,8 @@ Resources:
         - Key: created_for
           Value: cerberus_cli
 
-  CmsSecureDataKmsCmk:
+  # Cerberus Management Service KMS Customer Master Key
+  ManagementServiceCmk:
     Type: AWS::KMS::Key
     Properties:
       Description: - !Join ['', ['Environment: ', !Ref 'environmentName', ' CMS KMS CMK for storing secure data in RDS.']]

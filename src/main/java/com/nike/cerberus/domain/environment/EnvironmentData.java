@@ -118,7 +118,7 @@ public class EnvironmentData {
     public List<Regions> getConfigRegions() {
         List<Regions> configRegions = new LinkedList<>();
         regionData.forEach((region, rData) -> {
-            if (rData.getEnvironmentDataKmsCmkArn().isPresent()
+            if (rData.getConfigCmkArn().isPresent()
                     && rData.getConfigBucket().isPresent()) {
                 configRegions.add(region);
             }
@@ -134,10 +134,10 @@ public class EnvironmentData {
                 .getKey();
     }
 
-    public List<String> getCmsCmkArns() {
+    public List<String> getManagementServiceCmkArns() {
         return regionData.entrySet().stream()
-                .filter(entry -> entry.getValue().getCmsSecureDataKmsCmkArn().isPresent())
-                .map(entry -> entry.getValue().getCmsSecureDataKmsCmkArn().get())
+                .filter(entry -> entry.getValue().getManagementServiceCmkArn().isPresent())
+                .map(entry -> entry.getValue().getManagementServiceCmkArn().get())
                 .collect(Collectors.toList());
     }
 }

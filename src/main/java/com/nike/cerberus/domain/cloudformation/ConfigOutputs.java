@@ -22,9 +22,9 @@ public class ConfigOutputs {
 
     private String configBucketName;
 
-    private String environmentDataKmsCmkArn;
+    private String configCmkArn;
 
-    private String cmsSecureDataKmsCmkArn;
+    private String managementServiceCmkArn;
 
     public String getConfigBucketDomainName() {
         return configBucketDomainName;
@@ -44,19 +44,19 @@ public class ConfigOutputs {
         return this;
     }
 
-    public String getEnvironmentDataKmsCmkArn() {
-        return environmentDataKmsCmkArn;
+    public String getConfigCmkArn() {
+        return configCmkArn;
     }
 
-    public void setEnvironmentDataKmsCmkArn(String environmentDataKmsCmkArn) {
-        this.environmentDataKmsCmkArn = environmentDataKmsCmkArn;
+    public void setConfigCmkArn(String configCmkArn) {
+        this.configCmkArn = configCmkArn;
     }
 
-    public String getCmsSecureDataKmsCmkArn() {
-        return cmsSecureDataKmsCmkArn;
+    public String getManagementServiceCmkArn() {
+        return managementServiceCmkArn;
     }
 
-    public void setCmsSecureDataKmsCmkArn(String cmsSecureDataKmsCmkArn) {
-        this.cmsSecureDataKmsCmkArn = cmsSecureDataKmsCmkArn;
+    public void setManagementServiceCmkArn(String managementServiceCmkArn) {
+        this.managementServiceCmkArn = managementServiceCmkArn;
     }
 }

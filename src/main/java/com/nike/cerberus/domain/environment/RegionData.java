@@ -22,8 +22,8 @@ public class RegionData {
 
     private boolean primary;
     private String configBucket;
-    private String environmentDataKmsCmkArn;
-    private String cmsSecureDataKmsCmkArn;
+    private String configCmkArn;
+    private String managementServiceCmkArn;
 
     public boolean isPrimary() {
         return primary;
@@ -41,20 +41,20 @@ public class RegionData {
         this.configBucket = configBucket;
     }
 
-    public Optional<String> getEnvironmentDataKmsCmkArn() {
-        return Optional.ofNullable(environmentDataKmsCmkArn);
+    public Optional<String> getConfigCmkArn() {
+        return Optional.ofNullable(configCmkArn);
     }
 
-    public void setEnvironmentDataKmsCmkArn(String environmentDataKmsCmkArn) {
-        this.environmentDataKmsCmkArn = environmentDataKmsCmkArn;
+    public void setConfigCmkArn(String configCmkArn) {
+        this.configCmkArn = configCmkArn;
     }
 
-    public Optional<String> getCmsSecureDataKmsCmkArn() {
-        return Optional.ofNullable(cmsSecureDataKmsCmkArn);
+    public Optional<String> getManagementServiceCmkArn() {
+        return Optional.ofNullable(managementServiceCmkArn);
     }
 
-    public void setCmsSecureDataKmsCmkArn(String cmsSecureDataKmsCmkArn) {
-        this.cmsSecureDataKmsCmkArn = cmsSecureDataKmsCmkArn;
+    public void setManagementServiceCmkArn(String managementServiceCmkArn) {
+        this.managementServiceCmkArn = managementServiceCmkArn;
     }
 
 }

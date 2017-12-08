@@ -275,7 +275,7 @@ public class ConfigStore {
         properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword);
         properties.put(CMS_ENV_NAME, environmentName);
         properties.put(CMS_CERTIFICATE_TO_USE, getCertificationInformationList().getLast().getCertificateName());
-        properties.put(CMK_ARNS_KEY, StringUtils.join(data.getCmsCmkArns(), ","));
+        properties.put(CMK_ARNS_KEY, StringUtils.join(data.getManagementServiceCmkArns(), ","));
 
         return properties;
     }
@@ -522,7 +522,7 @@ public class ConfigStore {
 
         List<String> environmentDataKmsCmkArns = new LinkedList<>();
         environmentData.getRegionData().forEach((region, regionData) ->
-                regionData.getEnvironmentDataKmsCmkArn().ifPresent(environmentDataKmsCmkArns::add));
+                regionData.getConfigCmkArn().ifPresent(environmentDataKmsCmkArns::add));
         MasterKeyProvider<KmsMasterKey> encryptProvider = initializeKeyProvider(environmentDataKmsCmkArns);
 
         String encryptedObject = encryptionService.encrypt(encryptProvider, plaintextSerializedObject);
@@ -627,8 +627,8 @@ public class ConfigStore {
                 regionData.setPrimary(true);
             }
             regionData.setConfigBucket(output.getConfigBucketName());
-            regionData.setEnvironmentDataKmsCmkArn(output.getEnvironmentDataKmsCmkArn());
-            regionData.setCmsSecureDataKmsCmkArn(output.getCmsSecureDataKmsCmkArn());
+            regionData.setConfigCmkArn(output.getConfigCmkArn());
+            regionData.setManagementServiceCmkArn(output.getManagementServiceCmkArn());
             environmentData.addRegionData(region, regionData);
         });
 
@@ -649,7 +649,7 @@ public class ConfigStore {
             throw new RuntimeException("There is no region data for region: " + region.getName());
         }
         RegionData data = getDecryptedEnvironmentData().getRegionData().get(region);
-        return data.getCmsSecureDataKmsCmkArn().orElseThrow(() ->
+        return data.getManagementServiceCmkArn().orElseThrow(() ->
                 new RuntimeException("There is no cms cmk configured for region: " + region.getName()));
     }
 
@@ -658,7 +658,7 @@ public class ConfigStore {
             throw new RuntimeException("There is no region data for region: " + region.getName());
         }
         RegionData data = getDecryptedEnvironmentData().getRegionData().get(region);
-        return data.getEnvironmentDataKmsCmkArn().orElseThrow(() ->
+        return data.getConfigCmkArn().orElseThrow(() ->
                 new RuntimeException("There is no cms cmk configured for region: " + region.getName()));
     }
 
