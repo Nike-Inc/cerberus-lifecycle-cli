@@ -136,6 +136,8 @@ public class EnvironmentConfigToArgsMapper {
             case RotateCertificatesCommand.COMMAND_NAME:
                 args = getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
                 break;
+            default:
+                break;
         }
 
         LoggerFactory.getLogger("com.nike.cerberus.cli.EnvironmentConfigToArgsMapper")
