@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public class Stack implements Comparable<Stack> {
 
-    public static final Stack IAM_ROLES = new Stack("base-iam-roles", "base-iam-roles.yaml", false);
+    public static final Stack IAM_ROLES = new Stack("iam-roles", "iam-roles.yaml", false);
     public static final Stack CONFIG = new Stack("config", "config.yaml", false);
     public static final Stack VPC = new Stack("vpc", "vpc.yaml", false);
     public static final Stack SECURITY_GROUPS = new Stack("security-groups", "security-groups.yaml", false);
