@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Creates the necessary IAM roles, S3 buckets, and KMS keys for Cerberus
+Description: Creates the necessary IAM roles for Cerberus
 Outputs:
   cmsIamRoleArn:
     Value: !GetAtt 'CmsIamRole.Arn'
