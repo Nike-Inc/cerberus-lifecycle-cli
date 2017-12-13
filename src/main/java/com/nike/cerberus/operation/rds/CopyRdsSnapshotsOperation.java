@@ -114,7 +114,7 @@ public class CopyRdsSnapshotsOperation implements Operation<CopyRdsSnapshotsComm
                 .withSourceRegion(fromRegion.getName())
                 .withKmsKeyId(configStore.getEnvironmentData().getRegionData().get(toRegion).getConfigCmkArn().get())
                 .withTags(
-                        new Tag().withKey("created-by").withValue("rds-snapshot-cross-region-duplicator")
+                        new Tag().withKey("created_by").withValue("cerberus_cli")
                 )
         );
     }
