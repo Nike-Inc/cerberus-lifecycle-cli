@@ -35,7 +35,8 @@ import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.composite.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
-import com.nike.cerberus.command.core.CreateDatabaseCommand;
+import com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand;
+import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
 import com.nike.cerberus.command.core.CreateRoute53Command;
@@ -193,6 +194,7 @@ public class CerberusRunner {
         registerCommand(new DeleteEnvironmentCommand());
         registerCommand(new RotateCertificatesCommand());
         registerCommand(new DeleteOldestCertificatesCommand());
+        registerCommand(new CopyRdsSnapshotsCommand());
     }
 
     /**

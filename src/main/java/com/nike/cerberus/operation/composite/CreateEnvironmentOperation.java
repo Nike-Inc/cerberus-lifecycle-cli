@@ -21,7 +21,7 @@ import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
-import com.nike.cerberus.command.core.CreateDatabaseCommand;
+import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
 import com.nike.cerberus.command.core.CreateRoute53Command;
