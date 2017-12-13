@@ -106,7 +106,7 @@ public class CopyRdsSnapshotsOperation implements Operation<CopyRdsSnapshotsComm
      * @param toRegion The to region
      */
     private void copySnapshot(DBClusterSnapshot fromSnapshot, Regions fromRegion, Regions toRegion) {
-        AmazonRDS rds = AmazonRDSClient.builder().withRegion(toRegion).build();
+        AmazonRDS rds = amazonRDSClientFactory.getClient(toRegion);
         rds.copyDBClusterSnapshot(new CopyDBClusterSnapshotRequest()
                 .withCopyTags(true)
                 .withSourceDBClusterSnapshotIdentifier(fromSnapshot.getDBClusterSnapshotArn())
