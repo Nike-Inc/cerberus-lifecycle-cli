@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.core;
+package com.nike.cerberus.command.rds;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -22,9 +22,9 @@ import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.CreateDatabaseOperation;
+import com.nike.cerberus.operation.rds.CreateDatabaseOperation;
 
-import static com.nike.cerberus.command.core.CreateDatabaseCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.rds.CreateDatabaseCommand.COMMAND_NAME;
 
 /**
  * Command to create the database for Cerberus.

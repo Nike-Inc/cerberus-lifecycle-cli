@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation.core;
+package com.nike.cerberus.operation.rds;
 
 import com.amazonaws.regions.Regions;
-import com.nike.cerberus.command.core.CreateDatabaseCommand;
-import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
+import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.domain.cloudformation.DatabaseParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;

@@ -35,6 +35,7 @@ allprojects {
         compile group: 'com.amazonaws', name: 'aws-java-sdk-lambda', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-route53', version: awsSDKVersion
         compile group: 'com.amazonaws', name: 'aws-java-sdk-elasticloadbalancingv2', version: awsSDKVersion
+        compile group: 'com.amazonaws', name: 'aws-java-sdk-rds', version: awsSDKVersion
 
         // https://mvnrepository.com/artifact/com.amazonaws/aws-encryption-sdk-java
         compile group: 'com.amazonaws', name: 'aws-encryption-sdk-java', version: '1.3.1'
