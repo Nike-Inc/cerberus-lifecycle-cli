@@ -19,6 +19,7 @@ package com.nike.cerberus.operation.rds;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.DBClusterSnapshot;
 import com.nike.cerberus.service.AwsClientFactory;
+import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,9 @@ public class CopyRdsSnapshotsOperationTest {
 
     @Mock
     private ConfigStore configStore;
+
+    @Mock
+    private CloudFormationService cloudFormationService;
 
     private final static String envName = "test";
 
