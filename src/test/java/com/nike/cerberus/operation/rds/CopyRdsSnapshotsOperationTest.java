@@ -46,7 +46,7 @@ public class CopyRdsSnapshotsOperationTest {
 
     @Before
     public void before() {
-        operation = new CopyRdsSnapshotsOperation(configStore, envName, clientFactory);
+        operation = new CopyRdsSnapshotsOperation(configStore, envName, clientFactory, cloudFormationService);
     }
 
     @Test

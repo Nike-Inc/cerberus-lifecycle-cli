@@ -25,8 +25,10 @@ import com.amazonaws.services.rds.model.DescribeDBClusterSnapshotsRequest;
 import com.amazonaws.services.rds.model.DescribeDBClusterSnapshotsResult;
 import com.amazonaws.services.rds.model.Tag;
 import com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.AwsClientFactory;
+import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,15 +57,18 @@ public class CopyRdsSnapshotsOperation implements Operation<CopyRdsSnapshotsComm
     private final ConfigStore configStore;
     private final String environmentName;
     private final AwsClientFactory<AmazonRDSClient> amazonRDSClientFactory;
+    private final CloudFormationService cloudFormationService;
 
     @Inject
     public CopyRdsSnapshotsOperation(ConfigStore configStore,
                                      @Named(ENV_NAME) String environmentName,
-                                     AwsClientFactory<AmazonRDSClient> amazonRDSClientFactory) {
+                                     AwsClientFactory<AmazonRDSClient> amazonRDSClientFactory,
+                                     CloudFormationService cloudFormationService) {
 
         this.configStore = configStore;
         this.environmentName = environmentName;
         this.amazonRDSClientFactory = amazonRDSClientFactory;
+        this.cloudFormationService = cloudFormationService;
     }
 
     @Override
@@ -171,6 +176,14 @@ public class CopyRdsSnapshotsOperation implements Operation<CopyRdsSnapshotsComm
 
     @Override
     public boolean isRunnable(CopyRdsSnapshotsCommand command) {
-        return true;
+        boolean isRunnable = true;
+
+        if (cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+                Stack.DATABASE.getFullName(environmentName))) {
+            log.error("The Database stuck must exist in the primary region in order to duplicate snapshots");
+            isRunnable = false;
+        }
+
+        return isRunnable;
     }
 }

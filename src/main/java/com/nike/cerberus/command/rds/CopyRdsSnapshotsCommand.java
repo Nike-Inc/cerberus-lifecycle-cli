@@ -26,7 +26,7 @@ import static com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand.COMMAND_NAME
 
 @Parameters(
         commandNames = COMMAND_NAME,
-        commandDescription = "Copies rds cluster snapshots in the primary for this environment to the secondary regions"
+        commandDescription = "Copies RDS cluster snapshots in the primary for this environment to the secondary regions"
 )
 public class CopyRdsSnapshotsCommand implements Command {
 
@@ -36,7 +36,7 @@ public class CopyRdsSnapshotsCommand implements Command {
 
     @Parameter(
             names = DAYS_LONG_ARG,
-            description = "How old a rds cluster snapshot can be and still be considered for copying, defaults to 1 day"
+            description = "How old a RDS cluster snapshot can be and still be considered for copying, defaults to 1 day"
     )
     private long days = 1;
 
