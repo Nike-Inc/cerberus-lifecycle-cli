@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation.composite;
+package com.nike.cerberus.operation.certificates;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.composite.RotateCertificatesCommand;
-import com.nike.cerberus.command.core.DeleteOldestCertificatesCommand;
+import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
+import com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommand;
 import com.nike.cerberus.command.core.RebootCmsCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
-import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.domain.environment.Stack;
+import com.nike.cerberus.operation.composite.ChainableCommand;
+import com.nike.cerberus.operation.composite.CompositeOperation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Named;
 import java.util.List;
 
+import static com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommandParametersDelegate.ACME_API_LONG_ARG;
+import static com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommandParametersDelegate.REVOKE_LONG_ARG;
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
@@ -55,11 +60,18 @@ public class RotateCertificatesOperation extends CompositeOperation<RotateCertif
 
     @Override
     protected List<ChainableCommand> getCompositeCommandChain(RotateCertificatesCommand compositeCommand) {
+        ChainableCommand.Builder delete = ChainableCommand.Builder.create().withCommand(new DeleteOldestCertificatesCommand());
+        if (compositeCommand.getDeleteParametersDelegate().isRevokeCertificates()) {
+            delete
+                    .withAdditionalArg(REVOKE_LONG_ARG)
+                    .withOption(ACME_API_LONG_ARG, compositeCommand.getDeleteParametersDelegate().getAcmeUrl());
+        }
+
         return Lists.newArrayList(
                 // Add the cert and key files to S3
                 ChainableCommand.Builder.create().withCommand(new UploadCertificateFilesCommand())
                         .withAdditionalArg(UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG)
-                        .withAdditionalArg(compositeCommand.getUploadCertificateFilesCommandParametersDelegate()
+                        .withAdditionalArg(compositeCommand.getUploadParametersDelegate()
                                 .getCertPath().toString())
                         .build(),
 
@@ -76,7 +88,7 @@ public class RotateCertificatesOperation extends CompositeOperation<RotateCertif
                 ChainableCommand.Builder.create().withCommand(new RebootCmsCommand()).build(),
 
                 // Delete all certs except the latest (there should just be the one)
-                ChainableCommand.Builder.create().withCommand(new DeleteOldestCertificatesCommand()).build()
+                delete.build()
         );
     }
 
@@ -94,6 +106,17 @@ public class RotateCertificatesOperation extends CompositeOperation<RotateCertif
             isRunnable = false;
         }
 
+        if (command.getDeleteParametersDelegate().isRevokeCertificates() &&
+                StringUtils.isBlank(command.getDeleteParametersDelegate().getAcmeUrl())) {
+            log.error("You must provide an ACME api url if you wish to revoke the cert while rotating");
+            isRunnable = false;
+        }
+
         return isRunnable;
+    }
+
+    @Override
+    public boolean isEnvironmentConfigRequired() {
+        return false;
     }
 }

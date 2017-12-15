@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.composite;
+package com.nike.cerberus.command.certificates;
 
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.composite.RotateCertificatesOperation;
+import com.nike.cerberus.operation.certificates.RotateCertificatesOperation;
 
-import static com.nike.cerberus.command.composite.RotateCertificatesCommand.COMMAND_DESCRIPTION;
-import static com.nike.cerberus.command.composite.RotateCertificatesCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.certificates.RotateCertificatesCommand.COMMAND_DESCRIPTION;
+import static com.nike.cerberus.command.certificates.RotateCertificatesCommand.COMMAND_NAME;
 
 @Parameters(
         commandNames = COMMAND_NAME,
@@ -36,11 +35,19 @@ public class RotateCertificatesCommand implements Command {
     public static final String COMMAND_DESCRIPTION = "Rotates the certificates used by the ALB and CMS.";
 
     @ParametersDelegate
-    private UploadCertificateFilesCommandParametersDelegate uploadCertificateFilesCommandParametersDelegate
+    private UploadCertificateFilesCommandParametersDelegate uploadParametersDelegate
             = new UploadCertificateFilesCommandParametersDelegate();
 
-    public UploadCertificateFilesCommandParametersDelegate getUploadCertificateFilesCommandParametersDelegate() {
-        return uploadCertificateFilesCommandParametersDelegate;
+    public UploadCertificateFilesCommandParametersDelegate getUploadParametersDelegate() {
+        return uploadParametersDelegate;
+    }
+
+    @ParametersDelegate
+    DeleteOldestCertificatesCommandParametersDelegate deleteParametersDelegate =
+            new DeleteOldestCertificatesCommandParametersDelegate();
+
+    public DeleteOldestCertificatesCommandParametersDelegate getDeleteParametersDelegate() {
+        return deleteParametersDelegate;
     }
 
     @Override

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.composite;
+package com.nike.cerberus.command.certificates;
 
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.composite.GenerateAndRotateCertificatesOperation;
+import com.nike.cerberus.operation.certificates.GenerateAndRotateCertificatesOperation;
 
-import static com.nike.cerberus.command.composite.GenerateAndRotateCertificatesCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand.COMMAND_NAME;
 
 @Parameters(
         commandNames = {

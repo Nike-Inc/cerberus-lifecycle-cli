@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.core;
+package com.nike.cerberus.command.certificates;
 
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.DeleteOldestCertificatesOperation;
+import com.nike.cerberus.operation.certificates.DeleteOldestCertificatesOperation;
 
-import static com.nike.cerberus.command.core.DeleteOldestCertificatesCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommand.COMMAND_NAME;
 
 @Parameters(
         commandNames = {
@@ -32,6 +33,14 @@ import static com.nike.cerberus.command.core.DeleteOldestCertificatesCommand.COM
 public class DeleteOldestCertificatesCommand implements Command {
 
     public static final String COMMAND_NAME = "delete-oldest-certificates";
+
+    @ParametersDelegate
+    DeleteOldestCertificatesCommandParametersDelegate deleteParametersDelegate =
+            new DeleteOldestCertificatesCommandParametersDelegate();
+
+    public DeleteOldestCertificatesCommandParametersDelegate getDeleteParametersDelegate() {
+        return deleteParametersDelegate;
+    }
 
     @Override
     public String getCommandName() {

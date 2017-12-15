@@ -16,12 +16,13 @@
 
 package com.nike.cerberus.cli;
 
+import com.google.common.collect.Lists;
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.composite.GenerateAndRotateCertificatesCommand;
-import com.nike.cerberus.command.composite.RotateCertificatesCommand;
+import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
+import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
@@ -32,8 +33,8 @@ import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
-import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
-import com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
@@ -86,6 +87,10 @@ public class EnvironmentConfigToArgsMapper {
     }
 
     public static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
+        if (environmentConfig == null) {
+            return Lists.newArrayList(passedArgs);
+        }
+
         List<String> args = new LinkedList<>();
         switch (commandName) {
             case InitializeEnvironmentCommand.COMMAND_NAME:

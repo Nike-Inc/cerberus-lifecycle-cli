@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation.composite;
+package com.nike.cerberus.operation.certificates;
 
 import com.google.common.collect.Lists;
-import com.nike.cerberus.command.composite.GenerateAndRotateCertificatesCommand;
-import com.nike.cerberus.command.composite.RotateCertificatesCommand;
+import com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommandParametersDelegate;
+import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
+import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.domain.environment.Stack;
+import com.nike.cerberus.operation.composite.ChainableCommand;
+import com.nike.cerberus.operation.composite.CompositeOperation;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.util.List;
 
-import static com.nike.cerberus.command.core.UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG;
+import static com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommandParametersDelegate.REVOKE_LONG_ARG;
+import static com.nike.cerberus.command.certificates.UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG;
 import static com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate.*;
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
@@ -58,28 +63,8 @@ public class GenerateAndRotateCertificatesOperation extends CompositeOperation<G
         ChainableCommand.Builder generateCertificateFilesCommandBuilder = ChainableCommand.Builder.create()
                 .withCommand(new GenerateCertificateFilesCommand())
                 .withOption(
-                        BASE_DOMAIN_LONG_ARG,
-                        parameters.getBaseDomainName()
-                )
-                .withOption(
-                        EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG,
-                        parameters.getEdgeDomainNameOverride()
-                )
-                .withOption(
-                        ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG,
-                        parameters.getOriginDomainNameOverride()
-                )
-                .withOption(
-                        LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG,
-                        parameters.getLoadBalancerDomainNameOverride()
-                )
-                .withOption(
                         HOSTED_ZONE_ID_LONG_ARG,
                         parameters.getHostedZoneId()
-                )
-                .withOption(
-                        ENABLE_LE_CERTFIX_LONG_ARG,
-                        String.valueOf(parameters.enableLetsEncryptCertfix())
                 )
                 .withOption(
                         CERT_FOLDER_LONG_ARG,
@@ -94,17 +79,45 @@ public class GenerateAndRotateCertificatesOperation extends CompositeOperation<G
                         parameters.getContactEmail()
                 );
 
-                if (!parameters.isTty()) {
-                    generateCertificateFilesCommandBuilder.withAdditionalArg(NO_TTY_LONG_ARG);
-                }
+        if (parameters.enableLetsEncryptCertfix()) {
+            generateCertificateFilesCommandBuilder.withAdditionalArg(ENABLE_LE_CERTFIX_LONG_ARG);
+        }
 
-                if (parameters.isAutoAcceptAcmeTos()) {
-                    generateCertificateFilesCommandBuilder.withAdditionalArg(ACCEPT_ACME_TOS);
-                }
+        if (StringUtils.isNotBlank(parameters.getBaseDomainName())) {
+            generateCertificateFilesCommandBuilder.withOption(
+                    BASE_DOMAIN_LONG_ARG,
+                    parameters.getBaseDomainName()
+            );
+        }
 
-                parameters.getSubjectAlternativeNames().forEach(name -> {
-                    generateCertificateFilesCommandBuilder.withOption(SUBJECT_ALT_NAME_LONG_ARG, name);
-                });
+        if (StringUtils.isNotBlank(parameters.getEdgeDomainNameOverride())) {
+            generateCertificateFilesCommandBuilder.withOption(
+                    EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG,
+                    parameters.getEdgeDomainNameOverride()
+            );
+        }
+
+        if (StringUtils.isNotBlank(parameters.getOriginDomainNameOverride())) {
+            generateCertificateFilesCommandBuilder.withOption(
+                    ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG,
+                    parameters.getOriginDomainNameOverride()
+            );
+        }
+
+        if (StringUtils.isNotBlank(parameters.getLoadBalancerDomainNameOverride())) {
+            generateCertificateFilesCommandBuilder.withOption(
+                    LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG,
+                    parameters.getLoadBalancerDomainNameOverride()
+            );
+        }
+
+        if (parameters.isAutoAcceptAcmeTos()) {
+            generateCertificateFilesCommandBuilder.withAdditionalArg(ACCEPT_ACME_TOS);
+        }
+
+        parameters.getSubjectAlternativeNames().forEach(name -> {
+            generateCertificateFilesCommandBuilder.withOption(SUBJECT_ALT_NAME_LONG_ARG, name);
+        });
 
         return Lists.newArrayList(
                 // Generate the Certificates
@@ -115,6 +128,10 @@ public class GenerateAndRotateCertificatesOperation extends CompositeOperation<G
                         .withOption(
                                 CERT_PATH_LONG_ARG,
                                 parameters.getCertDir())
+                        .withAdditionalArg(REVOKE_LONG_ARG)
+                        .withOption(
+                                DeleteOldestCertificatesCommandParametersDelegate.ACME_API_LONG_ARG,
+                                parameters.getAcmeApiUrl())
                         .build()
         );
     }
@@ -134,5 +151,10 @@ public class GenerateAndRotateCertificatesOperation extends CompositeOperation<G
         }
 
         return isRunnable;
+    }
+
+    @Override
+    public boolean isEnvironmentConfigRequired() {
+        return false;
     }
 }

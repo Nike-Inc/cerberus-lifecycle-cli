@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.core;
+package com.nike.cerberus.command.certificates;
 
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.UploadCertificatesFilesOperation;
+import com.nike.cerberus.operation.certificates.UploadCertificatesFilesOperation;
 
-import static com.nike.cerberus.command.core.UploadCertificateFilesCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.certificates.UploadCertificateFilesCommand.COMMAND_NAME;
 
 /**
  * Command for uploading a certificate for a specific component.

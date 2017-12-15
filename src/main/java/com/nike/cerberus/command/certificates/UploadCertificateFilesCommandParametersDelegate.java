@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.core;
+package com.nike.cerberus.command.certificates;
 
 import com.beust.jcommander.Parameter;
 import com.nike.cerberus.command.validator.UploadCertFilesPathValidator;
