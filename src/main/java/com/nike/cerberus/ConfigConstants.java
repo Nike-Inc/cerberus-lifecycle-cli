@@ -42,6 +42,8 @@ public class ConfigConstants {
 
     public static final String CERT_PART_PUBKEY = "pubkey.pem";
 
+    public static final String CERT_ACME_ACCOUNT_PRIVATE_KEY = "certificates/acme/account-private-key-pkcs1.pem";
+
     public static final String CMS_ENV_CONFIG_PATH = "cms/environment.properties";
 
     public static final String VERSION_PROPERTY = "cli.version";

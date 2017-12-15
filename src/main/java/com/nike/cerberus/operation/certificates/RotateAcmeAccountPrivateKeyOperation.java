@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation.core;
+package com.nike.cerberus.operation.certificates;
 
-import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.certificates.RotateAcmeAccountPrivateKeyCommand;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CertificateService;
 import com.nike.cerberus.store.ConfigStore;
@@ -25,34 +25,33 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
-/**
- * Handles uploading of certificate files to IAM and the config store.
- */
-public class UploadCertificatesFilesOperation implements Operation<UploadCertificateFilesCommand> {
+public class RotateAcmeAccountPrivateKeyOperation implements Operation<RotateAcmeAccountPrivateKeyCommand> {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ConfigStore configStore;
     private final CertificateService certificateService;
 
     @Inject
-    public UploadCertificatesFilesOperation(ConfigStore configStore,
-                                            CertificateService certificateService) {
-
+    public RotateAcmeAccountPrivateKeyOperation(ConfigStore configStore,
+                                                CertificateService certificateService) {
         this.configStore = configStore;
         this.certificateService = certificateService;
     }
 
     @Override
-    public void run(final UploadCertificateFilesCommand command) {
-        certificateService.uploadCertFiles(command.getUploadCertificatesPathParametersDelegate().getCertPath().toFile());
+    public void run(RotateAcmeAccountPrivateKeyCommand command) {
+        log.info("Preparing to rotate ACME account private key.");
+        certificateService.rotateAcmeAccountKeyPair(command.getAcmeUrl());
+        log.info("ACME account private key rotated.");
     }
 
     @Override
-    public boolean isRunnable(final UploadCertificateFilesCommand command) {
+    public boolean isRunnable(RotateAcmeAccountPrivateKeyCommand command) {
         boolean isRunnable = true;
-        if (configStore.getConfigEnabledRegions().isEmpty()) {
-            logger.error("The environment has not been initialized");
+
+        if (!configStore.getAcmeAccountKeyPair().isPresent()) {
+            log.error("There is no saved private key to rotate");
             isRunnable = false;
         }
 

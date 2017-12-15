@@ -33,7 +33,6 @@ public class GenerateCertificateFilesCommandParametersDelegate {
     public static final String CERT_FOLDER_LONG_ARG = "--local-certificate-directory";
     public static final String ACME_API_LONG_ARG = "--acme-api-url";
     public static final String CONTACT_EMAIL_LONG_ARG = "--contact-email";
-    public static final String NO_TTY_LONG_ARG = "--no-tty";
     public static final String ACCEPT_ACME_TOS = "--no-tty-force-acme-tos-accept";
 
     public static final String LETS_ENCRYPT_ACME_API_URI = "acme://letsencrypt.org";
@@ -132,13 +131,6 @@ public class GenerateCertificateFilesCommandParametersDelegate {
     )
     private String contactEmail;
 
-    @Parameter(
-            names = {
-                    NO_TTY_LONG_ARG
-            },
-            description = "Flag to supply when running command in an environment without TTY, such as a build job"
-    )
-    private boolean isNoTty = false;
 
     @Parameter(
             names = {
@@ -187,10 +179,6 @@ public class GenerateCertificateFilesCommandParametersDelegate {
 
     public String getContactEmail() {
         return contactEmail;
-    }
-
-    public boolean isTty() {
-        return ! isNoTty;
     }
 
     public boolean isAutoAcceptAcmeTos() {

@@ -27,14 +27,15 @@ import com.google.inject.name.Names;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.command.certificates.RotateAcmeAccountPrivateKeyCommand;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
 import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
-import com.nike.cerberus.command.composite.GenerateAndRotateCertificatesCommand;
+import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
-import com.nike.cerberus.command.composite.RotateCertificatesCommand;
+import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
@@ -44,14 +45,14 @@ import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
-import com.nike.cerberus.command.core.DeleteOldestCertificatesCommand;
+import com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommand;
 import com.nike.cerberus.command.core.DeleteStackCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
 import com.nike.cerberus.command.core.RebootCmsCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
@@ -197,6 +198,7 @@ public class CerberusRunner {
         registerCommand(new DeleteOldestCertificatesCommand());
         registerCommand(new CopyRdsSnapshotsCommand());
         registerCommand(new GenerateAndRotateCertificatesCommand());
+        registerCommand(new RotateAcmeAccountPrivateKeyCommand());
     }
 
     /**

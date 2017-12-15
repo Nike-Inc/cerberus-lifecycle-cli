@@ -69,6 +69,7 @@ public class CerberusModule extends AbstractModule {
     public static final String CONFIG_OBJECT_MAPPER = "configObjectMapper";
     public static final String ENV_NAME = "environmentName";
     public static final String CONFIG_REGION = "configRegionName";
+    public static final String IS_TTY = "isTty";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -80,11 +81,14 @@ public class CerberusModule extends AbstractModule {
 
     private final EnvironmentConfig environmentConfig;
 
+    private final boolean isTty;
+
     public CerberusModule(CerberusCommand cerberusCommand) {
         proxyDelegate = cerberusCommand.getProxyDelegate();
         environmentName = cerberusCommand.getEnvironmentName();
         configRegionName = cerberusCommand.getConfigRegion();
         environmentConfig = cerberusCommand.getEnvironmentConfig();
+        isTty = cerberusCommand.isTty();
     }
 
     /**
@@ -96,6 +100,7 @@ public class CerberusModule extends AbstractModule {
         OptionalBinder.newOptionalBinder(binder(), EnvironmentConfig.class);
         bind(EnvironmentConfig.class).toProvider(Providers.of(environmentConfig));
 
+        bindConstant().annotatedWith(Names.named(IS_TTY)).to(isTty);
         bindConstant().annotatedWith(Names.named(ENV_NAME)).to(environmentName);
         bindConstant().annotatedWith(Names.named(CONFIG_REGION)).to(configRegionName);
 

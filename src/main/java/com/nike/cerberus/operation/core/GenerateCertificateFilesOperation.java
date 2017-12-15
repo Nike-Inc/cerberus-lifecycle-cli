@@ -33,10 +33,10 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.io.File;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
+import static com.nike.cerberus.module.CerberusModule.IS_TTY;
 import static com.nike.cerberus.service.ConsoleService.DefaultAction.NO;
 import static com.nike.cerberus.service.ConsoleService.DefaultAction.YES;
 
@@ -51,17 +51,20 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
     private final CertificateService certService;
     private final String environmentName;
     private final ConsoleService consoleService;
+    private final boolean isTty;
 
     @Inject
     public GenerateCertificateFilesOperation(ConfigStore configStore,
                                              CertificateService certService,
                                              @Named(ENV_NAME) String environmentName,
-                                             ConsoleService consoleService) {
+                                             ConsoleService consoleService,
+                                             @Named(IS_TTY) boolean isTty) {
 
         this.configStore = configStore;
         this.certService = certService;
         this.environmentName = environmentName;
         this.consoleService = consoleService;
+        this.isTty = isTty;
     }
 
     @SuppressFBWarnings(
@@ -117,7 +120,7 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
             // confirm with user
             String msg = String.format("Preparing to generate certs in %s with Common Name: %s and Subject Alternative Names: %s",
                     certDir.getAbsolutePath(), commonName, String.join(", ", subjectAlternativeNames));
-            if (command.getGenerateCertificateFilesCommandParametersDelegate().isTty()) {
+            if (isTty) {
                 consoleService.askUserToProceed(msg, NO);
             } else {
                 log.info(msg);
@@ -141,7 +144,7 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
     @Override
     public boolean isRunnable(GenerateCertificateFilesCommand command) {
         boolean isRunnable = true;
-        if (command.getGenerateCertificateFilesCommandParametersDelegate().isTty()) {
+        if (isTty) {
             boolean filesAlreadyPreset = true;
             File certDir = new File(command.getGenerateCertificateFilesCommandParametersDelegate().getCertDir());
             try {

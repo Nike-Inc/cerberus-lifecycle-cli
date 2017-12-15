@@ -29,7 +29,7 @@ import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
-import com.nike.cerberus.command.core.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 
 import java.util.List;

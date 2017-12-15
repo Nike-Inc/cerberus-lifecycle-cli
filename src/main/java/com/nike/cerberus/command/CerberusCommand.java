@@ -84,6 +84,9 @@ public class CerberusCommand {
     @Parameter(names = {"--version", "-v"}, description = "Prints the version of the CLI.")
     private boolean version;
 
+    @Parameter(names = {"--no-tty"}, description = "Flag to set when no tty is availible, ex: running on a Continuous Integration (CI) server")
+    boolean noTty = false;
+
     @ParametersDelegate
     private ProxyDelegate proxyDelegate = new ProxyDelegate();
 
@@ -172,6 +175,10 @@ public class CerberusCommand {
 
     public boolean isVersion() {
         return version;
+    }
+
+    public boolean isTty() {
+        return ! noTty;
     }
 
     public ProxyDelegate getProxyDelegate() {

@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.operation.core;
+package com.nike.cerberus.operation.certificates;
 
 import com.google.inject.Inject;
-import com.nike.cerberus.command.core.DeleteOldestCertificatesCommand;
+import com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommand;
 import com.nike.cerberus.domain.environment.CertificateInformation;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CertificateService;
 import com.nike.cerberus.store.ConfigStore;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,9 @@ public class DeleteOldestCertificatesOperation implements Operation<DeleteOldest
         List<CertificateInformation> certificateInformationList = configStore.getCertificationInformationList();
         int indexBeforeLast = certificateInformationList.size() - 1;
         certificateInformationList.subList(0, indexBeforeLast).forEach(certificateInformation -> {
-            certificateService.deleteCertificate(certificateInformation.getCertificateName());
+            certificateService.deleteCertificate(certificateInformation.getCertificateName(),
+                    command.getDeleteParametersDelegate().isRevokeCertificates(),
+                    command.getDeleteParametersDelegate().getAcmeUrl());
         });
     }
 
@@ -67,6 +70,12 @@ public class DeleteOldestCertificatesOperation implements Operation<DeleteOldest
                     "cannot delete oldest certs, aborting...");
             isRunnable = false;
          }
+
+        if (command.getDeleteParametersDelegate().isRevokeCertificates() &&
+                 StringUtils.isBlank(command.getDeleteParametersDelegate().getAcmeUrl())) {
+             log.error("You must provide an ACME api url if you wish to revoke the cert");
+             isRunnable = false;
+        }
 
         return isRunnable;
     }

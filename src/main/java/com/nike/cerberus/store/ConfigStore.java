@@ -50,6 +50,8 @@ import com.nike.cerberus.service.SaltGenerator;
 import com.nike.cerberus.service.StoreService;
 import com.nike.cerberus.util.CloudFormationObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
+import org.shredzone.acme4j.util.KeyPairUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,8 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.security.KeyPair;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +175,32 @@ public class ConfigStore {
         environmentData.addNewCertificateData(certificateInformation);
 
         saveEnvironmentData(environmentData);
+    }
+
+    public Optional<KeyPair> getAcmeAccountKeyPair() {
+        Optional<String> serializedKeyPair =
+                getEncryptedObject(CERT_ACME_ACCOUNT_PRIVATE_KEY).map(encryptionService::decrypt);
+
+        if (!serializedKeyPair.isPresent()) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(KeyPairUtils.readKeyPair(new StringReader(serializedKeyPair.get())));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read keypair from serialized data", e);
+        }
+    }
+
+    public void storeAcmeUserKeyPair(KeyPair keyPair) {
+        EnvironmentData environmentData = getDecryptedEnvironmentData();
+        StringWriter stringWriter = new StringWriter();
+        try (JcaPEMWriter jw = new JcaPEMWriter(stringWriter)) {
+            jw.writeObject(keyPair);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write key pair", e);
+        }
+        encryptAndSaveObject(CERT_ACME_ACCOUNT_PRIVATE_KEY, stringWriter.toString(), environmentData);
     }
 
     public LinkedList<CertificateInformation> getCertificationInformationList() {
@@ -548,6 +578,10 @@ public class ConfigStore {
         return storeServiceMap.get(region);
     }
 
+    /**
+     * @param path the path to the encrypted text
+     * @return The serialized cipher text from s3
+     */
     private Optional<String> getEncryptedObject(String path) {
         return getStoreServiceForRegion(configRegion, getDecryptedEnvironmentData()).get(path);
     }

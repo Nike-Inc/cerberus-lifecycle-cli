@@ -48,6 +48,7 @@ import org.shredzone.acme4j.Authorization;
 import org.shredzone.acme4j.Certificate;
 import org.shredzone.acme4j.Registration;
 import org.shredzone.acme4j.RegistrationBuilder;
+import org.shredzone.acme4j.RevocationReason;
 import org.shredzone.acme4j.Session;
 import org.shredzone.acme4j.Status;
 import org.shredzone.acme4j.challenge.Challenge;
@@ -80,6 +81,7 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -90,11 +92,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static com.nike.cerberus.ConfigConstants.CERT_PART_CERT;
 import static com.nike.cerberus.module.CerberusModule.CONFIG_REGION;
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
- * Service for managing Cerificates and calls to the ACME cert provider
+ * Service for managing certificates and calls to the ACME cert provider
  * <p>
  * TODO: Update TOS
  * TODO: Rotate ACME user private key
@@ -108,9 +111,6 @@ import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 public class CertificateService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    // File name of the PKCS #1 private key pem for the ACME registration, this represents a "User"
-    public static final String USER_KEY_FILE = "acme-user-private-key-pkcs1.pem";
 
     // File name of the PKCS #1 private key pem for the Cerberus domain
     public static final String DOMAIN_PKCS1_KEY_FILE = "domain-private-key-pkcs1.pem";
@@ -181,10 +181,18 @@ public class CertificateService {
      * it somewhere. If you need to get access to your account later, reconnect to it via
      * {@link Registration#bind(Session, URI)} by using the stored location.
      *
-     * @param session {@link Session} to bind with
+     * @param acmeServerUrl The ACME API URL
+     * @param contactEmail The contact info for the account
+     * @param autoAcceptTos whether or not to auto accept the TOS from the ACME provider
      * @return {@link Registration} connected to your account
      */
-    protected Registration findOrRegisterAccount(Session session, String contactEmail, boolean autoAcceptTos) throws AcmeException, IOException {
+    protected Registration findOrRegisterAccount(String acmeServerUrl,
+                                                 String contactEmail,
+                                                 boolean autoAcceptTos) throws AcmeException, IOException {
+
+        KeyPair userKeyPair = loadOrCreateAcmeAccountKeyPair();
+        Session session = new Session(acmeServerUrl, userKeyPair);
+
         Registration reg;
         try {
             // Try to create a new Registration.
@@ -293,6 +301,91 @@ public class CertificateService {
         }
     }
 
+    /**
+     * Loads a key pair from specified file. If the file does not exist,
+     * a new key pair is generated and saved.
+     *
+     * @return {@link KeyPair}.
+     */
+    protected KeyPair loadOrCreateAcmeAccountKeyPair() {
+        return configStore.getAcmeAccountKeyPair().orElseGet(() -> {
+            KeyPair keyPair = KeyPairUtils.createKeyPair(KEY_SIZE);
+            configStore.storeAcmeUserKeyPair(keyPair);
+            return keyPair;
+        });
+    }
+
+    /**
+     * Retrieves an account that should already exist for the private key stored in the config store.
+     * @param acmeServerUrl The ACME server url.
+     * @return The registration object for the already registered account
+     */
+    protected Registration getExistingAccount(String acmeServerUrl) {
+        KeyPair currentKeyPair = configStore.getAcmeAccountKeyPair().orElseThrow(() ->
+                new RuntimeException("There is no current ACME account key pair to rotate"));
+
+        Session session = new Session(acmeServerUrl, currentKeyPair);
+
+        Registration account = null;
+        try {
+            // Try to create a new Registration.
+            new RegistrationBuilder().create(session);
+            throw new RuntimeException("An account for the specified ACME user account private key does not exist");
+        } catch (AcmeConflictException ex) {
+            account = Registration.bind(session, ex.getLocation());
+        } catch (AcmeException e) {
+            log.error("Failed to lookup account", e);
+        }
+
+        return account;
+    }
+
+    /**
+     * Rotates the ACME account private key.
+     * @param acmeServerUrl The ACME server url.
+     */
+    public void rotateAcmeAccountKeyPair(String acmeServerUrl) {
+        Registration account = getExistingAccount(acmeServerUrl);
+
+        KeyPair newKeyPair = KeyPairUtils.createKeyPair(KEY_SIZE);
+        try {
+            account.changeKey(newKeyPair);
+        } catch (AcmeException e) {
+            throw new RuntimeException("Failed to rotate keypair on ACME account", e);
+        }
+        configStore.storeAcmeUserKeyPair(newKeyPair);
+    }
+
+    /**
+     * Revokes a certificate from the ACME Provider.
+     * @param certificateName The certificate name of the cert, that was saved when the cert was generated
+     * @param acmeServerUrl The ACME server url.
+     */
+    protected void revokeCertificate(String certificateName, String acmeServerUrl) {
+        String certificateContents = configStore.getCertPart(certificateName, CERT_PART_CERT).orElseThrow(() ->
+                new RuntimeException("Failed to download the requested cert"));
+
+        X509Certificate certificateToRevoke;
+        try {
+            certificateToRevoke = CertificateUtils.readX509Certificate(new StringInputStream(certificateContents));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse x509 cert", e);
+        }
+
+        Registration account = getExistingAccount(acmeServerUrl);
+        try {
+            for (Iterator<Certificate> it = account.getCertificates(); it.hasNext(); ) {
+                Certificate certificate = it.next();
+
+                if (certificate.download().equals(certificateToRevoke)) {
+                    certificate.revoke(RevocationReason.UNSPECIFIED);
+                    break;
+                }
+            }
+        } catch (AcmeException e) {
+            throw new RuntimeException("Failed to revoke certificate", e);
+        }
+    }
 
     /**
      * Generates the certs needed for a Cerberus Environment
@@ -315,10 +408,7 @@ public class CertificateService {
             names.add(commonName); // the first entry counts as the common name
             names.addAll(subjectAlternativeNames);
 
-            KeyPair userKeyPair = loadOrCreateKeyPair(new File(certDir.getAbsolutePath() + File.separator + USER_KEY_FILE));
-
-            Session session = new Session(acmeServerUrl, userKeyPair);
-            Registration registration = findOrRegisterAccount(session, contactEmail, autoAcceptTos);
+            Registration registration = findOrRegisterAccount(acmeServerUrl, contactEmail, autoAcceptTos);
 
             Map<String, Collection<Challenge>> domainChallengeCollectionMap = new HashMap<>();
             for (String name : names) {
@@ -612,15 +702,21 @@ public class CertificateService {
     /**
      * Deletes a certificate by name from S3 and from the identity management service and from the environment config
      *
-     * @param certificateName the certificate to delete
+     * @param certificateName The certificate to delete
+     * @param revokeCertificates Flag to revoke the certificate with an ACME server
+     * @param acmeServerUrl The ACME server to use when revoking a certificate
      */
-    public void deleteCertificate(String certificateName) {
+    public void deleteCertificate(String certificateName, boolean revokeCertificates, String acmeServerUrl) {
         log.info("Attempting to delete certificate with name: {}", certificateName);
         try {
             identityManagementService.deleteServerCertificate(certificateName);
         } catch (AmazonServiceException e) {
             log.error("Failed to delete the certificate: {} from the identity management service," +
                     " you may need to manually delete. MSG: {}", certificateName, e.getMessage());
+        }
+
+        if (revokeCertificates) {
+            revokeCertificate(certificateName, acmeServerUrl);
         }
 
         configStore.deleteCertificate(certificateName);
