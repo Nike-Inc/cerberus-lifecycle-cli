@@ -158,8 +158,8 @@ public class CerberusCommand {
                         EnvironmentalVarRegion;
 
         if (StringUtils.isBlank(calculatedRegion)) {
-            log.error("Failed to determine environment, checked 'CERBERUS_CLI_REGION' env var and -r, --region command options, options must go before the command");
-            calculatedRegion = Regions.DEFAULT_REGION.toString();
+            log.error("Failed to determine environment, checked 'CERBERUS_CLI_REGION' env var and -r, --region command options as well as primary region config. Using the default region");
+            calculatedRegion = Regions.DEFAULT_REGION.getName();
         }
 
         return calculatedRegion;
