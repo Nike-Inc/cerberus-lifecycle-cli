@@ -34,7 +34,8 @@ public class RotateAcmeAccountPrivateKeyCommand implements Command {
 
     public static final String COMMAND_NAME = "rotate-acme-account-key";
 
-    public static final String ACME_URL_LONG_ARG = "--acme-url";
+    public static final String ACME_URL_LONG_ARG = "--acme-api-url";
+    public static final String ENABLE_LE_CERTFIX_LONG_ARG = "--enable-letsecrypt-certfix";
 
     @Parameter(
             names = ACME_URL_LONG_ARG,
@@ -45,6 +46,21 @@ public class RotateAcmeAccountPrivateKeyCommand implements Command {
 
     public String getAcmeUrl() {
         return acmeUrl;
+    }
+
+    @Parameter(
+            names = {
+                    ENABLE_LE_CERTFIX_LONG_ARG
+            },
+            description = "This command uses the acme4j client to communicate with the ACME server, " +
+                    "it supports uses a hardcoded Let'sEncrypt cert to get around SSL errors, you can use this " +
+                    "flag if your truststore is not configured to trust LE certificates, which can be found " +
+                    " here: https://letsencrypt.org/certificates/"
+    )
+    private boolean enableLetsEncryptCertfix = false;
+
+    public boolean isEnableLetsEncryptCertfix() {
+        return enableLetsEncryptCertfix;
     }
 
     @Override

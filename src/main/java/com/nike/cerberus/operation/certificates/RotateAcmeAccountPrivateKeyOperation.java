@@ -42,6 +42,17 @@ public class RotateAcmeAccountPrivateKeyOperation implements Operation<RotateAcm
     @Override
     public void run(RotateAcmeAccountPrivateKeyCommand command) {
         log.info("Preparing to rotate ACME account private key.");
+
+
+        // Enable the use of the hard coded lets encrypt cert if enabled
+        if (command.isEnableLetsEncryptCertfix()) {
+            log.warn("Setting acme4j.le.certfix system property to 'true', this only works if you use the special " +
+                    "acme:// lets encrypt addr. See: https://shredzone.org/maven/acme4j/usage/session.html" +
+                    " and https://shredzone.org/maven/acme4j/provider.html");
+
+            System.setProperty("acme4j.le.certfix", "true");
+        }
+
         certificateService.rotateAcmeAccountKeyPair(command.getAcmeUrl());
         log.info("ACME account private key rotated.");
     }
