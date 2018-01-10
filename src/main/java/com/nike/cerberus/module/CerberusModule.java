@@ -24,6 +24,7 @@ import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancingC
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClient;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.lambda.AWSLambdaClient;
+import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
@@ -120,6 +121,7 @@ public class CerberusModule extends AbstractModule {
         bind(new TypeLiteral<AwsClientFactory<AmazonSNSClient>>() {}).toInstance(new AwsClientFactory<AmazonSNSClient>() {});
         bind(new TypeLiteral<AwsClientFactory<AmazonRoute53Client>>() {}).toInstance(new AwsClientFactory<AmazonRoute53Client>() {});
         bind(new TypeLiteral<AwsClientFactory<AmazonElasticLoadBalancingClient>>() {}).toInstance(new AwsClientFactory<AmazonElasticLoadBalancingClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonRDSClient>>() {}).toInstance(new AwsClientFactory<AmazonRDSClient>() {});
     }
 
     /**

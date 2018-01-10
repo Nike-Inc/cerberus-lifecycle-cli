@@ -178,7 +178,7 @@ public class CopyRdsSnapshotsOperation implements Operation<CopyRdsSnapshotsComm
     public boolean isRunnable(CopyRdsSnapshotsCommand command) {
         boolean isRunnable = true;
 
-        if (cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+        if (! cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
                 Stack.DATABASE.getFullName(environmentName))) {
             log.error("The Database stuck must exist in the primary region in order to duplicate snapshots");
             isRunnable = false;
