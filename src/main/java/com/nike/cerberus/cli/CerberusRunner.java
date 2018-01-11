@@ -37,6 +37,7 @@ import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesComma
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
+import com.nike.cerberus.command.rds.CleanUpRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
@@ -199,6 +200,7 @@ public class CerberusRunner {
         registerCommand(new CopyRdsSnapshotsCommand());
         registerCommand(new GenerateAndRotateCertificatesCommand());
         registerCommand(new RotateAcmeAccountPrivateKeyCommand());
+        registerCommand(new CleanUpRdsSnapshotsCommand());
     }
 
     /**
