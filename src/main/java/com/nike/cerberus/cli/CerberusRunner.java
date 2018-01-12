@@ -62,6 +62,8 @@ import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.util.LocalEnvironmentValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -99,6 +101,9 @@ public class CerberusRunner {
             commander.parse(args);
 
             configureLogging(cerberusCommand.isDebug());
+
+            final Logger log = LoggerFactory.getLogger(getClass());
+
             String commandName = commander.getParsedCommand();
             Command command = commandMap.get(commandName);
 
@@ -116,7 +121,9 @@ public class CerberusRunner {
                 Operation operation = injector.getInstance(command.getOperationClass());
 
                 if (operation.isRunnable(command)) {
+                    log.info("Running command: {}", commandName);
                     operation.run(command);
+                    log.info("Finished command: {}", commandName);
                 } else {
                     throw new RuntimeException("Command not runnable");
                 }
