@@ -79,7 +79,7 @@ public class DeleteStackOperation implements Operation<DeleteStackCommand> {
 
         log.info("Deleting stack: {} in region: {}", stackName, region);
         cloudFormationService.deleteStackAndWait(region, stackName);
-        log.info("Finished deleting stack: {} in regionL {}", stackName, region);
+        log.info("Finished deleting stack: {} in region: {}", stackName, region);
     }
 
     private Regions getRegion(DeleteStackCommand command) {

@@ -22,6 +22,7 @@ import com.amazonaws.encryptionsdk.kms.KmsMasterKeyProvider;
 import com.amazonaws.encryptionsdk.multi.MultipleProviderFactory;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
@@ -594,17 +595,33 @@ public class ConfigStore {
         AmazonS3Client s3Client = amazonS3ClientFactory.getClient(configRegion);
         List<Bucket> buckets = s3Client.listBuckets();
         String envBucket = null;
+        String tokenizedEnvName = StringUtils.replaceAll(environmentName, "_", "-");
         for (Bucket bucket : buckets) {
             String bucketName = bucket.getName();
             if (StringUtils.contains(bucket.getName(), ConfigConstants.CONFIG_BUCKET_KEY)) {
-                String bucketLocationResult = s3Client.getBucketLocation(bucketName);
-                Regions bucketRegion = StringUtils.equals("US", bucketLocationResult) ? Regions.US_EAST_1 : Regions.fromName(bucketLocationResult);
-                if (configRegion.equals(bucketRegion)) {
-                    String tokenizedEnvName = StringUtils.replaceAll(environmentName, "_", "-");
-                    if (StringUtils.startsWith(bucketName, tokenizedEnvName)) {
-                        envBucket = bucketName;
-                        break;
+                String bucketLocationResult = null;
+                try {
+                    bucketLocationResult = s3Client.getBucketLocation(bucketName);
+                } catch (AmazonS3Exception e) {
+                    logger.debug("Failed to get bucket location for bucket: {}, msg: {}", bucketName, e.getMessage());
+                    if (e.getErrorCode().equals("AuthorizationHeaderMalformed")) {
+                        if (e.getAdditionalDetails().containsKey("Region")) {
+                            bucketLocationResult = e.getAdditionalDetails().get("Region");
+                            logger.debug("Determined region from S3 Error object, region: {}", bucketLocationResult);
+                        }
                     }
+                    if (bucketLocationResult == null) {
+                        logger.debug("Failed to determine region for bucket: {} skipping...", bucketName);
+                    }
+                }
+                Regions bucketRegion = StringUtils.equals("US", bucketLocationResult) ? Regions.US_EAST_1 : Regions.fromName(bucketLocationResult);
+
+                logger.debug("Checking that bucket: {} in region: {} Starts with: {} and is in region: {}", bucketName, bucketRegion.getName(), tokenizedEnvName, configRegion.getName());
+
+                if (configRegion.equals(bucketRegion) && StringUtils.startsWith(bucketName, tokenizedEnvName)) {
+                    logger.info("Found config bucket: {}", bucketName);
+                    envBucket = bucketName;
+                    break;
                 }
             }
         }
