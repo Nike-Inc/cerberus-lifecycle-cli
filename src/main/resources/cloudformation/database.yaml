@@ -60,10 +60,6 @@ Parameters:
 Resources:
   CmsDatabaseCluster:
     Properties:
-      AvailabilityZones:
-        - Ref: 'cmsDbInstanceAz1'
-        - Ref: 'cmsDbInstanceAz2'
-        - Ref: 'cmsDbInstanceAz3'
       BackupRetentionPeriod: 14
       DatabaseName: !Ref 'cmsDbName'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
@@ -83,7 +79,6 @@ Resources:
   # Aurora decides automatically for you behind the scenes.
   CmsDbInstance1:
     Properties:
-      AvailabilityZone: !Ref 'cmsDbInstanceAz1'
       DBClusterIdentifier: !Ref CmsDatabaseCluster
       DBInstanceClass: !Ref 'cmsDbInstanceClass'
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
@@ -93,7 +88,6 @@ Resources:
     Type: AWS::RDS::DBInstance
   CmsDbInstance2:
     Properties:
-      AvailabilityZone: !Ref 'cmsDbInstanceAz2'
       DBClusterIdentifier: !Ref CmsDatabaseCluster
       DBInstanceClass: !Ref 'cmsDbInstanceClass'
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'

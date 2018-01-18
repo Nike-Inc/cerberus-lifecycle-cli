@@ -36,6 +36,8 @@ public class LoadBalancerParameters {
 
     private String sslPolicy;
 
+    private String elasticLoadBalancingAccountId;
+
     public String getSgStackName() {
         return sgStackName;
     }
@@ -96,6 +98,15 @@ public class LoadBalancerParameters {
 
     public LoadBalancerParameters setSslPolicy(String sslPolicy) {
         this.sslPolicy = sslPolicy;
+        return this;
+    }
+
+    public String getElasticLoadBalancingAccountId() {
+        return elasticLoadBalancingAccountId;
+    }
+
+    public LoadBalancerParameters setElasticLoadBalancingAccountId(String elasticLoadBalancingAccountId) {
+        this.elasticLoadBalancingAccountId = elasticLoadBalancingAccountId;
         return this;
     }
 }

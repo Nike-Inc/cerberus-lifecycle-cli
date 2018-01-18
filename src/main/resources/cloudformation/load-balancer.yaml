@@ -43,6 +43,9 @@ Parameters:
       for more information
     Type: String
     Default: ELBSecurityPolicy-TLS-1-2-2017-01
+  elasticLoadBalancingAccountId:
+    Description: The account id for the AWS ELB Account. See https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html
+    Type: String
 Resources:
   ALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -70,7 +73,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - 797873946194  # the AWS-owned ElasticLoadBalancing account for us-west-2 (required)
+                - !Ref 'elasticLoadBalancingAccountId'
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref 'ALBLogBucket', /*]]
             Sid: Allow-ALB-Log-Access

@@ -18,6 +18,7 @@ package com.nike.cerberus.operation.core;
 
 import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
+import com.nike.cerberus.command.validator.EnvironmentNameValidator;
 import com.nike.cerberus.domain.cloudformation.ConfigParameters;
 import com.nike.cerberus.domain.cloudformation.ConfigOutputs;
 import com.nike.cerberus.domain.environment.Stack;
@@ -96,6 +97,10 @@ public class InitializeEnvironmentOperation implements Operation<InitializeEnvir
     @Override
     public boolean isRunnable(InitializeEnvironmentCommand command) {
         boolean isRunnable = true;
+
+        if (!EnvironmentNameValidator.VALID_NAME_PATTERN.matcher(environmentName).matches()) {
+            throw new RuntimeException(EnvironmentNameValidator.ALLOWED_DESCRIPTION);
+        }
 
         if (command.getRegions().size() < 2) {
             log.error("You must supply at least 2 regions so that config and secure data can be encrypted " +

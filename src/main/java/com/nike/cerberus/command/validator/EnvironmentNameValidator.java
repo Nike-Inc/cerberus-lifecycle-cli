@@ -26,12 +26,13 @@ import java.util.regex.Pattern;
  */
 public class EnvironmentNameValidator implements IParameterValidator {
 
-    private final Pattern pattern = Pattern.compile("\\w+");
+    public static final Pattern VALID_NAME_PATTERN = Pattern.compile("[A-Za-z\\d-]+");
+    public static final String ALLOWED_DESCRIPTION = "Environment name may only contain alpha-numeric characters and hyphens.";
 
     @Override
     public void validate(final String name, final String value) throws ParameterException {
-        if (!pattern.matcher(value).matches()) {
-            throw new ParameterException("Environment name may only contain alpha-numeric characters and underscores.");
+        if (!VALID_NAME_PATTERN.matcher(value).matches()) {
+            throw new ParameterException(ALLOWED_DESCRIPTION);
         }
     }
 }

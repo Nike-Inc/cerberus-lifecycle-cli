@@ -20,6 +20,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.iterable.S3Versions;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3VersionSummary;
 import com.google.inject.Inject;
 import com.nike.cerberus.command.core.DeleteStackCommand;
@@ -66,13 +67,19 @@ public class DeleteStackOperation implements Operation<DeleteStackCommand> {
         cloudFormationService.getStackResources(region, stackName)
                 .forEach(stackResourceSummary -> {
                     if (stackResourceSummary.getResourceType().equals("AWS::S3::Bucket")) {
-                        String bucketName = stackResourceSummary.getPhysicalResourceId();
-                        log.info("Detected S3 Bucket: {}, emptying contents before deleting stack", bucketName);
-                        AmazonS3 amazonS3 = amazonS3Factory.getClient(region);
-                        for (S3VersionSummary version : S3Versions.inBucket(amazonS3, bucketName)) {
-                            String key = version.getKey();
-                            String versionId = version.getVersionId();
-                            amazonS3.deleteVersion(bucketName, key, versionId);
+                        try {
+                            String bucketName = stackResourceSummary.getPhysicalResourceId();
+                            log.info("Detected S3 Bucket: {}, emptying contents before deleting stack", bucketName);
+                            AmazonS3 amazonS3 = amazonS3Factory.getClient(region);
+                            for (S3VersionSummary version : S3Versions.inBucket(amazonS3, bucketName)) {
+                                String key = version.getKey();
+                                String versionId = version.getVersionId();
+                                amazonS3.deleteVersion(bucketName, key, versionId);
+                            }
+                        } catch (AmazonS3Exception e) {
+                            if (! e.getErrorCode().equals("NoSuchBucket")) {
+                                throw e;
+                            }
                         }
                     }
                 });

@@ -16,6 +16,8 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.regions.Regions;
+import com.google.common.collect.ImmutableMap;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
 import com.nike.cerberus.domain.cloudformation.LoadBalancerParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
@@ -33,6 +35,7 @@ import javax.inject.Named;
 import java.util.Map;
 
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
+import static java.util.stream.Collectors.joining;
 
 /**
  * Creates the base components via CloudFormation used by all of Cerberus.
@@ -40,6 +43,28 @@ import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancerCommand> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    // https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html
+    private final Map<String, String> regionToAwsElbAccountIdMap = ImmutableMap.<String, String>builder()
+            .put("us-east-1",      "127311923021")
+            .put("us-east-2",      "033677994240")
+            .put("us-west-1",      "027434742980")
+            .put("us-west-2",      "797873946194")
+            .put("ca-central-1",   "985666609251")
+            .put("eu-central-1",   "054676820928")
+            .put("eu-west-1",      "156460612806")
+            .put("eu-west-2",      "652711504416")
+            .put("eu-west-3",      "009996457667")
+            .put("ap-northeast-1", "582318560864")
+            .put("ap-northeast-2", "600734575887")
+            .put("ap-southeast-1", "114774131450")
+            .put("ap-southeast-2", "783225319266")
+            .put("ap-south-1",     "718504428378")
+            .put("sa-east-1",      "507241528517")
+            .put("us-gov-west-1",  "048591011584")
+            .put("cn-north-1",     "638102146993")
+            .put("cn-northwest-1", "037604701340")
+            .build();
 
     private final String environmentName;
 
@@ -63,11 +88,23 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
 
     @Override
     public void run(CreateLoadBalancerCommand command) {
+        Regions loadBalancerRegion = configStore.getPrimaryRegion();
+
         VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
 
         // Use latest cert, if there happens to be more than one for some reason
         String sslCertificateArn = configStore.getCertificationInformationList()
                 .getLast().getIdentityManagementCertificateArn();
+
+        if (!regionToAwsElbAccountIdMap.containsKey(loadBalancerRegion.getName())) {
+            throw new RuntimeException(
+                    String.format("The region: %s was not in the region to AWS ELB Account Id map: [ %s ]",
+                            loadBalancerRegion.getName(),
+                            regionToAwsElbAccountIdMap.entrySet().stream()
+                                    .map(entry -> entry.getKey() + "->" + entry.getValue())
+                                    .collect(joining(", ")))
+            );
+        }
 
         LoadBalancerParameters loadBalancerParameters = new LoadBalancerParameters()
                 .setVpcId(vpcOutputs.getVpcId())
@@ -75,7 +112,9 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
                 .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName))
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
-                .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3());
+                .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
+                .setElasticLoadBalancingAccountId(regionToAwsElbAccountIdMap.get(loadBalancerRegion.getName()));
+
 
         if (StringUtils.isNotBlank(command.getLoadBalancerSslPolicyOverride())) {
             loadBalancerParameters.setSslPolicy(command.getLoadBalancerSslPolicyOverride());
@@ -84,7 +123,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters);
 
         cloudFormationService.createStackAndWait(
-                configStore.getPrimaryRegion(),
+                loadBalancerRegion,
                 Stack.LOAD_BALANCER,
                 parameters,
                 true,

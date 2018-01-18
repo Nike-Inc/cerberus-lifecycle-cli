@@ -52,6 +52,12 @@ public class DeleteEnvironmentOperation extends CompositeOperation<DeleteEnviron
                         .build())
         );
 
+        chainableCommandList.add(ChainableCommand.Builder.create()
+                .withCommand(new DeleteStackCommand())
+                .withAdditionalArg(DeleteStackCommand.STACK_NAME_LONG_ARG)
+                .withAdditionalArg(IAM_ROLES.getName())
+                .build());
+
         configStore.getConfigEnabledRegions().forEach(region -> {
             chainableCommandList.add(ChainableCommand.Builder.create()
                     .withCommand(new DeleteStackCommand())
@@ -59,12 +65,6 @@ public class DeleteEnvironmentOperation extends CompositeOperation<DeleteEnviron
                     .withOption(DeleteStackCommand.REGION_LONG_ARG, region.getName())
                     .build());
         });
-
-        chainableCommandList.add(ChainableCommand.Builder.create()
-                .withCommand(new DeleteStackCommand())
-                .withAdditionalArg(DeleteStackCommand.STACK_NAME_LONG_ARG)
-                .withAdditionalArg(IAM_ROLES.getName())
-                .build());
 
         return chainableCommandList;
     }
