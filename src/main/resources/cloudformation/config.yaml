@@ -61,6 +61,7 @@ Resources:
     Properties:
       Description: !Join ['', ['Environment: ', !Ref 'environmentName', ' Cerberus encryption key for storing config files in s3 buckets.']]
       Enabled: 'true'
+      EnableKeyRotation: 'true'
       KeyPolicy:
         Statement:
           -
@@ -103,6 +104,7 @@ Resources:
     Properties:
       Description: !Join ['', ['Environment: ', !Ref 'environmentName', ' CMS KMS CMK for storing secure data in RDS.']]
       Enabled: 'true'
+      EnableKeyRotation: 'true'
       KeyPolicy:
         Statement:
            - Sid: Allow-Root-User
