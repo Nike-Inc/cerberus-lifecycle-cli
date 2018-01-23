@@ -108,6 +108,11 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
             isRunnable = false;
             logger.error("The security group stack must exist to create the the data base stack!");
         }
+        
+        if (cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.DATABASE.getFullName(environmentName))) {
+            isRunnable = false;
+            logger.error("The database stack already exists, use update-stack");
+        }
 
         return isRunnable;
     }
