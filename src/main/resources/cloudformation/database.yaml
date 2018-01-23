@@ -65,7 +65,7 @@ Parameters:
     Description:  The base domain name for the internal hosted zone for the VPC that the database will be accessed from
     Type: String
   vpcInternalHostedZoneId:
-    Description: he hosted zone id for the interal hosted zone for the VPC that the database will be accessed from
+    Description: The hosted zone id for the interal hosted zone for the VPC that the database will be accessed from
     Type: String
 Resources:
   CmsDatabaseCluster:
