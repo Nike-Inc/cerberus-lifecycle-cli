@@ -36,6 +36,7 @@ public class UpdateCmsConfigCommand implements Command {
 
     public static final String COMMAND_NAME = "update-cms-config";
     public static final String OVERWRITE_LONG_ARG = "--overwrite";
+    public static final String FORCE_ARG = "--force";
 
     @Parameter(names = CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, description = "Group that has admin privileges in CMS.")
     private String adminGroup;
@@ -45,6 +46,9 @@ public class UpdateCmsConfigCommand implements Command {
 
     @DynamicParameter(names = CreateCmsConfigCommand.PROPERTY_SHORT_ARG, description = "Dynamic parameters for setting additional properties in the CMS environment configuration.")
     private Map<String, String> additionalProperties = new HashMap<>();
+
+    @Parameter(names = FORCE_ARG, description = "Force allow overwriting of system generated property. This may break your configuration.")
+    private boolean force = false;
 
     public String getAdminGroup() {
         return adminGroup;
@@ -56,6 +60,10 @@ public class UpdateCmsConfigCommand implements Command {
 
     public Map<String, String> getAdditionalProperties() {
         return additionalProperties;
+    }
+
+    public boolean isForce() {
+        return force;
     }
 
     @Override

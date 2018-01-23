@@ -16,41 +16,29 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
+import com.beust.jcommander.DynamicParameter;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * CloudFormation input parameters common to all Cerberus CloudFormation stacks.
  */
 public class TagParametersDelegate {
 
-    private String tagName;
+    public static final String TAG_LONG_ARG = "--TAG";
+    public static final String TAG_SHORT_ARG = "-T";
 
-    private String tagEmail;
+    @DynamicParameter(
+            names = {
+                    TAG_LONG_ARG,
+                    TAG_SHORT_ARG
+            },
+            description = "Dynamic parameters for setting tags to be used on generated aws resources."
+    )
+    private Map<String, String> tags = new HashMap<>();
 
-    private String tagCostcenter;
-
-    public String getTagName() {
-        return tagName;
-    }
-
-    public TagParametersDelegate setTagName(String tagName) {
-        this.tagName = tagName;
-        return this;
-    }
-
-    public String getTagEmail() {
-        return tagEmail;
-    }
-
-    public TagParametersDelegate setTagEmail(String tagEmail) {
-        this.tagEmail = tagEmail;
-        return this;
-    }
-
-    public String getTagCostcenter() {
-        return tagCostcenter;
-    }
-
-    public TagParametersDelegate setTagCostcenter(String tagCostcenter) {
-        this.tagCostcenter = tagCostcenter;
-        return this;
+    public Map<String, String> getTags() {
+        return tags;
     }
 }

@@ -57,8 +57,7 @@ public class ViewConfigOperation implements Operation<ViewConfigCommand> {
             Set<String> keys = configStore.listUnderPartialPath(path);
             if (!keys.isEmpty()) {
                 logger.info("List under path '{}': {}", path, keys);
-            }
-            else {
+            } else {
                 logger.error(String.format("Failed to load file: '%s'", path));
             }
         }

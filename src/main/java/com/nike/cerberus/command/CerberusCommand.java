@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.command;
 
+import com.amazonaws.regions.Regions;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
@@ -24,8 +25,9 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nike.cerberus.command.validator.EnvironmentNameValidator;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
-import com.nike.cerberus.domain.input.ProxyConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,20 +44,35 @@ public class CerberusCommand {
 
     public static final String COMMAND_NAME = "cerberus";
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private EnvironmentConfig environmentConfig;
 
     @Parameter
     private List<String> parameters = new ArrayList<>();
 
-    @Parameter(names = {"--file", "-f"}, description = "The environment yaml file, allows users to define their environments in a yaml file rather than passing args for each command. This file is required when using composite commands. If file is supplied all args passed for individual commands are ignored and sourced from the yaml, except on commands that require special identifiers like update-stack and --stack-name, which would be used to point to what stack you want to update in the yaml")
+    @Parameter(
+            names = {"--file", "-f"},
+            description = "The environment yaml file, allows users to define their environments in a yaml file " +
+                    "rather than passing args for each command. This file is required when using composite commands. " +
+                    "If file is supplied all args passed for individual commands are ignored and sourced from the yaml," +
+                    " except on commands that require special identifiers like update-stack and --stack-name, which " +
+                    "would be used to point to what stack you want to update in the yaml")
     private String file;
 
-    @Parameter(names = {"--environment", "--env", "-e"},
-            description = "Cerberus environment name to execute against. This is required to be set via 'CERBERUS_CLI_ENV' env var or supplied via command arg",
-            validateWith = EnvironmentNameValidator.class)
+    @Parameter(
+            names = {"--environment", "--env", "-e"},
+            description = "Cerberus environment name to execute against. This is required to be set via " +
+                    "'CERBERUS_CLI_ENV' env var or supplied via command arg",
+            validateWith = EnvironmentNameValidator.class
+    )
     private String environment;
 
-    @Parameter(names = {"--region", "-r"}, description = "The AWS region to execute against. This is required to be set via 'CERBERUS_CLI_REGION' env var or supplied via command arg")
+    @Parameter(
+            names = {"--region", "-r"},
+            description = "The AWS Region to use for looking up the environment config in S3 to load environment state. " +
+                    "This should be one of the enabled regions, if not supplied the CLI will try to default to us-west-2"
+    )
     private String region;
 
     @Parameter(names = {"--debug"}, description = "Enables debug output.")
@@ -66,6 +83,9 @@ public class CerberusCommand {
 
     @Parameter(names = {"--version", "-v"}, description = "Prints the version of the CLI.")
     private boolean version;
+
+    @Parameter(names = {"--no-tty"}, description = "Flag to set when no tty is availible, ex: running on a Continuous Integration (CI) server")
+    boolean noTty = false;
 
     @ParametersDelegate
     private ProxyDelegate proxyDelegate = new ProxyDelegate();
@@ -84,7 +104,7 @@ public class CerberusCommand {
         }
 
         File environmentConfigFile = new File(file);
-        if (! environmentConfigFile.exists() || environmentConfigFile.isDirectory()) {
+        if (!environmentConfigFile.exists() || environmentConfigFile.isDirectory()) {
             throw new IllegalArgumentException(String.format("The file: %s does not exist or is a directory", file));
         }
 
@@ -105,7 +125,7 @@ public class CerberusCommand {
      * 2. If an env yaml was supplied use the env name defined there
      * 3. If 1 and 2 fail look for value in CERBERUS_CLI_ENV env var
      */
-    public String getEnvironment() {
+    public String getEnvironmentName() {
         String commandLinePassedEnvironment = environment;
         String environmentConfigFileEnvironment = getEnvironmentConfig() == null ? null : getEnvironmentConfig().getEnvironmentName();
         String EnvironmentalVarEnvironment = System.getenv("CERBERUS_CLI_ENV");
@@ -115,7 +135,8 @@ public class CerberusCommand {
                         EnvironmentalVarEnvironment;
 
         if (StringUtils.isBlank(calculatedEnv)) {
-            throw new IllegalArgumentException("Failed to determine environment, checked 'CERBERUS_CLI_ENV' env var and -e, --env, --environment command options, options must go before the command");
+            throw new RuntimeException("Failed to determine environment, checked 'CERBERUS_CLI_ENV' env var and -e, --env, --environment command options, options must go before the command");
+
         }
 
         return calculatedEnv;
@@ -127,9 +148,9 @@ public class CerberusCommand {
      * 2. If an env yaml was supplied use the region defined there
      * 3. If 1 and 2 fail look for value in CERBERUS_CLI_REGION env var
      */
-    public String getRegion() {
+    public String getConfigRegion() {
         String commandLinePassedRegion = region;
-        String environmentConfigFileRegion = getEnvironmentConfig() == null ? null : getEnvironmentConfig().getRegion();
+        String environmentConfigFileRegion = getEnvironmentConfig() == null ? null : getEnvironmentConfig().getPrimaryRegion();
         String EnvironmentalVarRegion = System.getenv("CERBERUS_CLI_REGION");
 
         String calculatedRegion = StringUtils.isNotBlank(commandLinePassedRegion) ? commandLinePassedRegion :
@@ -137,7 +158,8 @@ public class CerberusCommand {
                         EnvironmentalVarRegion;
 
         if (StringUtils.isBlank(calculatedRegion)) {
-            throw new IllegalArgumentException("Failed to determine environment, checked 'CERBERUS_CLI_REGION' env var and -r, --region command options, options must go before the command");
+            log.warn("Failed to determine region, checked 'CERBERUS_CLI_REGION' env var and -r, --region command options as well as primary region config. Will attempt to use the AWS Default region (us-west-2)");
+            calculatedRegion = Regions.DEFAULT_REGION.getName();
         }
 
         return calculatedRegion;
@@ -155,24 +177,11 @@ public class CerberusCommand {
         return version;
     }
 
-    /**
-     * Load poxy config from args first then look to replace them with yaml.
-     */
+    public boolean isTty() {
+        return ! noTty;
+    }
+
     public ProxyDelegate getProxyDelegate() {
-
-        if (getEnvironmentConfig() != null && getEnvironmentConfig().getProxyConfig() != null) {
-            ProxyConfig environmentYamlProxyConfig = getEnvironmentConfig().getProxyConfig();
-            if (StringUtils.isBlank(proxyDelegate.getProxyHost()) && StringUtils.isNotBlank(environmentYamlProxyConfig.getHost())) {
-                proxyDelegate.setProxyHost(environmentYamlProxyConfig.getHost());
-            }
-            if (proxyDelegate.getProxyPort() == null && environmentYamlProxyConfig.getPort() != null) {
-                proxyDelegate.setProxyPort(environmentYamlProxyConfig.getPort());
-            }
-            if (proxyDelegate.getProxyType() == null && environmentYamlProxyConfig.getType() != null) {
-                proxyDelegate.setProxyType(environmentYamlProxyConfig.getType());
-            }
-        }
-
         return proxyDelegate;
     }
 }

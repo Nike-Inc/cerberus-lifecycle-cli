@@ -16,46 +16,32 @@
 
 package com.nike.cerberus.domain.input;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Stores all YAML data for a given Cerberus environment
  */
 public class EnvironmentConfig {
 
-    private String version;
-    private ProxyConfig proxyConfig;
     private String environmentName;
-    private String region;
-    private String costCenter;
-    private String ownerEmail;
-    private String ownerGroup;
+    private Map<String, String> globalTags;
     private String adminRoleArn;
-    private String vpcHostedZoneName;
-    private String hostname;
+    private String baseDomainName;
+    private String edgeDomainNameOverride;
+    private String originDomainNameOverride;
+    private List<String> additionalSubjectNames;
+    private String loadBalancerSslPolicyOverride;
     private String hostedZoneId;
-    private VpcAccessWhitelist vpcAccessWhitelist;
-    private Consul consul;
-    private Vault vault;
-    private ManagementService managementService;
-    private Gateway gateway;
-    private Dashboard dashboard;
-    private EdgeSecurity edgeSecurity;
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public ProxyConfig getProxyConfig() {
-        return proxyConfig;
-    }
-
-    public void setProxyConfig(ProxyConfig proxyConfig) {
-        this.proxyConfig = proxyConfig;
-    }
+    private boolean generateKeysAndCerts;
+    private String acmeApiUrl;
+    private boolean enableLeCertFix;
+    private String acmeContactEmail;
+    private String certificateDirectory;
+    private VpcAccessWhitelistInput vpcAccessWhitelist;
+    private ManagementServiceInput managementService;
+    private Map<String, RegionSpecificConfigurationInput> regionSpecificConfiguration = new HashMap<>();
 
     public String getEnvironmentName() {
         return environmentName;
@@ -65,36 +51,12 @@ public class EnvironmentConfig {
         this.environmentName = environmentName;
     }
 
-    public String getRegion() {
-        return region;
+    public Map<String, String> getGlobalTags() {
+        return globalTags;
     }
 
-    public void setRegion(String region) {
-        this.region = region;
-    }
-
-    public String getCostCenter() {
-        return costCenter;
-    }
-
-    public void setCostCenter(String costCenter) {
-        this.costCenter = costCenter;
-    }
-
-    public String getOwnerEmail() {
-        return ownerEmail;
-    }
-
-    public void setOwnerEmail(String ownerEmail) {
-        this.ownerEmail = ownerEmail;
-    }
-
-    public String getOwnerGroup() {
-        return ownerGroup;
-    }
-
-    public void setOwnerGroup(String ownerGroup) {
-        this.ownerGroup = ownerGroup;
+    public void setGlobalTags(Map<String, String> globalTags) {
+        this.globalTags = globalTags;
     }
 
     public String getAdminRoleArn() {
@@ -105,20 +67,44 @@ public class EnvironmentConfig {
         this.adminRoleArn = adminRoleArn;
     }
 
-    public String getVpcHostedZoneName() {
-        return vpcHostedZoneName;
+    public String getBaseDomainName() {
+        return baseDomainName;
     }
 
-    public void setVpcHostedZoneName(String vpcHostedZoneName) {
-        this.vpcHostedZoneName = vpcHostedZoneName;
+    public void setBaseDomainName(String baseDomainName) {
+        this.baseDomainName = baseDomainName;
     }
 
-    public String getHostname() {
-        return hostname;
+    public String getEdgeDomainNameOverride() {
+        return edgeDomainNameOverride;
     }
 
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
+    public void setEdgeDomainNameOverride(String edgeDomainNameOverride) {
+        this.edgeDomainNameOverride = edgeDomainNameOverride;
+    }
+
+    public String getOriginDomainNameOverride() {
+        return originDomainNameOverride;
+    }
+
+    public void setOriginDomainNameOverride(String originDomainNameOverride) {
+        this.originDomainNameOverride = originDomainNameOverride;
+    }
+
+    public List<String> getAdditionalSubjectNames() {
+        return additionalSubjectNames;
+    }
+
+    public void setAdditionalSubjectNames(List<String> additionalSubjectNames) {
+        this.additionalSubjectNames = additionalSubjectNames;
+    }
+
+    public String getLoadBalancerSslPolicyOverride() {
+        return loadBalancerSslPolicyOverride;
+    }
+
+    public void setLoadBalancerSslPolicyOverride(String loadBalancerSslPolicyOverride) {
+        this.loadBalancerSslPolicyOverride = loadBalancerSslPolicyOverride;
     }
 
     public String getHostedZoneId() {
@@ -129,59 +115,81 @@ public class EnvironmentConfig {
         this.hostedZoneId = hostedZoneId;
     }
 
-    public VpcAccessWhitelist getVpcAccessWhitelist() {
+    public boolean isGenerateKeysAndCerts() {
+        return generateKeysAndCerts;
+    }
+
+    public void setGenerateKeysAndCerts(boolean generateKeysAndCerts) {
+        this.generateKeysAndCerts = generateKeysAndCerts;
+    }
+
+    public String getAcmeApiUrl() {
+        return acmeApiUrl;
+    }
+
+    public void setAcmeApiUrl(String acmeApiUrl) {
+        this.acmeApiUrl = acmeApiUrl;
+    }
+
+    public boolean isEnableLeCertFix() {
+        return enableLeCertFix;
+    }
+
+    public void setEnableLeCertFix(boolean enableLeCertFix) {
+        this.enableLeCertFix = enableLeCertFix;
+    }
+
+    public String getAcmeContactEmail() {
+        return acmeContactEmail;
+    }
+
+    public void setAcmeContactEmail(String acmeContactEmail) {
+        this.acmeContactEmail = acmeContactEmail;
+    }
+
+    public String getCertificateDirectory() {
+        return certificateDirectory;
+    }
+
+    public void setCertificateDirectory(String certificateDirectory) {
+        this.certificateDirectory = certificateDirectory;
+    }
+
+    public VpcAccessWhitelistInput getVpcAccessWhitelist() {
         return vpcAccessWhitelist;
     }
 
-    public void setVpcAccessWhitelist(VpcAccessWhitelist vpcAccessWhitelist) {
+    public void setVpcAccessWhitelist(VpcAccessWhitelistInput vpcAccessWhitelist) {
         this.vpcAccessWhitelist = vpcAccessWhitelist;
     }
 
-    public Consul getConsul() {
-        return consul;
-    }
-
-    public void setConsul(Consul consul) {
-        this.consul = consul;
-    }
-
-    public Vault getVault() {
-        return vault;
-    }
-
-    public void setVault(Vault vault) {
-        this.vault = vault;
-    }
-
-    public ManagementService getManagementService() {
+    public ManagementServiceInput getManagementService() {
         return managementService;
     }
 
-    public void setManagementService(ManagementService managementService) {
+    public void setManagementService(ManagementServiceInput managementService) {
         this.managementService = managementService;
     }
 
-    public Gateway getGateway() {
-        return gateway;
+    public Map<String, RegionSpecificConfigurationInput> getRegionSpecificConfiguration() {
+        return regionSpecificConfiguration;
     }
 
-    public void setGateway(Gateway gateway) {
-        this.gateway = gateway;
+    public void setRegionSpecificConfiguration(Map<String, RegionSpecificConfigurationInput> regionSpecificConfiguration) {
+        this.regionSpecificConfiguration = regionSpecificConfiguration;
     }
 
-    public Dashboard getDashboard() {
-        return dashboard;
+    public RegionSpecificConfigurationInput getPrimaryRegionConfig() {
+        return getPrimaryEntry().getValue();
     }
 
-    public void setDashboard(Dashboard dashboard) {
-        this.dashboard = dashboard;
+    public String getPrimaryRegion() {
+        return getPrimaryEntry().getKey();
     }
 
-    public EdgeSecurity getEdgeSecurity() {
-        return edgeSecurity;
-    }
-
-    public void setEdgeSecurity(EdgeSecurity edgeSecurity) {
-        this.edgeSecurity = edgeSecurity;
+    private Map.Entry<String, RegionSpecificConfigurationInput> getPrimaryEntry() {
+        return regionSpecificConfiguration.entrySet().stream()
+                .filter(entry -> entry.getValue() != null && entry.getValue().isPrimary()).findFirst()
+                .orElseThrow(() -> new RuntimeException("Failed to find primary region in region specific config"));
     }
 }

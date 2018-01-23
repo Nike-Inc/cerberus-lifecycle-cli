@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+Description: Creates the Route53 record for Cerberus
+Outputs:
+  loadBalancerDomainName:
+    Value: !Ref 'CerberusLoadBalancerRecordSet'
+  originDomainName:
+    Value: !Ref 'CerberusOriginRecordSet'
+Parameters:
+  hostedZoneId:
+    Description: The base hosted zone in which the load balancer and origin records will be created
+    Type: String
+  loadBalancerDomainName:
+    Description: The domain name for the Cerberus load balancer (e.g. demo.us-west-2.cerberus.example.com)
+    Type: String
+  loadBalancerStackName:
+    Description: The name of the Cerberus load balancer CloudFormation stack
+    Type: String
+  originDomainName:
+    Description: The origin domain name of the Cerberus environment (e.g. origin.demo.cerberus.example.com)
+    Type: String
+Resources:
+  CerberusLoadBalancerRecordSet:
+    Properties:
+      HostedZoneId:
+        Ref: hostedZoneId
+      Name: !Join [., [!Ref 'loadBalancerDomainName', '']]
+      ResourceRecords:
+        - Fn::ImportValue: !Sub "${loadBalancerStackName}-loadBalancerDnsName"
+      TTL: 30
+      Type: CNAME
+    Type: AWS::Route53::RecordSet
+  CerberusOriginRecordSet:
+    Properties:
+      HostedZoneId:
+        Ref: hostedZoneId
+      Name: !Join [., [!Ref 'originDomainName', '']]
+      ResourceRecords:
+        - Ref: CerberusLoadBalancerRecordSet
+      TTL: 30
+      Type: CNAME
+    Type: AWS::Route53::RecordSet

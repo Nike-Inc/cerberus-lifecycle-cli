@@ -3,10 +3,6 @@ language: java
 dist: trusty
 jdk:
 - oraclejdk8
-before_install:
-  - sudo apt-get -y install python3-pip python-dev
-  - python3 -V
-  - pip3 -V
 deploy:
   skip_cleanup: true
   provider: releases

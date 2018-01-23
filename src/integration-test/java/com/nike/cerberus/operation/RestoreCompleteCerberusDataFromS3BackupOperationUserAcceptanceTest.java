@@ -23,7 +23,6 @@ import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
 import com.nike.cerberus.service.ConsoleService;
 import com.nike.cerberus.utils.TestUtils;
-import com.nike.cerberus.vault.VaultAdminClientFactory;
 import com.nike.vault.client.StaticVaultUrlResolver;
 import okhttp3.OkHttpClient;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
@@ -34,8 +33,8 @@ import org.mockito.Spy;
 
 import java.io.IOException;
 
-import static com.nike.cerberus.client.CerberusAdminClientFactory.DEFAULT_TIMEOUT;
-import static com.nike.cerberus.client.CerberusAdminClientFactory.DEFAULT_TIMEOUT_UNIT;
+import static com.nike.cerberus.client.HttpClientFactory.DEFAULT_TIMEOUT;
+import static com.nike.cerberus.client.HttpClientFactory.DEFAULT_TIMEOUT_UNIT;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -46,7 +45,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest {
 
     @Spy
-    private CerberusAdminClientFactory vaultAdminClientFactory;
+    private CerberusAdminClientFactory cerberusAdminClientFactory;
 
     @Mock
     private ConsoleService consoleService;
@@ -65,7 +64,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
         operation = new RestoreCerberusBackupOperation(
                 CerberusModule.configObjectMapper(),
                 consoleService,
-                vaultAdminClientFactory);
+                cerberusAdminClientFactory);
 
         when(command.getCerberusUrl()).thenReturn(TestUtils.getRequiredEnvVar("CERBERUS_URL",
                 "The Cerberus API to restore against"));
@@ -85,7 +84,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
 
         CerberusAdminClient adminClient = new CerberusAdminClient(
                 new StaticVaultUrlResolver("http://127.0.0.1:8200"),
-                new VaultAdminClientFactory.RootCredentialsProvider(rootToken),
+                null,
                 new OkHttpClient.Builder()
                         .hostnameVerifier(new NoopHostnameVerifier())
                         .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
@@ -95,7 +94,7 @@ public class RestoreCompleteCerberusDataFromS3BackupOperationUserAcceptanceTest 
                 CerberusModule.configObjectMapper()
         );
 
-        when(vaultAdminClientFactory.createCerberusAdminClient(anyString())).thenReturn(adminClient);
+        when(cerberusAdminClientFactory.createCerberusAdminClient(anyString())).thenReturn(adminClient);
 
         operation.run(command);
     }

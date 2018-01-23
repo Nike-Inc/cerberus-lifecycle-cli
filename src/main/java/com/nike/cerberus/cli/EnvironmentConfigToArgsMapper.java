@@ -16,33 +16,35 @@
 
 package com.nike.cerberus.cli;
 
+import com.google.common.collect.Lists;
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
-import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.command.core.UploadCertFilesCommand;
+import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
+import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
+import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
+import com.nike.cerberus.command.rds.CreateDatabaseCommand;
+import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
+import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
+import com.nike.cerberus.command.core.CreateRoute53Command;
+import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
+import com.nike.cerberus.command.core.CreateVpcCommand;
+import com.nike.cerberus.command.core.CreateWafCommand;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
-import com.nike.cerberus.command.gateway.CreateCloudFrontLogProcessingLambdaConfigCommand;
-import com.nike.cerberus.command.gateway.CreateGatewayClusterCommand;
-import com.nike.cerberus.command.gateway.CreateGatewayConfigCommand;
-import com.nike.cerberus.command.gateway.PublishLambdaCommand;
-import com.nike.cerberus.command.vault.CreateVaultClusterCommand;
-import com.nike.cerberus.domain.input.CerberusStack;
-import com.nike.cerberus.domain.input.Consul;
-import com.nike.cerberus.domain.input.Dashboard;
-import com.nike.cerberus.domain.input.EdgeSecurity;
+import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
-import com.nike.cerberus.domain.input.Gateway;
-import com.nike.cerberus.domain.input.ManagementService;
-import com.nike.cerberus.domain.input.Vault;
-import com.nike.cerberus.domain.input.VpcAccessWhitelist;
+import com.nike.cerberus.domain.input.ManagementServiceInput;
+import com.nike.cerberus.domain.input.ManagementServiceRegionSpecificInput;
+import com.nike.cerberus.domain.input.RegionSpecificConfigurationInput;
+import com.nike.cerberus.domain.input.VpcAccessWhitelistInput;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -63,8 +65,8 @@ public class EnvironmentConfigToArgsMapper {
         for (int i = 0; i < passedArgs.length; i++) {
             if (StringUtils.startsWith(passedArgs[i], "-")) {
                 args.add(passedArgs[i]);
-                if (i < passedArgs.length && ! StringUtils.startsWith(passedArgs[i+1], "-")) {
-                    args.add(passedArgs[i+1]);
+                if (i < passedArgs.length && !StringUtils.startsWith(passedArgs[i + 1], "-")) {
+                    args.add(passedArgs[i + 1]);
                     i++;
                 }
             } else {
@@ -76,7 +78,7 @@ public class EnvironmentConfigToArgsMapper {
 
         // now if the command supplied is a command that that is reused for multiple steps, like update-stack, or upload-cert
         // we need to source the args
-        if (! StringUtils.isBlank(commandName)) {
+        if (!StringUtils.isBlank(commandName)) {
             args.addAll(getArgsForCommand(environmentConfig, commandName, passedArgs));
         }
 
@@ -84,332 +86,248 @@ public class EnvironmentConfigToArgsMapper {
         return args.toArray(new String[args.size()]);
     }
 
-    private static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
+    public static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
+        if (environmentConfig == null) {
+            return Lists.newArrayList(passedArgs);
+        }
+
+        List<String> args = new LinkedList<>();
         switch (commandName) {
-            case CreateBaseCommand.COMMAND_NAME:
-                return getCreateBaseCommandArgs(environmentConfig);
-            case UploadCertFilesCommand.COMMAND_NAME:
-                return getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
-            case CreateConsulClusterCommand.COMMAND_NAME:
-                return getCreateConsulClusterCommandArgs(environmentConfig);
-            case CreateVaultClusterCommand.COMMAND_NAME:
-                return getCreateVaultClusterCommandArgs(environmentConfig);
+            case InitializeEnvironmentCommand.COMMAND_NAME:
+                args = getInitializeEnvironmentCommandArgs(environmentConfig);
+                break;
+            case UploadCertificateFilesCommand.COMMAND_NAME:
+                args = getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
+                break;
             case CreateCmsClusterCommand.COMMAND_NAME:
-                return getCreateCmsClusterCommandArgs(environmentConfig);
-            case CreateGatewayClusterCommand.COMMAND_NAME:
-                return getCreateGatewayClusterCommandArgs(environmentConfig);
-            case PublishDashboardCommand.COMMAND_NAME:
-                return getPublishDashboardCommandArgs(environmentConfig);
+                args = getCreateCmsClusterCommandArgs(environmentConfig);
+                break;
             case WhitelistCidrForVpcAccessCommand.COMMAND_NAME:
-                return getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
+                args = getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
+                break;
             case CreateCmsConfigCommand.COMMAND_NAME:
-                return getCreateCmsConfigCommandArgs(environmentConfig);
-            case CreateGatewayConfigCommand.COMMAND_NAME:
-                return getCreateGatewayClusterConfigCommandArgs(environmentConfig);
-            case UpdateStackCommand.COMMAND_NAME:
-                return getUpdateStackCommandArgs(environmentConfig, passedArgs);
-            case PublishLambdaCommand.COMMAND_NAME:
-                return getPublishLambdaCommandArgs(environmentConfig, passedArgs);
-            case CreateCloudFrontLogProcessingLambdaConfigCommand.COMMAND_NAME:
-                return getCreateCloudFrontLogProcessingLambdaConfigCommandArgs(environmentConfig);
+                args = getCreateCmsConfigCommandArgs(environmentConfig);
+                break;
             case UpdateCmsConfigCommand.COMMAND_NAME:
-                return getCreateCmsConfigCommandArgs(environmentConfig);
+                args = getCreateCmsConfigCommandArgs(environmentConfig);
+                break;
+            case CreateVpcCommand.COMMAND_NAME:
+                args = getCreateVpcCommandArgs(environmentConfig);
+                break;
+            case CreateSecurityGroupsCommand.COMMAND_NAME:
+                args = getCreateSecurityGroupsCommandArgs(environmentConfig);
+                break;
+            case CreateDatabaseCommand.COMMAND_NAME:
+                args = getCreateDatabaseCommandArgs(environmentConfig);
+                break;
+            case CreateLoadBalancerCommand.COMMAND_NAME:
+                args = getCreateLoadBalancerCommandArgs(environmentConfig);
+                break;
+            case CreateRoute53Command.COMMAND_NAME:
+                args = getCreateRoute53CommandArgs(environmentConfig);
+                break;
+            case CreateWafCommand.COMMAND_NAME:
+                args = getCreateWafCommandArgs(environmentConfig);
+                break;
+            case GenerateCertificateFilesCommand.COMMAND_NAME:
+                args = getGenerateCertificatesCommandArgs(environmentConfig);
+                break;
+            case CreateEdgeDomainRecordCommand.COMMAND_NAME:
+                args = getCreateEdgeDomainRecordCommandArgs(environmentConfig);
+                break;
+            case GenerateAndRotateCertificatesCommand.COMMAND_NAME:
+                args = getGenerateCertificatesCommandArgs(environmentConfig);
+                break;
+            case RotateCertificatesCommand.COMMAND_NAME:
+                args = getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
+                break;
             default:
-                return new LinkedList<>();
-        }
-    }
-
-    private static List<String> getCreateCloudFrontLogProcessingLambdaConfigCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        EdgeSecurity edgeSecurity = environmentConfig.getEdgeSecurity();
-
-        args.add(CreateCloudFrontLogProcessingLambdaConfigCommand.RATE_LIMIT_PER_MINUTE_LONG_ARG);
-        args.add(edgeSecurity.getRateLimitPerMinute());
-        args.add(CreateCloudFrontLogProcessingLambdaConfigCommand.RATE_LIMIT_VIOLATION_BLOCK_PERIOD_IN_MINUTES_LONG_ARG);
-        args.add(edgeSecurity.getRateLimitViolationBlockPeriodInMinutes());
-
-        if (StringUtils.isNotBlank(edgeSecurity.getGoogleAnalyticsTrackingId())) {
-            args.add(CreateCloudFrontLogProcessingLambdaConfigCommand.GOOGLE_ANALYTICS_TRACKING_ID_LONG_ARG);
-            args.add(edgeSecurity.getGoogleAnalyticsTrackingId());
+                break;
         }
 
-        if (StringUtils.isNotBlank(edgeSecurity.getSlackWebHookUrl())) {
-            args.add(CreateCloudFrontLogProcessingLambdaConfigCommand.SLACK_WEB_HOOK_URL_LONG_ARG);
-            args.add(edgeSecurity.getSlackWebHookUrl());
-        }
-
-        if (StringUtils.isNotBlank(edgeSecurity.getSlackIcon())) {
-            args.add(CreateCloudFrontLogProcessingLambdaConfigCommand.SLACK_ICON_LONG_ARG);
-            args.add(edgeSecurity.getSlackIcon());
-        }
+        LoggerFactory.getLogger("com.nike.cerberus.cli.EnvironmentConfigToArgsMapper")
+                .debug("Mapped the following args from the provided YAML\n" + String.join("\n", args));
 
         return args;
     }
 
-    private static List<String> getPublishLambdaCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
-        List<String> args = new LinkedList<>();
-        String lambdaName = null;
-        for (int i = 0; i < passedArgs.length; i++) {
-            if (StringUtils.equals(passedArgs[i],  PublishLambdaCommand.LAMBDA_NAME_LONG_ARG) && i < passedArgs.length - 1) {
-                lambdaName = passedArgs[i+1];
-            }
+    private static List<String> getCreateEdgeDomainRecordCommandArgs(EnvironmentConfig environmentConfig) {
+        ArgsBuilder args = ArgsBuilder.create()
+                .addOption(CreateEdgeDomainRecordCommand.BASE_DOMAIN_NAME_LONG_ARG, environmentConfig.getBaseDomainName())
+                .addOption(CreateEdgeDomainRecordCommand.HOSTED_ZONE_ID_LONG_ARG, environmentConfig.getHostedZoneId());
+
+        if (StringUtils.isNotBlank(environmentConfig.getEdgeDomainNameOverride())) {
+            args.addOption(CreateEdgeDomainRecordCommand.EDGE_DOMAIN_NAME_OVERRIDE, environmentConfig.getEdgeDomainNameOverride());
         }
 
-        if (StringUtils.isBlank(lambdaName)) {
-            return args;
-        }
-
-        args.add(PublishLambdaCommand.LAMBDA_NAME_LONG_ARG);
-        args.add(lambdaName);
-        args.add(PublishLambdaCommand.ARTIFACT_URL_LONG_ARG);
-
-        switch (lambdaName.toUpperCase()) {
-            case "CLOUD_FRONT_SG_GROUP_IP_SYNC":
-                args.add(environmentConfig.getEdgeSecurity().getCloudfrontSecurityGroupIpSyncLambdaArtifactUrl());
-                break;
-            case "WAF":
-                args.add(environmentConfig.getEdgeSecurity().getCloudfrontLambdaArtifactUrl());
-                break;
-            default:
-                args.add("");
-        }
-
-        return args;
+        return args.build();
     }
 
     private static List<String> getCreateCmsConfigCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        ManagementService managementService = environmentConfig.getManagementService();
-
-        args.add(CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG);
-        args.add(managementService.getAdminGroup());
-
+        ArgsBuilder args = ArgsBuilder.create();
+        ManagementServiceInput managementService = environmentConfig.getManagementService();
+        args.addOption(CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, managementService.getAdminGroup());
         managementService.getProperties().forEach(property -> {
-            args.add(CreateCmsConfigCommand.PROPERTY_SHORT_ARG);
-            args.add(property);
+            args.addOption(CreateCmsConfigCommand.PROPERTY_SHORT_ARG, property);
         });
-
-        return args;
-    }
-
-    private static List<String> getCreateGatewayClusterConfigCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        args.add(CreateGatewayClusterCommand.HOSTNAME_LONG_ARG);
-        args.add(environmentConfig.getHostname());
-
-        return args;
+        return args.build();
     }
 
     private static List<String> getWhitelistCidrForVpcAccessCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
+        ArgsBuilder args = ArgsBuilder.create();
 
-        VpcAccessWhitelist vpcAccessWhitelist = environmentConfig.getVpcAccessWhitelist();
+        VpcAccessWhitelistInput vpcAccessWhitelist = environmentConfig.getVpcAccessWhitelist();
 
         vpcAccessWhitelist.getCidrs().forEach(cidr -> {
-            args.add(WhitelistCidrForVpcAccessCommand.CIDR_LONG_ARG);
-            args.add(cidr);
+            args.addOption(WhitelistCidrForVpcAccessCommand.CIDR_LONG_ARG, cidr);
         });
 
         vpcAccessWhitelist.getPorts().forEach(port -> {
-            args.add(WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG);
-            args.add(port);
+            args.addOption(WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, port);
         });
 
-        return args;
+        return args.build();
     }
 
-    private static List<String> getPublishDashboardCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
+    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig config) {
+        RegionSpecificConfigurationInput primaryRegion = config.getPrimaryRegionConfig();
+        ManagementServiceRegionSpecificInput cmsConfig = primaryRegion.getManagementService().orElseThrow(() ->
+                new RuntimeException("management service config not defined in primary region config"));
 
-        Dashboard dashboard = environmentConfig.getDashboard();
-
-        args.add(PublishDashboardCommand.ARTIFACT_URL_LONG_ARG);
-        args.add(dashboard.getArtifactUrl());
-
-        if ( StringUtils.isNotBlank(dashboard.getOverrideArtifactUrl()) ) {
-            args.add(PublishDashboardCommand.OVERRIDE_ARTIFACT_URL_LONG_ARG);
-            args.add(dashboard.getOverrideArtifactUrl());
-        }
-
-        return args;
+        return ArgsBuilder.create()
+                .addOption(StackDelegate.AMI_ID_LONG_ARG, cmsConfig.getAmiId())
+                .addOption(StackDelegate.INSTANCE_SIZE_LONG_ARG, cmsConfig.getInstanceSize())
+                .addOption(StackDelegate.KEY_PAIR_NAME_LONG_ARG, cmsConfig.getKeyPairName())
+                .addAll(getGlobalTags(config))
+                .build();
     }
 
-    private static List<String> getCreateConsulClusterCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        Consul component = environmentConfig.getConsul();
-        addCommonStackArgs(environmentConfig, args, component);
-
-        return args;
-    }
-
-    private static List<String> getCreateVaultClusterCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        Vault component = environmentConfig.getVault();
-        addCommonStackArgs(environmentConfig, args, component);
-
-        return args;
-    }
-
-    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        ManagementService component = environmentConfig.getManagementService();
-        addCommonStackArgs(environmentConfig, args, component);
-
-        return args;
-    }
-
-    private static List<String> getCreateGatewayClusterCommandArgs(EnvironmentConfig environmentConfig) {
-        List<String> args = new LinkedList<>();
-
-        Gateway component = environmentConfig.getGateway();
-        addCommonStackArgs(environmentConfig, args, component);
-        args.add(CreateGatewayClusterCommand.HOSTNAME_LONG_ARG);
-        args.add(environmentConfig.getHostname());
-        args.add(CreateGatewayClusterCommand.HOSTED_ZONE_ID_LONG_ARG);
-        args.add(environmentConfig.getHostedZoneId());
-
-        return args;
-    }
-
-    private static void addCommonStackArgs(EnvironmentConfig environmentConfig, List<String> args, CerberusStack stack) {
-        args.add(StackDelegate.AMI_ID_LONG_ARG);
-        args.add(stack.getAmiId());
-        args.add(StackDelegate.INSTANCE_SIZE_LONG_ARG);
-        args.add(stack.getInstanceSize());
-        args.add(StackDelegate.KEY_PAIR_NAME_LONG_ARG);
-        args.add(stack.getKeyPairName());
-
-        if (stack.getDesiredInstances() != null) {
-            args.add(StackDelegate.DESIRED_INSTANCES_LONG_ARG);
-            args.add(stack.getDesiredInstances());
-        }
-        if (stack.getMinInstances() != null) {
-            args.add(StackDelegate.MIN_INSTANCES_LONG_ARG);
-            args.add(stack.getMinInstances());
-        }
-        if (stack.getMaxInstances() != null) {
-            args.add(StackDelegate.MAX_INSTANCES_LONG_ARG);
-            args.add(stack.getMaxInstances());
-        }
-
-        args.add(StackDelegate.COST_CENTER_LONG_ARG);
-        args.add(environmentConfig.getCostCenter());
-        args.add(StackDelegate.OWNER_EMAIL_LONG_ARG);
-        args.add(environmentConfig.getOwnerEmail());
-        args.add(StackDelegate.OWNER_GROUP_LONG_ARG);
-        args.add(environmentConfig.getOwnerGroup());
+    private static List<String> getGlobalTags(EnvironmentConfig environmentConfig) {
+        ArgsBuilder args = ArgsBuilder.create();
+        environmentConfig.getGlobalTags().forEach((key, value) ->
+                args.addDynamicProperty(TagParametersDelegate.TAG_SHORT_ARG, key, value)
+        );
+        return args.build();
     }
 
     private static List<String> getUploadCertFilesCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
-        String stackName = getStackName(passedArgs);
-        List<String> args = new LinkedList<>();
+        return ArgsBuilder.create()
+                .addOptionUsingPassedArgIfPresent(
+                        UploadCertificateFilesCommandParametersDelegate.CERT_PATH_LONG_ARG,
+                        environmentConfig.getCertificateDirectory(),
+                        passedArgs
+                )
+                .build();
+    }
 
-        if (stackName == null) {
-            return args;
-        }
+    private static List<String> getInitializeEnvironmentCommandArgs(EnvironmentConfig config) {
+        ArgsBuilder args = ArgsBuilder.create()
+                .addAll(getGlobalTags(config))
+                .addOption(InitializeEnvironmentCommand.ADMIN_ROLE_ARN_LONG_ARG, config.getAdminRoleArn())
+                .addOption(InitializeEnvironmentCommand.PRIMARY_REGION, config.getPrimaryRegion());
 
-        args.add(UploadCertFilesCommand.STACK_NAME_LONG_ARG);
-        args.add(stackName);
-
-        args.add(UploadCertFilesCommand.CERT_PATH_LONG_ARG);
-        switch (stackName) {
-            case "consul":
-                args.add(environmentConfig.getConsul().getCertPath());
-                break;
-            case "vault":
-                args.add(environmentConfig.getVault().getCertPath());
-                break;
-            case "cms":
-                args.add(environmentConfig.getManagementService().getCertPath());
-                break;
-            case "gateway":
-                args.add(environmentConfig.getGateway().getCertPath());
-                break;
-            default:
-                args.add("");
-        }
-
-        Arrays.stream(passedArgs).forEach(arg -> {
-            if (arg.equals("--overwrite")) {
-                args.add(UploadCertFilesCommand.OVERWRITE_LONG_ARG);
-            }
+        args.addFlag(InitializeEnvironmentCommand.REGION_LONG_ARG);
+        config.getRegionSpecificConfiguration().forEach((region, data) -> {
+            args.addFlag(region);
         });
 
-        return args;
+        return args.build();
     }
 
-    private static List<String> getCreateBaseCommandArgs(EnvironmentConfig config) {
-        List<String> args = new LinkedList<>();
-
-        args.add(CreateBaseCommand.OWNER_EMAIL_LONG_ARG);
-        args.add(config.getOwnerEmail());
-        args.add(CreateBaseCommand.COST_CENTER_LONG_ARG);
-        args.add(config.getCostCenter());
-        args.add(CreateBaseCommand.ADMIN_ROLE_ARN_LONG_ARG);
-        args.add(config.getAdminRoleArn());
-        args.add(CreateBaseCommand.VPC_HOSTED_ZONE_NAME_LONG_ARG);
-        args.add(config.getVpcHostedZoneName());
-
-        return args;
+    private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config) {
+        return getGlobalTags(config);
     }
 
-    private static List<String> getUpdateStackCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
-        String stackName = getStackName(passedArgs);
-        List<String> args = new LinkedList<>();
+    private static List<String> getCreateSecurityGroupsCommandArgs(EnvironmentConfig config) {
+        return getGlobalTags(config);
+    }
 
-        if (StringUtils.isBlank(stackName)) {
-            return args;
+    private static List<String> getCreateDatabaseCommandArgs(EnvironmentConfig config) {
+        ArgsBuilder args = ArgsBuilder.create();
+        if (config.getPrimaryRegionConfig().getRds().isPresent()) {
+            args.addOption(CreateDatabaseCommand.INSTANCE_CLASS_LONG_ARG,
+                    config.getPrimaryRegionConfig().getRds().get().getSize());
+
+            args.addOption(CreateDatabaseCommand.RESTORE_FROM_SNAPSHOT,
+                    config.getPrimaryRegionConfig().getRds().get().getDbClusterIdentifier());
+        }
+        args.addAll(getGlobalTags(config));
+        return args.build();
+    }
+
+    private static List<String> getCreateLoadBalancerCommandArgs(EnvironmentConfig config) {
+        ArgsBuilder args = ArgsBuilder.create();
+        if (StringUtils.isNotBlank(config.getLoadBalancerSslPolicyOverride())) {
+            args.addOption(CreateLoadBalancerCommand.LOAD_BALANCER_SSL_POLICY_OVERRIDE_LONG_ARG,
+                    config.getLoadBalancerSslPolicyOverride());
         }
 
-        args.add(STACK_NAME_KEY);
-        args.add(stackName);
+        args.addAll(getGlobalTags(config));
+        return args.build();
+    }
 
-        CerberusStack cerberusStack;
-        switch (stackName) {
-            case "consul":
-                cerberusStack = environmentConfig.getConsul();
-                break;
-            case "vault":
-                cerberusStack = environmentConfig.getVault();
-                break;
-            case "cms":
-                cerberusStack = environmentConfig.getManagementService();
-                break;
-            case "gateway":
-                cerberusStack = environmentConfig.getGateway();
-                break;
-            default:
-                cerberusStack = null;
+    private static List<String> getCreateRoute53CommandArgs(EnvironmentConfig config) {
+        ArgsBuilder args = ArgsBuilder.create()
+                .addOption(CreateRoute53Command.BASE_DOMAIN_NAME_LONG_ARG, config.getBaseDomainName())
+                .addOption(CreateRoute53Command.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId());
+
+
+        if (StringUtils.isNotBlank(config.getOriginDomainNameOverride())) {
+            args.addOption(CreateRoute53Command.ORIGIN_DOMAIN_NAME_OVERRIDE, config.getOriginDomainNameOverride());
         }
 
-        if (cerberusStack != null) {
-            addCommonStackArgs(environmentConfig, args, cerberusStack);
+        if (config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().isPresent()) {
+            args.addOption(CreateRoute53Command.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE,
+                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null));
         }
 
-        for (int i = 0; i < passedArgs.length; i++) {
-            String arg = passedArgs[i];
-            if (arg.equals(UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG)) {
-                args.add(UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG);
-            }
-            if (arg.equals(UpdateStackCommand.PARAMETER_SHORT_ARG) && i < passedArgs.length -1) {
-                args.add(UpdateStackCommand.PARAMETER_SHORT_ARG);
-                args.add(passedArgs[i+1]);
-            }
+        return args.build();
+    }
+
+    private static List<String> getCreateWafCommandArgs(EnvironmentConfig config) {
+        return ArgsBuilder.create()
+                .addAll(getGlobalTags(config))
+                .build();
+    }
+
+    private static List<String> getGenerateCertificatesCommandArgs(EnvironmentConfig config) {
+        ArgsBuilder args = ArgsBuilder.create()
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.BASE_DOMAIN_LONG_ARG, config.getBaseDomainName())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.ACME_API_LONG_ARG, config.getAcmeApiUrl())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.CONTACT_EMAIL_LONG_ARG, config.getAcmeContactEmail())
+                .addOption(GenerateCertificateFilesCommandParametersDelegate.CERT_FOLDER_LONG_ARG, config.getCertificateDirectory());
+
+        if (StringUtils.isNotBlank(config.getEdgeDomainNameOverride())) {
+            args.addOption(GenerateCertificateFilesCommandParametersDelegate.EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG, config.getEdgeDomainNameOverride());
         }
 
-        return args;
+        if (StringUtils.isNotBlank(config.getOriginDomainNameOverride())) {
+            args.addOption(CreateRoute53Command.ORIGIN_DOMAIN_NAME_OVERRIDE, config.getOriginDomainNameOverride());
+        }
+
+        if (StringUtils.isNotBlank(config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null))) {
+            args.addOption(GenerateCertificateFilesCommandParametersDelegate.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG,
+                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null));
+        }
+
+        if (config.isEnableLeCertFix()) {
+            args.addFlag(GenerateCertificateFilesCommandParametersDelegate.ENABLE_LE_CERTFIX_LONG_ARG);
+        }
+
+        if (config.getAdditionalSubjectNames() != null) {
+            config.getAdditionalSubjectNames().forEach(sn -> {
+                args.addOption(GenerateCertificateFilesCommandParametersDelegate.SUBJECT_ALT_NAME_LONG_ARG, sn);
+            });
+        }
+
+        return args.build();
     }
 
     private static String getStackName(String[] passedArgs) {
         for (int i = 0; i < passedArgs.length; i++) {
             if (StringUtils.equals(passedArgs[i], STACK_NAME_KEY)) {
-                  return passedArgs[i+1];
+                return passedArgs[i + 1];
             }
         }
         return null;

@@ -17,54 +17,64 @@
 package com.nike.cerberus.service;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.DescribeImagesRequest;
 import com.amazonaws.services.ec2.model.DescribeImagesResult;
 import com.amazonaws.services.ec2.model.Filter;
+import com.nike.cerberus.ConfigConstants;
+import com.nike.cerberus.domain.environment.Stack;
+import com.nike.cerberus.store.ConfigStore;
 
 import javax.inject.Inject;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import com.nike.cerberus.domain.environment.StackName;
-import com.nike.cerberus.ConfigConstants;
 
 /**
  * Service wrapper for AWS EC2.
  */
 public class AmiTagCheckService {
 
-    private final AmazonEC2 ec2Client;
+    private final AwsClientFactory<AmazonEC2Client> amazonEC2ClientFactory;
+    private final ConfigStore configStore;
 
-    private final Map<StackName, String> stackAmiTagValueMap;
+    private final Map<Stack, String> stackAmiTagValueMap;
 
     @Inject
-    public AmiTagCheckService(final AmazonEC2 ec2Client) {
-        this.ec2Client = ec2Client;
+    public AmiTagCheckService(AwsClientFactory<AmazonEC2Client> amazonEC2ClientFactory,
+                              ConfigStore configStore) {
+
+        this.amazonEC2ClientFactory = amazonEC2ClientFactory;
+        this.configStore = configStore;
 
         stackAmiTagValueMap = new HashMap<>();
-        stackAmiTagValueMap.put(StackName.CONSUL, ConfigConstants.CONSUL_AMI_TAG_VALUE);
-        stackAmiTagValueMap.put(StackName.VAULT, ConfigConstants.VAULT_AMI_TAG_VALUE);
-        stackAmiTagValueMap.put(StackName.CMS, ConfigConstants.CMS_AMI_TAG_VALUE);
-        stackAmiTagValueMap.put(StackName.GATEWAY, ConfigConstants.GATEWAY_AMI_TAG_VALUE);
-
+        stackAmiTagValueMap.put(Stack.CMS, ConfigConstants.CMS_AMI_TAG_VALUE);
     }
 
     /**
-     * Validates if the given AMI has given tag and value.
+     * Validates if the given AMI has given tag and value in the primary region.
      *
      * @return true if matches otherwise false
      */
-    public boolean isAmiWithTagExist(final String amiId, final String tagName, final String tagValue) {
+    public boolean isAmiWithTagExist(String amiId, String tagName, String tagValue) {
+        return isAmiWithTagExist(configStore.getPrimaryRegion(), amiId, tagName, tagValue);
+    }
 
-        final DescribeImagesRequest request = new DescribeImagesRequest()
-            .withFilters(new Filter().withName(tagName).withValues(tagValue))
-            .withFilters(new Filter().withName("image-id").withValues(amiId));
+    /**
+     * Validates if the given AMI has given tag and value in the provided region.
+     *
+     * @return true if matches otherwise false
+     */
+    public boolean isAmiWithTagExist(Regions region, String amiId, String tagName, String tagValue) {
+        AmazonEC2 ec2Client = amazonEC2ClientFactory.getClient(region);
+
+        DescribeImagesRequest request = new DescribeImagesRequest()
+                .withFilters(new Filter().withName(tagName).withValues(tagValue))
+                .withFilters(new Filter().withName("image-id").withValues(amiId));
 
         try {
-            final DescribeImagesResult result = ec2Client.describeImages(request);
+            DescribeImagesResult result = ec2Client.describeImages(request);
             return result.getImages().size() > 0;
         } catch (final AmazonServiceException ase) {
             if (ase.getErrorCode() == "InvalidAMIID.NotFound") {
@@ -80,8 +90,8 @@ public class AmiTagCheckService {
      *
      * @return void
      */
-    public void validateAmiTagForStack(final String amiId, final StackName stackName) {
-        if (!isAmiWithTagExist(amiId, ConfigConstants.CERBERUS_AMI_TAG_NAME, stackAmiTagValueMap.get(stackName) )) {
+    public void validateAmiTagForStack(final String amiId, final Stack stack) {
+        if (!isAmiWithTagExist(amiId, ConfigConstants.CERBERUS_AMI_TAG_NAME, stackAmiTagValueMap.get(stack))) {
             throw new IllegalStateException(ConfigConstants.AMI_TAG_CHECK_ERROR_MESSAGE);
         }
     }

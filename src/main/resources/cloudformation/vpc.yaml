@@ -1,0 +1,164 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+Description: Creates the Cerberus VPC and foundational resources
+Outputs:
+  subnetCidrBlockForAz1:
+    Description: Cidr block for subnet in AZ '1'
+    Value: !Ref 'subnetCidrBlockForAz1'
+  subnetCidrBlockForAz2:
+    Description: Cidr block for subnet in AZ '2'
+    Value: !Ref 'subnetCidrBlockForAz2'
+  subnetCidrBlockForAz3:
+    Description: Cidr block for subnet in AZ '3'
+    Value: !Ref 'subnetCidrBlockForAz3'
+  vpcSubnetIdForAz1:
+    Description: The VPC subnet in AZ '1'
+    Value: !Ref 'CerberusSubnetForAz1'
+  vpcSubnetIdForAz2:
+    Description: The VPC subnet in AZ '2'
+    Value: !Ref 'CerberusSubnetForAz2'
+  vpcSubnetIdForAz3:
+    Description: The VPC subnet in AZ '3'
+    Value: !Ref 'CerberusSubnetForAz3'
+  vpcId:
+    Description: ID of the created VPC
+    Value: !Ref 'CerberusVpc'
+  vpcInternalBaseDomainName:
+    Description: The base domain name for the internal hosted zone for this VPC
+    Value: !Join [., ['internal', !Ref 'AWS::Region', !Ref 'environmentName', 'cerberus.com', '']]
+  vpcInternalHostedZoneId:
+    Description: The hosted zone id for the interal hosted zone for this VPC
+    Value: !Ref 'InternalHostedZone'
+Parameters:
+  az1:
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: An availability zone identifier for zone '1'
+    Type: String
+  az2:
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: An availability zone identifier for zone '2'
+    Type: String
+  az3:
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: An availability zone identifier for zone '3'
+    Type: String
+  internetGatewayCidrBlock:
+    AllowedPattern: '[0-9./]*'
+    Default: 0.0.0.0/0
+    Description: The application load balancer CIDR block for where traffic is allowed from
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  subnetCidrBlockForAz1:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.0.0/24
+    Description: Cidr block for subnet in AZ '1'
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  subnetCidrBlockForAz2:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.4.0/24
+    Description: Cidr block for subnet in AZ '2'
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  subnetCidrBlockForAz3:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.8.0/24
+    Description: Cidr block for subnet in AZ '3'
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  vpcCidrBlock:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.0.0/20
+    Description: The VPC's CIDR block for internal IPv4 addressing
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  environmentName:
+    Description: The Cerberus environment name
+    Type: String
+Resources:
+  CerberusDhcpOptions:
+    Properties:
+      DomainName: !If [RegionEqualsEastOne, ec2.internal, !Join [., [!Ref 'AWS::Region',
+            compute.internal]]]
+      DomainNameServers:
+        - AmazonProvidedDNS
+    Type: AWS::EC2::DHCPOptions
+  CerberusInternetGateway:
+    Type: AWS::EC2::InternetGateway
+  CerberusRouteInternetGateway:
+    Properties:
+      DestinationCidrBlock: !Ref 'internetGatewayCidrBlock'
+      GatewayId: !Ref 'CerberusInternetGateway'
+      RouteTableId: !Ref 'CerberusRouteTable'
+    Type: AWS::EC2::Route
+  CerberusRouteTable:
+    Properties:
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::RouteTable
+  CerberusSubnetForAz1:
+    Properties:
+      AvailabilityZone: !Ref 'az1'
+      CidrBlock: !Ref 'subnetCidrBlockForAz1'
+      MapPublicIpOnLaunch: 'true'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::Subnet
+  CerberusSubnetForAz2:
+    Properties:
+      AvailabilityZone: !Ref 'az2'
+      CidrBlock: !Ref 'subnetCidrBlockForAz2'
+      MapPublicIpOnLaunch: 'true'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::Subnet
+  CerberusSubnetForAz3:
+    Properties:
+      AvailabilityZone: !Ref 'az3'
+      CidrBlock: !Ref 'subnetCidrBlockForAz3'
+      MapPublicIpOnLaunch: 'true'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::Subnet
+  CerberusSubnetRouteTableAssociationForAz1:
+    Properties:
+      RouteTableId: !Ref 'CerberusRouteTable'
+      SubnetId: !Ref 'CerberusSubnetForAz1'
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  CerberusSubnetRouteTableAssociationForAz2:
+    Properties:
+      RouteTableId: !Ref 'CerberusRouteTable'
+      SubnetId: !Ref 'CerberusSubnetForAz2'
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  CerberusSubnetRouteTableAssociationForAz3:
+    Properties:
+      RouteTableId: !Ref 'CerberusRouteTable'
+      SubnetId: !Ref 'CerberusSubnetForAz3'
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  CerberusVpc:
+    Properties:
+      CidrBlock: !Ref 'vpcCidrBlock'
+      EnableDnsHostnames: 'true'
+      EnableDnsSupport: 'true'
+    Type: AWS::EC2::VPC
+  CerberusVpcDhcpOptionsAssociation:
+    Properties:
+      DhcpOptionsId: !Ref 'CerberusDhcpOptions'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::VPCDHCPOptionsAssociation
+  CerberusVpcGatewayAttachment:
+    Properties:
+      InternetGatewayId: !Ref 'CerberusInternetGateway'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::VPCGatewayAttachment
+  InternalHostedZone: # move to vpc stack
+    Type: 'AWS::Route53::HostedZone'
+    Properties:
+      HostedZoneConfig:
+        Comment: !Join [' ', ['Internal Hosted Zone for custom internal cname records for', !Ref 'environmentName']]
+      Name: !Join [., ['internal', !Ref 'AWS::Region', !Ref 'environmentName', 'cerberus.com', '']]
+      VPCs:
+        - VPCId: !Ref 'CerberusVpc'
+          VPCRegion: !Ref 'AWS::Region'

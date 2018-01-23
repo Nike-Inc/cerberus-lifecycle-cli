@@ -19,18 +19,18 @@ package com.nike.cerberus.command.core;
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.command.StackDelegate;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UpdateStackOperation;
+import com.nike.cerberus.util.StackConverter;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.nike.cerberus.command.core.UpdateStackCommand.COMMAND_NAME;
-import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
-import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
 
 
 /**
@@ -40,80 +40,29 @@ import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
 public class UpdateStackCommand implements Command {
 
     public static final String COMMAND_NAME = "update-stack";
+    public static final String STACK_NAME_LONG_ARG = "--stack-name";
     public static final String OVERWRITE_TEMPLATE_LONG_ARG = "--overwrite-template";
     public static final String PARAMETER_SHORT_ARG = "-P";
 
-    @Parameter(names = {"--stack-name"}, required = true, description = "The stack name to update.")
-    private StackName stackName;
+    @Parameter(names = {STACK_NAME_LONG_ARG}, required = true, description = "The stack name to update.", converter = StackConverter.class)
+    private Stack stack;
 
-    @Parameter(names = StackDelegate.OWNER_GROUP_LONG_ARG,
-            description = "The owning group for the resources to be updated. Will be tagged on all resources.",
-            required = true)
-    private String ownerGroup;
+    @ParametersDelegate
+    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
-    @Parameter(names = StackDelegate.AMI_ID_LONG_ARG, description = "The AMI ID for the specified stack.")
-    private String amiId;
-
-    @Parameter(names = StackDelegate.INSTANCE_SIZE_LONG_ARG, description = "Specify a custom instance size.")
-    private String instanceSize;
-
-    @Parameter(names = StackDelegate.KEY_PAIR_NAME_LONG_ARG, description = "SSH key pair name.")
-    private String keyPairName;
-
-    @Parameter(names = StackDelegate.OWNER_EMAIL_LONG_ARG,
-            description = "The e-mail for who owns the provisioned resources. Will be tagged on all resources.")
-    private String ownerEmail;
-
-    @Parameter(names = StackDelegate.COST_CENTER_LONG_ARG,
-            description = "Costcenter for where to bill provisioned resources. Will be tagged on all resources.")
-    private String costcenter;
+    public TagParametersDelegate getTagsDelegate() {
+        return tagsDelegate;
+    }
 
     @Parameter(names = OVERWRITE_TEMPLATE_LONG_ARG,
             description = "Flag for overwriting existing CloudFormation template")
     private boolean overwriteTemplate;
 
-    @Parameter(names = StackDelegate.DESIRED_INSTANCES_LONG_ARG, description = "Desired number of auto scaling instances.")
-    private Integer desiredInstances;
-
-    @Parameter(names = StackDelegate.MAX_INSTANCES_LONG_ARG, description = "Maximum number of auto scaling instances.")
-    private Integer maximumInstances;
-
-    @Parameter(names = StackDelegate.MIN_INSTANCES_LONG_ARG, description = "Minimum number of autos scaling instances")
-    private Integer minimumInstances;
-
-    @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
-            description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
-    private boolean skipAmiTagCheck;
-
     @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
     private Map<String, String> dynamicParameters = new HashMap<>();
 
-    public StackName getStackName() {
-        return stackName;
-    }
-
-    public String getOwnerGroup() {
-        return ownerGroup;
-    }
-
-    public String getAmiId() {
-        return amiId;
-    }
-
-    public String getInstanceSize() {
-        return instanceSize;
-    }
-
-    public String getKeyPairName() {
-        return keyPairName;
-    }
-
-    public String getOwnerEmail() {
-        return ownerEmail;
-    }
-
-    public String getCostcenter() {
-        return costcenter;
+    public Stack getStack() {
+        return stack;
     }
 
     public boolean isOverwriteTemplate() {
@@ -122,22 +71,6 @@ public class UpdateStackCommand implements Command {
 
     public Map<String, String> getDynamicParameters() {
         return dynamicParameters;
-    }
-
-    public Integer getDesiredInstances() {
-        return desiredInstances;
-    }
-
-    public Integer getMaximumInstances() {
-        return maximumInstances;
-    }
-
-    public Integer getMinimumInstances() {
-        return minimumInstances;
-    }
-
-    public boolean isSkipAmiTagCheck() {
-        return skipAmiTagCheck;
     }
 
     @Override

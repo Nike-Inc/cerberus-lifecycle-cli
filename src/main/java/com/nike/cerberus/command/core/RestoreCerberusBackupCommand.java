@@ -22,7 +22,7 @@ import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.RestoreCerberusBackupOperation;
 
-import static com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.RestoreCerberusBackupCommand.COMMAND_NAME;
 
 /**
  * Command for restoring Safe Deposit Box Metadata and Vault secret data for SDBs from backups that are in S3 from

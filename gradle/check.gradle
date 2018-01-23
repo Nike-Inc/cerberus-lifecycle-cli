@@ -22,11 +22,11 @@ apply plugin: 'com.github.kt3k.coveralls'
 findbugs {
     ignoreFailures = false
     excludeFilter = rootProject.file('codequality/findbugs-suppressions.xml')
-    sourceSets = [ project.sourceSets.main ]
+    sourceSets = [project.sourceSets.main]
 }
 
 pmd {
-    sourceSets = [ project.sourceSets.main ]
+    sourceSets = [project.sourceSets.main]
 }
 
 tasks.withType(FindBugs) {

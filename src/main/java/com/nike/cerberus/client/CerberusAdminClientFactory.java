@@ -18,83 +18,32 @@ package com.nike.cerberus.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import com.nike.cerberus.module.CerberusModule;
-import com.nike.cerberus.vault.VaultAdminClientFactory;
 import com.nike.vault.client.StaticVaultUrlResolver;
-import com.nike.vault.client.VaultAdminClient;
-import com.nike.vault.client.VaultClientException;
-import com.nike.vault.client.model.VaultAuthResponse;
-import com.nike.vault.client.model.VaultTokenAuthRequest;
-import okhttp3.OkHttpClient;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Named;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import com.nike.vault.client.auth.DefaultVaultCredentialsProviderChain;
 
 public class CerberusAdminClientFactory {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    public static final int DEFAULT_TIMEOUT = 60;
-    public static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
-
-    private final VaultAdminClientFactory vaultAdminClientFactory;
     private final ObjectMapper objectMapper;
+    private final HttpClientFactory httpClientFactory;
 
     @Inject
-    public CerberusAdminClientFactory(VaultAdminClientFactory vaultAdminClientFactory,
-                                      @Named(CerberusModule.CONFIG_OBJECT_MAPPER) ObjectMapper objectMapper) {
+    public CerberusAdminClientFactory(ObjectMapper objectMapper,
+                                      HttpClientFactory httpClientFactory) {
 
-        this.vaultAdminClientFactory = vaultAdminClientFactory;
         this.objectMapper = objectMapper;
+        this.httpClientFactory = httpClientFactory;
     }
 
-    public CerberusAdminClient createCerberusAdminClient(String url) {
+
+    /**
+     * Admin client for doing admin cms tasks
+     */
+    public CerberusAdminClient createCerberusAdminClient() {
         return new CerberusAdminClient(
-                new StaticVaultUrlResolver(url),
-                new VaultAdminClientFactory.RootCredentialsProvider(generateAdminToken()),
-                new OkHttpClient.Builder()
-                        .hostnameVerifier(new NoopHostnameVerifier())
-                        .connectTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .writeTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .readTimeout(DEFAULT_TIMEOUT, DEFAULT_TIMEOUT_UNIT)
-                        .build(),
+                new DefaultVaultCredentialsProviderChain(),
+                httpClientFactory.getGenericClient(),
                 objectMapper
         );
     }
 
-    /**
-     * Generates and admin token that CMS will recognize as an Admin so we can us the restore endpoint
-     */
-    private String generateAdminToken() {
-        try {
-            logger.info("Attempting to generate an admin token with the root token");
-            VaultAdminClient adminClient = vaultAdminClientFactory.getClientForLeader().get();
-
-            Map<String, String> metadata = new HashMap<>();
-            metadata.put("is_admin", "true");
-            metadata.put("username", "admin-cli");
-
-            Set<String> policies = new HashSet<>();
-            policies.add("root");
-
-            VaultAuthResponse vaultAuthResponse = adminClient.createOrphanToken(new VaultTokenAuthRequest()
-                    .setDisplayName("admin-cli")
-                    .setPolicies(policies)
-                    .setMeta(metadata)
-                    .setTtl("30m")
-                    .setNoDefaultPolicy(true));
-
-            return vaultAuthResponse.getClientToken();
-        } catch (VaultClientException e) {
-            throw new RuntimeException("There was an error while trying to create an admin token, this command " +
-                    "requires proxy access or direct a connect to the vault leader, is your ip white listed?", e);
-        }
-    }
 }

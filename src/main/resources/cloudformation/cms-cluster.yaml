@@ -1,0 +1,103 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Launches the CMS cluster in the Cerberus VPC
+Outputs:
+  autoscalingGroupLogicalId:
+    Value: !Ref 'CmsAutoScalingGroup'
+  launchConfigurationLogicalId:
+    Value: !Ref 'CmsLaunchConfiguration'
+  cmsInstanceProfileName:
+    Value: !Ref 'CmsInstanceProfile'
+Parameters:
+  baseStackName:
+    Description: The name of the Cerberus base CloudFormation stack
+    Type: String
+  amiId:
+    Description: The AMI ID for the CMS instances
+    Type: String
+  desiredInstances:
+    Default: 3
+    Description: Desired Number of Auto Scaling Instances
+    Type: Number
+  instanceSize:
+    Default: 'm3.medium'
+    Description: The instance size for the CMS instances
+    Type: String
+  keyPairName:
+    Description: The key pair to be associated with the EC2 instances
+    Type: String
+  loadBalancerStackName:
+    Description: The name of the Cerberus ALB CloudFormation stack
+    Type: String
+  maximumInstances:
+    Default: 4
+    Description: Maximum Number of Auto Scaling Instances (must be larger than min)
+    Type: Number
+  minimumInstances:
+    Default: 3
+    Description: Minimum Number of Auto Scaling Instances
+    Type: Number
+  pauseTime:
+    Default: PT15M
+    Description: Pause time for AutoScalingRollingUpdate e.g PT15M
+    Type: String
+  sgStackName:
+    Description: The name of the Cerberus Security Groups CloudFormation stack
+    Type: String
+  userData:
+    Description: CMS user data
+    Type: String
+  vpcSubnetIdForAz1:
+    Description: The subnet for the first availability zone
+    Type: String
+  vpcSubnetIdForAz2:
+    Description: The subnet for the second availability zone
+    Type: String
+  vpcSubnetIdForAz3:
+    Description: The subnet for the third availability zone
+    Type: String
+  waitOnResourceSignals:
+    Default: 'True'
+    Description: Enabling WaitOnResourceSignals allows CloudFormation to wait until
+      you have received a success signal before performing the next scaling action.
+    Type: String
+Resources:
+  CmsAutoScalingGroup:
+    Properties:
+      DesiredCapacity: !Ref 'desiredInstances'
+      HealthCheckGracePeriod: 900
+      HealthCheckType: ELB
+      LaunchConfigurationName: !Ref 'CmsLaunchConfiguration'
+      TargetGroupARNs:
+        - Fn::ImportValue: !Sub "${loadBalancerStackName}-cmsTargetGroupArn"
+      MaxSize: !Ref 'maximumInstances'
+      MinSize: !Ref 'minimumInstances'
+      VPCZoneIdentifier:
+        - Ref: 'vpcSubnetIdForAz1'
+        - Ref: 'vpcSubnetIdForAz2'
+        - Ref: 'vpcSubnetIdForAz3'
+    Type: AWS::AutoScaling::AutoScalingGroup
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MaxBatchSize: 1
+        MinInstancesInService: !Ref 'minimumInstances'
+        PauseTime: !Ref 'pauseTime'
+        WaitOnResourceSignals: !Ref 'waitOnResourceSignals'
+  CmsInstanceProfile:
+    Properties:
+      Path: /
+      Roles:
+        - Fn::ImportValue: !Sub "${baseStackName}-cmsIamRoleName"
+    Type: AWS::IAM::InstanceProfile
+  CmsLaunchConfiguration:
+    Properties:
+      AssociatePublicIpAddress: 'true'
+      IamInstanceProfile: !Ref 'CmsInstanceProfile'
+      ImageId: !Ref 'amiId'
+      InstanceMonitoring: 'true'
+      InstanceType: !Ref 'instanceSize'
+      KeyName: !Ref 'keyPairName'
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${sgStackName}-whitelistIngressSgId"
+        - Fn::ImportValue: !Sub "${sgStackName}-cmsSgId"
+      UserData: !Ref 'userData'
+    Type: AWS::AutoScaling::LaunchConfiguration

@@ -17,27 +17,12 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.cloudformation.model.StackStatus;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
-import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.domain.cloudformation.BaseParameters;
-import com.nike.cerberus.domain.cloudformation.CmsParameters;
-import com.nike.cerberus.domain.cloudformation.ConsulParameters;
-import com.nike.cerberus.domain.cloudformation.GatewayParameters;
-import com.nike.cerberus.domain.cloudformation.LaunchConfigParameters;
-import com.nike.cerberus.domain.cloudformation.SslConfigParametersDelegate;
-import com.nike.cerberus.domain.cloudformation.TagParameters;
-import com.nike.cerberus.domain.cloudformation.VaultParameters;
-import com.nike.cerberus.domain.environment.StackName;
+import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
+import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
-import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,108 +30,88 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static com.amazonaws.services.cloudformation.model.StackStatus.*;
-import static com.nike.cerberus.ConfigConstants.CERT_PART_PUBKEY;
-import static com.nike.cerberus.module.CerberusModule.CF_OBJECT_MAPPER;
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Operation for updating stacks.
  */
 public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Map<StackName, Class<? extends LaunchConfigParameters>> stackParameterMap;
-
-    private final Map<StackName, String> stackTemplatePathMap;
-
-    private final ConfigStore configStore;
-
     private final CloudFormationService cloudFormationService;
-
-    private final ObjectMapper cloudformationObjectMapper;
-
     private final Ec2UserDataService ec2UserDataService;
-
+    private final String environmentName;
+    private final ConfigStore configStore;
     private final AmiTagCheckService amiTagCheckService;
 
     @Inject
-    public UpdateStackOperation(final ConfigStore configStore,
-                                final CloudFormationService cloudFormationService,
-                                @Named(CF_OBJECT_MAPPER) final ObjectMapper cloudformationObjectMapper,
-                                final Ec2UserDataService ec2UserDataService,
-                                final AmiTagCheckService amiTagCheckService) {
-        this.configStore = configStore;
+    public UpdateStackOperation(CloudFormationService cloudFormationService,
+                                Ec2UserDataService ec2UserDataService,
+                                @Named(ENV_NAME) String environmentName,
+                                AmiTagCheckService amiTagCheckService,
+                                ConfigStore configStore) {
+
         this.cloudFormationService = cloudFormationService;
-        this.cloudformationObjectMapper = cloudformationObjectMapper;
         this.ec2UserDataService = ec2UserDataService;
+        this.environmentName = environmentName;
         this.amiTagCheckService = amiTagCheckService;
-
-        stackParameterMap = new HashMap<>();
-        stackParameterMap.put(StackName.CONSUL, ConsulParameters.class);
-        stackParameterMap.put(StackName.VAULT, VaultParameters.class);
-        stackParameterMap.put(StackName.CMS, CmsParameters.class);
-        stackParameterMap.put(StackName.GATEWAY, GatewayParameters.class);
-
-        stackTemplatePathMap = new HashMap<>();
-        stackTemplatePathMap.put(StackName.BASE, ConfigConstants.BASE_STACK_TEMPLATE_PATH);
-        stackTemplatePathMap.put(StackName.CONSUL, ConfigConstants.CONSUL_STACK_TEMPLATE_PATH);
-        stackTemplatePathMap.put(StackName.VAULT, ConfigConstants.VAULT_STACK_TEMPLATE_PATH);
-        stackTemplatePathMap.put(StackName.CMS, ConfigConstants.CMS_STACK_TEMPLATE_PATH);
-        stackTemplatePathMap.put(StackName.GATEWAY, ConfigConstants.GATEWAY_STACK_TEMPLATE_PATH);
+        this.configStore = configStore;
     }
 
     @Override
-    public void run(final UpdateStackCommand command) {
-        final String stackId = configStore.getStackId(command.getStackName());
-        final Class<? extends LaunchConfigParameters> parametersClass = stackParameterMap.get(command.getStackName());
-        final Map<String, String> parameters;
+    public void run(UpdateStackCommand command) {
+        String stackId = command.getStack().getFullName(environmentName);
 
-        if (parametersClass != null) {
-            parameters = getUpdateLaunchConfigParameters(command.getStackName(), command, parametersClass);
-        } else if (StackName.BASE == command.getStackName()) {
-            parameters = getUpdatedBaseStackParameters(command);
-        } else {
-            throw new IllegalArgumentException("The specified stack does not support the update stack command!");
+        Map<String, String> parameters = cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
+        Map<String, String> tags = command.getTagsDelegate().getTags();
+
+        // only some stacks need user data
+        if (command.getStack().needsUserData()) {
+            parameters.put("userData", ec2UserDataService.getUserData(configStore.getPrimaryRegion(), command.getStack(),
+                    Optional.ofNullable(tags.getOrDefault("ownerGroup", null))));
         }
 
-        // Make sure the given AmiId is for this component. Check if it contains required tag
-        // There is no AMI for Base.
-        if ( !command.isSkipAmiTagCheck() && StackName.BASE != command.getStackName() ) {
-            amiTagCheckService.validateAmiTagForStack(command.getAmiId(),command.getStackName());
-        }
+        if (Stack.CMS.equals(command.getStack())) {
+            command.getDynamicParameters().forEach((key, value) -> {
+                if (key.equals("amiId")) {
+                    amiTagCheckService.validateAmiTagForStack(value, Stack.CMS);
+                }
+            });
+        } else if (Stack.DATABASE.equals(command.getStack())) {
+            Optional<String> dbPasswordOverwrite = command.getDynamicParameters().entrySet().stream()
+                    .filter(entry -> entry.getKey().equals("cmsDbMasterPassword"))
+                    .map(Map.Entry::getValue)
+                    .findFirst();
 
+            dbPasswordOverwrite.ifPresent(configStore::storeCmsDatabasePassword);
+
+            parameters.put("cmsDbMasterPassword", dbPasswordOverwrite.orElseGet(() ->
+                    configStore.getCmsDatabasePassword().orElseThrow(() ->
+                    new RuntimeException("Unable to find current database password, add new one " +
+                            "with -PcmsDbMasterPassword=xxxxxxx"))));
+
+        } else if (Stack.LOAD_BALANCER.equals(command.getStack())) {
+            parameters.put("sslCertificateArn", configStore.getCertificationInformationList()
+                    .getLast().getIdentityManagementCertificateArn());
+        }
         parameters.putAll(command.getDynamicParameters());
 
         try {
-            logger.info("Starting the update for {}.", command.getStackName().getName());
+            logger.info("Starting the update for '{}' overwrite:{}.", stackId, command.isOverwriteTemplate());
 
-            if (command.isOverwriteTemplate()) {
-                cloudFormationService.updateStack(stackId, parameters, stackTemplatePathMap.get(command.getStackName()), true);
-            } else {
-                cloudFormationService.updateStack(stackId, parameters, true);
-            }
-
-            final StackStatus endStatus =
-                    cloudFormationService.waitForStatus(stackId,
-                            Sets.newHashSet(
-                                    UPDATE_COMPLETE,
-                                    UPDATE_COMPLETE_CLEANUP_IN_PROGRESS,
-                                    UPDATE_ROLLBACK_COMPLETE,
-                                    UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS,
-                                    UPDATE_ROLLBACK_FAILED
-                            ));
-
-            if (! ImmutableList.of(UPDATE_COMPLETE, UPDATE_COMPLETE_CLEANUP_IN_PROGRESS).contains(endStatus)) {
-                final String errorMessage = String.format("CloudFormation reports that updating the stack was not successful. end status: %s", endStatus.name());
-                logger.error(errorMessage);
-
-                throw new UnexpectedCloudFormationStatusException(errorMessage);
-            }
+            cloudFormationService.updateStackAndWait(
+                    configStore.getPrimaryRegion(),
+                    command.getStack(),
+                    parameters,
+                    true,
+                    command.isOverwriteTemplate(),
+                    command.getTagsDelegate().getTags()
+            );
 
             logger.info("Update complete.");
         } catch (AmazonServiceException ase) {
@@ -160,98 +125,20 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     }
 
     @Override
-    public boolean isRunnable(final UpdateStackCommand command) {
+    public boolean isRunnable(UpdateStackCommand command) {
         boolean isRunnable = true;
-        final String stackId = configStore.getStackId(command.getStackName());
 
-        if (StringUtils.isBlank(stackId)) {
-            logger.error("The stack name specified has not been created for this environment yet!");
+        String fullName = command.getStack().getFullName(environmentName);
+        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), fullName)) {
+            logger.error("CloudFormation doesn't have the specified stack: {}", fullName);
             isRunnable = false;
-        } else if (!cloudFormationService.isStackPresent(stackId)) {
-            logger.error("CloudFormation doesn't have the specified stack: {}", stackId);
+        }
+
+        if (command.getStack().equals(Stack.LOAD_BALANCER) && configStore.getCertificationInformationList().isEmpty()) {
+            logger.error("Updating the load balancer requires that a cert has been uploaded by the upload-certificate-files command");
             isRunnable = false;
         }
 
         return isRunnable;
-    }
-
-    private Map<String, String> getUpdateLaunchConfigParameters(final StackName stackName,
-                                                                final UpdateStackCommand command,
-                                                                final Class<? extends LaunchConfigParameters> parametersClass) {
-        final LaunchConfigParameters launchConfigParameters =
-                configStore.getStackParameters(stackName, parametersClass);
-
-        launchConfigParameters.getLaunchConfigParameters().setUserData(
-                ec2UserDataService.getUserData(stackName, command.getOwnerGroup()));
-
-        if (StringUtils.isNotBlank(command.getAmiId())) {
-            launchConfigParameters.getLaunchConfigParameters().setAmiId(command.getAmiId());
-        }
-
-        if (StringUtils.isNotBlank(command.getInstanceSize())) {
-            launchConfigParameters.getLaunchConfigParameters().setInstanceSize(command.getInstanceSize());
-        }
-
-        if (StringUtils.isNotBlank(command.getKeyPairName())) {
-            launchConfigParameters.getLaunchConfigParameters().setKeyPairName(command.getKeyPairName());
-        }
-
-        if (StringUtils.isNotBlank(command.getOwnerEmail())) {
-            launchConfigParameters.getTagParameters().setTagEmail(command.getOwnerEmail());
-        }
-
-        if (StringUtils.isNotBlank(command.getCostcenter())) {
-            launchConfigParameters.getTagParameters().setTagCostcenter(command.getCostcenter());
-        }
-
-        if (command.getDesiredInstances() != null) {
-            launchConfigParameters.getLaunchConfigParameters().setDesiredInstances(command.getDesiredInstances());
-        }
-
-        if (command.getMinimumInstances() != null) {
-            launchConfigParameters.getLaunchConfigParameters().setMinimumInstances(command.getMinimumInstances());
-        }
-
-        if (command.getMaximumInstances() != null) {
-            launchConfigParameters.getLaunchConfigParameters().setMaximumInstances(command.getMaximumInstances());
-        }
-
-        updateSslConfigParameters(stackName, launchConfigParameters);
-
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
-        return cloudformationObjectMapper.convertValue(launchConfigParameters, typeReference);
-    }
-
-    private void updateSslConfigParameters(final StackName stackName,
-                                           final LaunchConfigParameters launchConfigParameters) {
-
-        final SslConfigParametersDelegate sslConfigParameters = launchConfigParameters.getSslConfigParameters();
-
-        if (StringUtils.isNotBlank(sslConfigParameters.getCertPublicKey())) {
-            sslConfigParameters.setCertPublicKey(configStore.getCertPart(stackName, CERT_PART_PUBKEY).get());
-        }
-
-        if (StringUtils.isNotBlank(sslConfigParameters.getSslCertificateId())) {
-            sslConfigParameters.setSslCertificateId(configStore.getServerCertificateId(stackName).get());
-        }
-
-        if (StringUtils.isNotBlank(sslConfigParameters.getSslCertificateArn())) {
-            sslConfigParameters.setSslCertificateArn(configStore.getServerCertificateArn(stackName).get());
-        }
-    }
-
-    private Map<String, String> getUpdatedBaseStackParameters(final UpdateStackCommand command) {
-        final TagParameters tagParameters = configStore.getStackParameters(command.getStackName(), BaseParameters.class);
-
-        if (StringUtils.isNotBlank(command.getOwnerEmail())) {
-            tagParameters.getTagParameters().setTagEmail(command.getOwnerEmail());
-        }
-
-        if (StringUtils.isNotBlank(command.getCostcenter())) {
-            tagParameters.getTagParameters().setTagCostcenter(command.getCostcenter());
-        }
-
-        final TypeReference<Map<String, String>> typeReference = new TypeReference<Map<String, String>>() {};
-        return cloudformationObjectMapper.convertValue(tagParameters, typeReference);
     }
 }

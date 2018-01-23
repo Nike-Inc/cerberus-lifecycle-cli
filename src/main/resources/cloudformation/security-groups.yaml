@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Launches the Security Groups required for Cerberus
+Outputs:
+  cmsDbPort:
+    Value: !Ref 'cmsDbPort'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsDbPort"
+  cmsSgId:
+    Value: !GetAtt 'CmsSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsSgId"
+  cmsDbSgId:
+    Value: !GetAtt 'CmsDbSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsDbSgId"
+  loadBalancerSgId:
+    Value: !GetAtt 'AlbSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-loadBalancerSgId"
+  whitelistIngressSgId:
+    Value: !GetAtt 'WhitelistIngressSg.GroupId'
+    Export:
+      Name: !Sub "${AWS::StackName}-whitelistIngressSgId"
+Parameters:
+  cmsDbPort:
+    Default: '3306'
+    Description: Port for the cms DB instance
+    Type: Number
+  vpcId:
+    Description: ID of the VPC to associate with the security groups
+    Type: String
+Resources:
+  AlbSg:
+    Properties:
+      GroupDescription: ALB Security Group
+      Tags:
+        - Key: AutoUpdate
+          Value: 'true'
+      VpcId:
+        Ref: 'vpcId'
+    Type: AWS::EC2::SecurityGroup
+  AlbIngressFromInternetSg443:
+    Properties:
+      CidrIp: 0.0.0.0/0
+      FromPort: 443
+      GroupId: !Ref 'AlbSg'
+      IpProtocol: tcp
+      ToPort: 443
+    Type: AWS::EC2::SecurityGroupIngress
+  CmsDbFromCms:
+    Properties:
+      FromPort: !Ref 'cmsDbPort'
+      GroupId: !Ref 'CmsDbSg'
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref 'CmsSg'
+      ToPort: !Ref 'cmsDbPort'
+    Type: AWS::EC2::SecurityGroupIngress
+  CmsDbSg:
+    Properties:
+      GroupDescription: Management Server Database Security Group
+      VpcId:
+        Ref: 'vpcId'
+    Type: AWS::EC2::SecurityGroup
+  CmsIngressFromAlb8443:
+    Properties:
+      FromPort: 8443
+      GroupId: !Ref 'CmsSg'
+      IpProtocol: tcp
+      SourceSecurityGroupId: !Ref 'AlbSg'
+      ToPort: 8443
+    Type: AWS::EC2::SecurityGroupIngress
+  CmsSg:
+    Properties:
+      GroupDescription: Management Server Instance Security Group
+      VpcId:
+        Ref: 'vpcId'
+    Type: AWS::EC2::SecurityGroup
+  WhitelistIngressSg:
+    Properties:
+      GroupDescription: Administration ingress from tools NAT boxes
+      VpcId:
+        Ref: 'vpcId'
+    Type: AWS::EC2::SecurityGroup

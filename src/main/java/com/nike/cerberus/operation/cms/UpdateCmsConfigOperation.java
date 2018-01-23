@@ -27,8 +27,8 @@ import javax.inject.Inject;
 import java.util.Optional;
 import java.util.Properties;
 
-import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
 import static com.nike.cerberus.ConfigConstants.CMS_ADMIN_GROUP_KEY;
+import static com.nike.cerberus.ConfigConstants.SYSTEM_CONFIGURED_CMS_PROPERTIES;
 
 /**
  * Gathers all of the CMS environment configuration and puts it in the config bucket.
@@ -51,14 +51,14 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
         final Properties newProperties = configStore.getCmsSystemProperties();
         final Properties existingCustomProperties = configStore.getExistingCmsUserProperties();
-        if (! command.getOverwrite()) {
+        if (!command.getOverwrite()) {
             // keep existing custom properties
             newProperties.putAll(existingCustomProperties);
         }
 
         // update existing custom properties, add new ones
         command.getAdditionalProperties().forEach((k, v) -> {
-            if (! SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(k)) {
+            if (!SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(k) || command.isForce()) {
                 newProperties.put(k, v);
             } else {
                 logger.warn("Ignoring additional property that would override system configured property, " + k);
@@ -71,7 +71,6 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
         if (shouldOverwriteAdminGroup(existingAdminGroup, adminGroupParameter)) {
             logger.warn(String.format("Updating CMS admin group from '%s' to '%s'", existingAdminGroup, adminGroupParameter));
-            configStore.storeCmsAdminGroup(adminGroupParameter);
             newAdminGroupValue = adminGroupParameter;  // overwrite admin group
         }
         newProperties.put(CMS_ADMIN_GROUP_KEY, newAdminGroupValue);
@@ -84,14 +83,8 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
     @Override
     public boolean isRunnable(final UpdateCmsConfigCommand command) {
-        boolean isRunnable = true;
-        final Optional<String> cmsVaultToken = configStore.getCmsVaultToken();
+        boolean isRunnable = configStore.getCmsEnvConfig().isPresent();
         final Optional<String> cmsDatabasePassword = configStore.getCmsDatabasePassword();
-
-        if (!cmsVaultToken.isPresent()) {
-            logger.error("CMS Vault token not present for specified environment.");
-            isRunnable = false;
-        }
 
         if (!cmsDatabasePassword.isPresent()) {
             logger.error("CMS database password not present for specified environment.");

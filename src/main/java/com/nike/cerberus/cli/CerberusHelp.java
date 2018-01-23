@@ -44,7 +44,7 @@ public class CerberusHelp {
         int longestName = 0;
         List<ParameterDescription> sorted = Lists.newArrayList();
         for (ParameterDescription pd : commander.getParameters()) {
-            if (! pd.getParameter().hidden()) {
+            if (!pd.getParameter().hidden()) {
                 sorted.add(pd);
                 // + to have an extra space between the name and the description
                 int length = pd.getNames().length() + 2;
@@ -72,8 +72,8 @@ public class CerberusHelp {
                                 : def.toString();
                         sb.append("\n" + s(indentCount)).append("Default: " + Chalk.on(displayedDef).yellow().bold().toString());
                     }
-                    Class<?> type =  pd.getParameterized().getType();
-                    if(type.isEnum()){
+                    Class<?> type = pd.getParameterized().getType();
+                    if (type.isEnum()) {
                         String values = EnumSet.allOf((Class<? extends Enum>) type).toString();
                         sb.append("\n" + s(indentCount)).append("Possible Values: " + Chalk.on(values).yellow().bold().toString());
                     }

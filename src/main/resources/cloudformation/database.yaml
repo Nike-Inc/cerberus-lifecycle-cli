@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  HasSnapshotIdentifier: !Not [!Equals [!Ref 'snapshotIdentifier', '']]
+Description: Creates the database for use by the Cerberus Management Service (CMS)
+Outputs:
+  cmsDbAddress:
+    Value: !GetAtt 'CmsDatabaseCluster.Endpoint.Address'
+  cmsDbInstanceId1:
+    Value: !Ref 'CmsDbInstance1'
+  cmsDbInstanceId2:
+    Value: !Ref 'CmsDbInstance2'
+  cmsDbJdbcConnectionString:
+    Description: JDBC connection string for cms database
+    Value: !Join ['', ['jdbc:mysql://', !Ref 'DatabaseCnameRecordSet', ':',
+        !GetAtt 'CmsDatabaseCluster.Endpoint.Port', /, !Ref 'cmsDbName', '?useUnicode=true&characterEncoding=utf8&useLegacyDatetimeCode=false&serverTimezone=UTC']]
+Parameters:
+  cmsDbInstanceAz1:
+    Default: 'us-west-2a'
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: The first availability zone for the DB Instances
+    Type: String
+  cmsDbInstanceAz2:
+    Default: 'us-west-2b'
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: The second availability zone for the DB Instances
+    Type: String
+  cmsDbInstanceAz3:
+    Default: 'us-west-2c'
+    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Description: The third availability zone for the DB Instances
+    Type: String
+  cmsDbInstanceClass:
+    Default: db.r3.large
+    Description: MySQL DB instance class
+    Type: String
+  cmsDbMasterPassword:
+    Description: Master password for the cms RDS instance
+    Type: String
+    NoEcho: true
+  cmsDbMasterUsername:
+    Default: 'cms'
+    Description: Master username for the cms RDS instance
+    Type: String
+  cmsDbName:
+    Default: 'cms'
+    Description: The name of the database initially create on the RDS instance
+    Type: String
+  sgStackName:
+    Description: The name of the Cerberus Security Groups CloudFormation stack
+    Type: String
+  vpcSubnetIdForAz1:
+    Description: The subnet for the first availability zone
+    Type: String
+  vpcSubnetIdForAz2:
+    Description: The subnet for the second availability zone
+    Type: String
+  vpcSubnetIdForAz3:
+    Description: The subnet for the third availability zone
+    Type: String
+  snapshotIdentifier:
+    Description: If supplied the database cluster will be created with this snapshot, if supplied on an update then a new RDS cluster will be created and replace the existing RDS Cluster
+    Type: String
+    Default: ''
+  vpcInternalBaseDomainName:
+    Description:  The base domain name for the internal hosted zone for the VPC that the database will be accessed from
+    Type: String
+  vpcInternalHostedZoneId:
+    Description: The hosted zone id for the interal hosted zone for the VPC that the database will be accessed from
+    Type: String
+Resources:
+  CmsDatabaseCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      SnapshotIdentifier: !If [HasSnapshotIdentifier, !Ref 'snapshotIdentifier', !Ref 'AWS::NoValue']
+      BackupRetentionPeriod: 14
+      DatabaseName: !Ref 'cmsDbName'
+      DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
+      Engine: aurora
+      MasterUserPassword: !Ref 'cmsDbMasterPassword'
+      MasterUsername: !If [HasSnapshotIdentifier, !Ref 'AWS::NoValue', !Ref 'cmsDbMasterUsername']
+      Port:
+        Fn::ImportValue: !Sub "${sgStackName}-cmsDbPort"
+      PreferredBackupWindow: 13:14-13:44
+      PreferredMaintenanceWindow: tue:06:48-tue:07:18
+      StorageEncrypted: 'true'
+      VpcSecurityGroupIds:
+        - Fn::ImportValue: !Sub "${sgStackName}-cmsDbSgId"
+  # Create two DB instances one primary/write instance, and the other a read replica.
+  # The Aurora CloudFormation does not let you choose which is read or write.
+  # Aurora decides automatically for you behind the scenes.
+  CmsDbInstance1:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref CmsDatabaseCluster
+      DBInstanceClass: !Ref 'cmsDbInstanceClass'
+      DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
+      DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
+      Engine: aurora
+      PubliclyAccessible: 'false'
+  CmsDbInstance2:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref CmsDatabaseCluster
+      DBInstanceClass: !Ref 'cmsDbInstanceClass'
+      DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
+      DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
+      Engine: aurora
+      PubliclyAccessible: 'false'
+  CmsDatabaseParamGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Default parameters for the cms DB
+      Family: aurora5.6
+      Parameters:
+        log_output: TABLE
+        slow_query_log: 1
+  CmsDatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: DB Subnet Group for management DB
+      SubnetIds:
+        - Ref: 'vpcSubnetIdForAz1'
+        - Ref: 'vpcSubnetIdForAz2'
+        - Ref: 'vpcSubnetIdForAz3'
+  DatabaseCnameRecordSet:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: 'vpcInternalHostedZoneId'
+      Name: !Join [., ['rds', !Ref 'vpcInternalBaseDomainName']]
+      ResourceRecords:
+        - !GetAtt 'CmsDatabaseCluster.Endpoint.Address'
+      TTL: 30
+      Type: CNAME

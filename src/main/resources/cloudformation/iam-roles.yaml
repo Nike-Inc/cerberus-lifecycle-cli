@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates the necessary IAM roles for Cerberus
+Outputs:
+  cmsIamRoleArn:
+    Value: !GetAtt 'CmsIamRole.Arn'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsIamRoleArn"
+  cmsIamRoleName:
+    Value: !Ref 'CmsIamRole'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsIamRoleName"
+Resources:
+  CmsIamRole:
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: "cms-cf-signals-policy"
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - EC2:Describe*
+                  - cloudformation:SignalResource
+                Effect: Allow
+                Resource: '*'
+        - PolicyName: "cms-kms-policy"
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - kms:CreateAlias
+                  - kms:CreateKey
+                  - kms:DeleteAlias
+                  - kms:DescribeKey
+                  - kms:DisableKey
+                  - kms:DisableKeyRotation
+                  - kms:EnableKey
+                  - kms:EnableKeyRotation
+                  - kms:GetKeyPolicy
+                  - kms:GetKeyRotationStatus
+                  - kms:ListAliases
+                  - kms:ListKeyPolicies
+                  - kms:ListKeys
+                  - kms:PutKeyPolicy
+                  - kms:TagResource
+                  - kms:UpdateAlias
+                  - kms:UpdateKeyDescription
+                Effect: Allow
+                Resource:
+                  - '*'
+    Type: AWS::IAM::Role

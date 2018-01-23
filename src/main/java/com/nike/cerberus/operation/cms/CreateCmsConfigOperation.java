@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,6 @@ public class CreateCmsConfigOperation implements Operation<CreateCmsConfigComman
 
     @Override
     public void run(final CreateCmsConfigCommand command) {
-        configStore.storeCmsAdminGroup(command.getAdminGroup());
-
         logger.info("Retrieving configuration data from the configuration bucket.");
         final Properties cmsConfigProperties = configStore.getCmsSystemProperties();
 
@@ -68,7 +66,7 @@ public class CreateCmsConfigOperation implements Operation<CreateCmsConfigComman
     public boolean isRunnable(final CreateCmsConfigCommand command) {
         boolean isRunnable = !configStore.getCmsEnvConfig().isPresent();
 
-        if (! isRunnable) {
+        if (!isRunnable) {
             logger.warn("CMS config already exists, use 'update-cms-config' command.");
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,44 +27,43 @@ import com.google.inject.name.Names;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.command.certificates.RotateAcmeAccountPrivateKeyCommand;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.core.CreateCerberusBackupCommand;
-import com.nike.cerberus.command.core.RollingRebootWithHealthCheckCommand;
-import com.nike.cerberus.command.core.ViewConfigCommand;
-import com.nike.cerberus.command.consul.CreateConsulClusterCommand;
-import com.nike.cerberus.command.consul.CreateConsulConfigCommand;
-import com.nike.cerberus.command.consul.CreateVaultAclCommand;
-import com.nike.cerberus.command.consul.UpdateConsulConfigCommand;
-import com.nike.cerberus.command.core.CreateBaseCommand;
+import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
+import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
+import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
+import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
+import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
+import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
+import com.nike.cerberus.command.rds.CleanUpRdsSnapshotsCommand;
+import com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand;
+import com.nike.cerberus.command.rds.CreateDatabaseCommand;
+import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
+import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
+import com.nike.cerberus.command.core.CreateRoute53Command;
+import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
+import com.nike.cerberus.command.core.CreateVpcCommand;
+import com.nike.cerberus.command.core.CreateWafCommand;
+import com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommand;
+import com.nike.cerberus.command.core.DeleteStackCommand;
+import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.core.PrintStackInfoCommand;
 import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
+import com.nike.cerberus.command.core.RebootCmsCommand;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.command.core.UploadCertFilesCommand;
-import com.nike.cerberus.command.core.SetBackupAdminPrincipalsCommand;
+import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
+import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.command.dashboard.PublishDashboardCommand;
-import com.nike.cerberus.command.gateway.CreateCloudFrontLogProcessingLambdaConfigCommand;
-import com.nike.cerberus.command.gateway.CreateCloudFrontSecurityGroupUpdaterLambdaCommand;
-import com.nike.cerberus.command.gateway.CreateGatewayClusterCommand;
-import com.nike.cerberus.command.gateway.CreateGatewayConfigCommand;
-import com.nike.cerberus.command.gateway.PublishLambdaCommand;
-import com.nike.cerberus.command.vault.CreateCmsVaultTokenCommand;
-import com.nike.cerberus.command.vault.CreateVaultClusterCommand;
-import com.nike.cerberus.command.vault.CreateVaultConfigCommand;
-import com.nike.cerberus.command.vault.DisableAuditBackendCommand;
-import com.nike.cerberus.command.vault.EnableAuditBackendCommand;
-import com.nike.cerberus.command.vault.InitVaultClusterCommand;
-import com.nike.cerberus.command.vault.LoadDefaultVaultPoliciesCommand;
-import com.nike.cerberus.command.vault.UnsealVaultClusterCommand;
-import com.nike.cerberus.command.vault.VaultHealthCheckCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.util.LocalEnvironmentValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -102,16 +101,18 @@ public class CerberusRunner {
             commander.parse(args);
 
             configureLogging(cerberusCommand.isDebug());
+
+            final Logger log = LoggerFactory.getLogger(getClass());
+
             String commandName = commander.getParsedCommand();
             Command command = commandMap.get(commandName);
 
-            if(cerberusCommand.isVersion()) {
+            if (cerberusCommand.isVersion()) {
                 printCliVersion();
             } else if (cerberusCommand.isHelp() || commandName == null) {
                 cerberusHelp.print();
             } else {
-                Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand.getProxyDelegate(),
-                        cerberusCommand.getEnvironment(), cerberusCommand.getRegion()), new PropsModule());
+                Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand), new PropsModule());
 
                 // fail early if there is any problem in local environment
                 LocalEnvironmentValidator validator = injector.getInstance(LocalEnvironmentValidator.class);
@@ -120,7 +121,9 @@ public class CerberusRunner {
                 Operation operation = injector.getInstance(command.getOperationClass());
 
                 if (operation.isRunnable(command)) {
+                    log.info("Running command: {}", commandName);
                     operation.run(command);
+                    log.info("Finished command: {}", commandName);
                 } else {
                     throw new RuntimeException("Command not runnable");
                 }
@@ -128,19 +131,21 @@ public class CerberusRunner {
         } catch (Throwable e) {
             if (cerberusCommand.isHelp()) {
                 cerberusHelp.print();
-            }
-            else {
+            } else {
                 System.err.println(Chalk.on("ERROR: " + e.getMessage()).red().bold().toString());
                 e.printStackTrace();
                 cerberusHelp.print();
                 System.exit(1);
             }
         }
+
+        // Shutdown the thread pool executors
+        System.exit(0);
     }
 
     /**
      * If --file, -f was passed in we will map the dsl params to args.
-     *
+     * <p>
      * Due to the way jCommander works and validates args, we will create a new local command and parse the args
      * without validation and get the env config and return the new args back to the main commander to parse.
      *
@@ -174,38 +179,35 @@ public class CerberusRunner {
      * Convenience method for registering all top level commands.
      */
     private void registerAllCommands() {
-        registerCommand(new CreateBaseCommand());
-        registerCommand(new UploadCertFilesCommand());
-        registerCommand(new CreateConsulConfigCommand());
-        registerCommand(new UpdateConsulConfigCommand());
-        registerCommand(new CreateVaultAclCommand());
-        registerCommand(new CreateConsulClusterCommand());
-        registerCommand(new CreateVaultConfigCommand());
-        registerCommand(new CreateVaultClusterCommand());
-        registerCommand(new PublishDashboardCommand());
-        registerCommand(new InitVaultClusterCommand());
-        registerCommand(new UnsealVaultClusterCommand());
-        registerCommand(new EnableAuditBackendCommand());
-        registerCommand(new DisableAuditBackendCommand());
-        registerCommand(new LoadDefaultVaultPoliciesCommand());
-        registerCommand(new CreateCmsVaultTokenCommand());
+        registerCommand(new InitializeEnvironmentCommand());
+        registerCommand(new UploadCertificateFilesCommand());
         registerCommand(new CreateCmsConfigCommand());
         registerCommand(new CreateCmsClusterCommand());
-        registerCommand(new CreateGatewayConfigCommand());
-        registerCommand(new CreateGatewayClusterCommand());
         registerCommand(new UpdateStackCommand());
         registerCommand(new PrintStackInfoCommand());
-        registerCommand(new VaultHealthCheckCommand());
-        registerCommand(new PublishLambdaCommand());
-        registerCommand(new CreateCloudFrontLogProcessingLambdaConfigCommand());
-        registerCommand(new CreateCloudFrontSecurityGroupUpdaterLambdaCommand());
+        registerCommand(new PrintAllStackInformationCommand());
         registerCommand(new WhitelistCidrForVpcAccessCommand());
         registerCommand(new RestoreCerberusBackupCommand());
         registerCommand(new ViewConfigCommand());
         registerCommand(new UpdateCmsConfigCommand());
-        registerCommand(new RollingRebootWithHealthCheckCommand());
-        registerCommand(new CreateCerberusBackupCommand());
-        registerCommand(new SetBackupAdminPrincipalsCommand());
+        registerCommand(new RebootCmsCommand());
+        registerCommand(new GenerateCertificateFilesCommand());
+        registerCommand(new CreateVpcCommand());
+        registerCommand(new CreateWafCommand());
+        registerCommand(new CreateDatabaseCommand());
+        registerCommand(new CreateRoute53Command());
+        registerCommand(new CreateSecurityGroupsCommand());
+        registerCommand(new CreateLoadBalancerCommand());
+        registerCommand(new CreateEdgeDomainRecordCommand());
+        registerCommand(new CreateEnvironmentCommand());
+        registerCommand(new DeleteStackCommand());
+        registerCommand(new DeleteEnvironmentCommand());
+        registerCommand(new RotateCertificatesCommand());
+        registerCommand(new DeleteOldestCertificatesCommand());
+        registerCommand(new CopyRdsSnapshotsCommand());
+        registerCommand(new GenerateAndRotateCertificatesCommand());
+        registerCommand(new RotateAcmeAccountPrivateKeyCommand());
+        registerCommand(new CleanUpRdsSnapshotsCommand());
     }
 
     /**
@@ -234,6 +236,7 @@ public class CerberusRunner {
 
     /**
      * Program entry point.  Instantiates and calls run.
+     *
      * @param args Command line arguments
      */
     public static void main(String[] args) {

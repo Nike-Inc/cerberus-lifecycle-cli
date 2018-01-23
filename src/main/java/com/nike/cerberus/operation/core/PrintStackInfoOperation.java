@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2017 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-
 import java.util.List;
 import java.util.Map;
 
 import static com.nike.cerberus.module.CerberusModule.CONFIG_OBJECT_MAPPER;
+import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
 /**
  * Prints the parameters and outputs for the specified component.
@@ -45,7 +45,7 @@ public class PrintStackInfoOperation implements Operation<PrintStackInfoCommand>
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ConfigStore configStore;
+    private final String environmentName;
 
     private final CloudFormationService cloudFormationService;
 
@@ -53,34 +53,41 @@ public class PrintStackInfoOperation implements Operation<PrintStackInfoCommand>
 
     private final ObjectMapper objectMapper;
 
+    private final ConfigStore configStore;
+
     @Inject
-    public PrintStackInfoOperation(final ConfigStore configStore,
-                                   final CloudFormationService cloudFormationService,
-                                   final AutoScalingService autoScalingService,
-                                   @Named(CONFIG_OBJECT_MAPPER) final ObjectMapper objectMapper) {
-        this.configStore = configStore;
+    public PrintStackInfoOperation(@Named(ENV_NAME) String environmentName,
+                                   CloudFormationService cloudFormationService,
+                                   AutoScalingService autoScalingService,
+                                   @Named(CONFIG_OBJECT_MAPPER) ObjectMapper objectMapper,
+                                   ConfigStore configStore) {
+
+        this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
         this.autoScalingService = autoScalingService;
         this.objectMapper = objectMapper;
+        this.configStore = configStore;
     }
 
     @Override
     public void run(final PrintStackInfoCommand command) {
-        final String stackId = configStore.getStackId(command.getStackName());
+        String stackId = command.getStack().getFullName(environmentName);
 
-        if (StringUtils.isBlank(stackId) || !cloudFormationService.isStackPresent(stackId)) {
-            logger.error("The specified environment doesn't contain a stack for " + command.getStackName().getName());
+        if (StringUtils.isBlank(stackId) ||
+                !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), stackId)) {
+
+            logger.error("The specified environment doesn't contain a stack for " + command.getStack().getName());
             return;
         }
 
-        final Map<String, String> stackParameters = cloudFormationService.getStackParameters(stackId);
-        final Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(stackId);
-        final StackInfo stackInfo = new StackInfo();
+        Map<String, String> stackParameters = cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
+        Map<String, String> stackOutputs = cloudFormationService.getStackOutputs(configStore.getPrimaryRegion(), stackId);
+        StackInfo stackInfo = new StackInfo();
         stackInfo.setStackId(stackId).setStackParameters(stackParameters).setStackOutputs(stackOutputs);
-        final String autoscalingGroupLogicalId = stackOutputs.get(ASG_LOGICAL_ID_OUTPUT_NAME);
+        String autoscalingGroupLogicalId = stackOutputs.get(ASG_LOGICAL_ID_OUTPUT_NAME);
 
         if (StringUtils.isNotBlank(autoscalingGroupLogicalId)) {
-            final List<String> publicDnsForAutoScalingGroup =
+            List<String> publicDnsForAutoScalingGroup =
                     autoScalingService.getPublicDnsForAutoScalingGroup(autoscalingGroupLogicalId);
             stackInfo.setPublicDnsForInstances(publicDnsForAutoScalingGroup);
         }

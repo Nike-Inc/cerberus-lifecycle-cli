@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Conditions:
+  RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+Description: Creates the application Load Balancer for the Cerberus environment
+Outputs:
+  cmsTargetGroup:
+    Value: !Ref 'CmsTargetGroup'
+    Export:
+      Name: !Sub "${AWS::StackName}-cmsTargetGroupArn"
+  loadBalancerAccessLogBucket:
+    Value: !Ref 'ALBLogBucket'
+  loadBalancerDnsName:
+    Value: !GetAtt 'ApplicationLoadBalancer.DNSName'
+    Export:
+      Name: !Sub "${AWS::StackName}-loadBalancerDnsName"
+  loadBalancerPhysicalId:
+    Value: !Ref 'ApplicationLoadBalancer'
+    Export:
+      Name: !Sub "${AWS::StackName}-loadBalancerPhysicalId"
+Parameters:
+  sgStackName:
+    Description: The name of the stack containing Cerberus IAM roles and SGs stack
+    Type: String
+  sslCertificateArn:
+    Description: TLS certificate ARN for CMS
+    Type: String
+  vpcId:
+    Description: The VPC in which the EC2 instances will be run
+    Type: String
+  vpcSubnetIdForAz1:
+    Description: The subnet for the first availability zone
+    Type: String
+  vpcSubnetIdForAz2:
+    Description: The subnet for the second availability zone
+    Type: String
+  vpcSubnetIdForAz3:
+    Description: The subnet for the third availability zone
+    Type: String
+  sslPolicy:
+    Description: >
+     The SSL Policy that will get applied to the application load balancer,
+      see http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html
+      for more information
+    Type: String
+    Default: ELBSecurityPolicy-TLS-1-2-2017-01
+  elasticLoadBalancingAccountId:
+    Description: The account id for the AWS ELB Account. See https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html
+    Type: String
+Resources:
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Certificates:
+          - CertificateArn: !Ref sslCertificateArn
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref 'CmsTargetGroup'
+      LoadBalancerArn: !Ref 'ApplicationLoadBalancer'
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: !Ref 'sslPolicy'
+  ALBLogBucket:
+    Properties:
+      AccessControl: BucketOwnerFullControl
+    Type: AWS::S3::Bucket
+  ALBLogBucketPolicy:
+    Properties:
+      Bucket: !Ref 'ALBLogBucket'
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Ref 'elasticLoadBalancingAccountId'
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'ALBLogBucket', /*]]
+            Sid: Allow-ALB-Log-Access
+        Version: '2012-10-17'
+    Type: AWS::S3::BucketPolicy
+  ApplicationLoadBalancer:
+    Properties:
+      LoadBalancerAttributes:
+        - Key: access_logs.s3.enabled
+          Value: true
+        - Key: access_logs.s3.bucket
+          Value: !Ref 'ALBLogBucket'
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${sgStackName}-loadBalancerSgId"
+      Subnets:
+        - Ref: 'vpcSubnetIdForAz1'
+        - Ref: 'vpcSubnetIdForAz2'
+        - Ref: 'vpcSubnetIdForAz3'
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+  CmsTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckIntervalSeconds: 5
+      HealthCheckPath: /healthcheck
+      HealthCheckPort: 8443
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 2
+      HealthyThresholdCount: 2
+      Port: 8443
+      Protocol: HTTPS
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 10
+      UnhealthyThresholdCount: 2
+      VpcId:
+        Ref: 'vpcId'
