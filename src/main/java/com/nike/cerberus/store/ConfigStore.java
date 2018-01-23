@@ -604,11 +604,11 @@ public class ConfigStore {
                     bucketLocationResult = s3Client.getBucketLocation(bucketName);
                 } catch (AmazonS3Exception e) {
                     logger.debug("Failed to get bucket location for bucket: {}, msg: {}", bucketName, e.getMessage());
-                    if (e.getErrorCode().equals("AuthorizationHeaderMalformed")) {
-                        if (e.getAdditionalDetails().containsKey("Region")) {
-                            bucketLocationResult = e.getAdditionalDetails().get("Region");
-                            logger.debug("Determined region from S3 Error object, region: {}", bucketLocationResult);
-                        }
+                    if (e.getErrorCode().equals("AuthorizationHeaderMalformed") &&
+                            e.getAdditionalDetails().containsKey("Region")) {
+
+                        bucketLocationResult = e.getAdditionalDetails().get("Region");
+                        logger.debug("Determined region from S3 Error object, region: {}", bucketLocationResult);
                     }
                     if (bucketLocationResult == null) {
                         logger.debug("Failed to determine region for bucket: {} skipping...", bucketName);

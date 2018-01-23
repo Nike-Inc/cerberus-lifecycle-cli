@@ -74,7 +74,8 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
         VpcParameters vpcParameters = new VpcParameters()
                 .setAz1(azByIdentifier.get(1))
                 .setAz2(azByIdentifier.get(2))
-                .setAz3(azByIdentifier.get(3));
+                .setAz3(azByIdentifier.get(3))
+                .setEnvironmentName(environmentName);
 
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters);
 

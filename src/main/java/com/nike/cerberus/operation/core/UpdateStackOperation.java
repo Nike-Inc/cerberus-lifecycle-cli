@@ -18,7 +18,6 @@ package com.nike.cerberus.operation.core;
 
 import com.amazonaws.AmazonServiceException;
 import com.nike.cerberus.command.core.UpdateStackCommand;
-import com.nike.cerberus.domain.cloudformation.DatabaseParameters;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.AmiTagCheckService;
@@ -84,11 +83,18 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                 }
             });
         } else if (Stack.DATABASE.equals(command.getStack())) {
-            command.getDynamicParameters().forEach((key, value) -> {
-                if (key.equals("cmsDbMasterPassword")) {
-                    configStore.storeCmsDatabasePassword(value);
-                }
-            });
+            Optional<String> dbPasswordOverwrite = command.getDynamicParameters().entrySet().stream()
+                    .filter(entry -> entry.getKey().equals("cmsDbMasterPassword"))
+                    .map(Map.Entry::getValue)
+                    .findFirst();
+
+            dbPasswordOverwrite.ifPresent(configStore::storeCmsDatabasePassword);
+
+            parameters.put("cmsDbMasterPassword", dbPasswordOverwrite.orElseGet(() ->
+                    configStore.getCmsDatabasePassword().orElseThrow(() ->
+                    new RuntimeException("Unable to find current database password, add new one " +
+                            "with -PcmsDbMasterPassword=xxxxxxx"))));
+
         } else if (Stack.LOAD_BALANCER.equals(command.getStack())) {
             parameters.put("sslCertificateArn", configStore.getCertificationInformationList()
                     .getLast().getIdentityManagementCertificateArn());

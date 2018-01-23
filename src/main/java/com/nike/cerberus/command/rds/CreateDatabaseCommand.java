@@ -37,6 +37,8 @@ public class CreateDatabaseCommand implements Command {
 
     public static final String INSTANCE_CLASS_LONG_ARG = "--instance-class";
 
+    public static final String RESTORE_FROM_SNAPSHOT = "--restore-from-snapshot-using-identifier";
+
     @ParametersDelegate
     private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
@@ -51,6 +53,17 @@ public class CreateDatabaseCommand implements Command {
 
     public String getInstanceClass() {
         return instanceClass;
+    }
+
+    @Parameter(
+            names = RESTORE_FROM_SNAPSHOT,
+            description = "option for setting a snapshot identifier on the RDS stack to restore from the snapshot " +
+                    "while standing up the new RDS cluster via cloudformation"
+    )
+    String snapshotIdentifier;
+
+    public String getSnapshotIdentifier() {
+        return snapshotIdentifier;
     }
 
     @Override

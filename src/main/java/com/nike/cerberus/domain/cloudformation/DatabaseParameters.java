@@ -43,6 +43,12 @@ public class DatabaseParameters {
 
     private String vpcSubnetIdForAz3;
 
+    private String snapshotIdentifier;
+
+    private String vpcInternalBaseDomainName;
+
+    private String vpcInternalHostedZoneId;
+
     public String getCmsDbInstanceAz1() {
         return cmsDbInstanceAz1;
     }
@@ -142,4 +148,30 @@ public class DatabaseParameters {
         return this;
     }
 
+    public String getSnapshotIdentifier() {
+        return snapshotIdentifier;
+    }
+
+    public DatabaseParameters setSnapshotIdentifier(String snapshotIdentifier) {
+        this.snapshotIdentifier = snapshotIdentifier;
+        return this;
+    }
+
+    public String getVpcInternalBaseDomainName() {
+        return vpcInternalBaseDomainName;
+    }
+
+    public DatabaseParameters setVpcInternalBaseDomainName(String vpcInternalBaseDomainName) {
+        this.vpcInternalBaseDomainName = vpcInternalBaseDomainName;
+        return this;
+    }
+
+    public String getVpcInternalHostedZoneId() {
+        return vpcInternalHostedZoneId;
+    }
+
+    public DatabaseParameters setVpcInternalHostedZoneId(String vpcInternalHostedZoneId) {
+        this.vpcInternalHostedZoneId = vpcInternalHostedZoneId;
+        return this;
+    }
 }
