@@ -126,6 +126,8 @@ region-specific-configuration:
     primary: true
     rds:
       size: db.r3.large
+      # To create a new environment from a rds backup snapshot uncomment below and supply the db cluster snapshot identifier
+      # db-cluster-identifier: foo-bar
     management-service:
       # The ami id to use for CMS, see https://github.com/Nike-Inc/cerberus-util-scripts to bake an AMI
       ami-id: ami-3333

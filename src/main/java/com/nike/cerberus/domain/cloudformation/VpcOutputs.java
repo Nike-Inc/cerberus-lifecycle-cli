@@ -35,6 +35,10 @@ public class VpcOutputs {
 
     private String vpcId;
 
+    private String vpcInternalBaseDomainName;
+
+    private String vpcInternalHostedZoneId;
+
     public String getSubnetCidrBlockForAz1() {
         return subnetCidrBlockForAz1;
     }
@@ -95,6 +99,24 @@ public class VpcOutputs {
 
     public VpcOutputs setVpcId(String vpcId) {
         this.vpcId = vpcId;
+        return this;
+    }
+
+    public String getVpcInternalBaseDomainName() {
+        return vpcInternalBaseDomainName;
+    }
+
+    public VpcOutputs setVpcInternalBaseDomainName(String vpcInternalBaseDomainName) {
+        this.vpcInternalBaseDomainName = vpcInternalBaseDomainName;
+        return this;
+    }
+
+    public String getVpcInternalHostedZoneId() {
+        return vpcInternalHostedZoneId;
+    }
+
+    public VpcOutputs setVpcInternalHostedZoneId(String vpcInternalHostedZoneId) {
+        this.vpcInternalHostedZoneId = vpcInternalHostedZoneId;
         return this;
     }
 }

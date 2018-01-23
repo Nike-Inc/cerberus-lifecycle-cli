@@ -36,7 +36,9 @@ import com.amazonaws.services.cloudformation.model.StackEvent;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import com.amazonaws.services.cloudformation.model.StackStatus;
 import com.amazonaws.services.cloudformation.model.Tag;
+import com.amazonaws.services.cloudformation.model.TemplateParameter;
 import com.amazonaws.services.cloudformation.model.UpdateStackRequest;
+import com.amazonaws.services.cloudformation.model.ValidateTemplateRequest;
 import com.amazonaws.services.cloudformation.waiters.AmazonCloudFormationWaiters;
 import com.amazonaws.waiters.Waiter;
 import com.amazonaws.waiters.WaiterHandler;
@@ -209,14 +211,18 @@ public class CloudFormationService {
         log.info("Updating: Cloud Formation Template: {}, Stack Name: {}, Region: {}", stack.getTemplatePath(), stackName, region.getName());
 
         UpdateStackRequest request = new UpdateStackRequest()
-                .withStackName(stackName)
-                .withParameters(convertParameters(parameters));
+                .withStackName(stackName);
 
         if (overwrite) {
-            request.withTemplateBody(stack.getTemplateText());
+            String template = stack.getTemplateText();
+            request.withTemplateBody(template);
+            // filter out params that are no longer in the template
+            parameters.keySet().retainAll(validateTemplateAndRetrieveParameters(template, region));
         } else {
             request.withUsePreviousTemplate(true);
         }
+
+        request.withParameters(convertParameters(parameters));
 
         if (iamCapabilities) {
             request.getCapabilities().add("CAPABILITY_IAM");
@@ -229,6 +235,18 @@ public class CloudFormationService {
 
         waitAndPrintCFEvents(region, stackName, new AmazonCloudFormationWaiters(cloudFormationClient).stackUpdateComplete());
 
+    }
+
+    /**
+     * Validates and retrieves the set of parameter keys for a template.
+     * @param templateText The template to validate
+     * @param region The region that is being used
+     * @return The set of parameters that a template has.
+     */
+    private Set<String> validateTemplateAndRetrieveParameters(String templateText, Regions region) {
+        return cloudFormationClientFactory.getClient(region).validateTemplate(
+                new ValidateTemplateRequest().withTemplateBody(templateText)
+        ).getParameters().stream().map(TemplateParameter::getParameterKey).collect(Collectors.toSet());
     }
 
     /**

@@ -24,6 +24,12 @@ Outputs:
   vpcId:
     Description: ID of the created VPC
     Value: !Ref 'CerberusVpc'
+  vpcInternalBaseDomainName:
+    Description: The base domain name for the internal hosted zone for this VPC
+    Value: !Join [., ['internal', !Ref 'AWS::Region', !Ref 'environmentName', 'cerberus.com', '']]
+  vpcInternalHostedZoneId:
+    Description: The hosted zone id for the interal hosted zone for this VPC
+    Value: !Ref 'InternalHostedZone'
 Parameters:
   az1:
     AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
@@ -71,6 +77,9 @@ Parameters:
     Description: The VPC's CIDR block for internal IPv4 addressing
     MaxLength: '20'
     MinLength: '9'
+    Type: String
+  environmentName:
+    Description: The Cerberus environment name
     Type: String
 Resources:
   CerberusDhcpOptions:
@@ -144,3 +153,12 @@ Resources:
       InternetGatewayId: !Ref 'CerberusInternetGateway'
       VpcId: !Ref 'CerberusVpc'
     Type: AWS::EC2::VPCGatewayAttachment
+  InternalHostedZone: # move to vpc stack
+    Type: 'AWS::Route53::HostedZone'
+    Properties:
+      HostedZoneConfig:
+        Comment: !Join [' ', ['Internal Hosted Zone for custom internal cname records for', !Ref 'environmentName']]
+      Name: !Join [., ['internal', !Ref 'AWS::Region', !Ref 'environmentName', 'cerberus.com', '']]
+      VPCs:
+        - VPCId: !Ref 'CerberusVpc'
+          VPCRegion: !Ref 'AWS::Region'

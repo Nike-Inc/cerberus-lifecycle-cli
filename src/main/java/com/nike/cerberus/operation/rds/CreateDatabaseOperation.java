@@ -82,7 +82,10 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
-                .setCmsDbInstanceClass(command.getInstanceClass());
+                .setCmsDbInstanceClass(command.getInstanceClass())
+                .setSnapshotIdentifier(command.getSnapshotIdentifier())
+                .setVpcInternalBaseDomainName(vpcOutputs.getVpcInternalBaseDomainName())
+                .setVpcInternalHostedZoneId(vpcOutputs.getVpcInternalHostedZoneId());
 
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(databaseParameters);
 
@@ -99,13 +102,13 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
     @Override
     public boolean isRunnable(CreateDatabaseCommand command) {
-        try {
-            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.SECURITY_GROUPS.getFullName(environmentName));
-        } catch (IllegalArgumentException iae) {
+        boolean isRunnable = true;
+
+        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.SECURITY_GROUPS.getFullName(environmentName))) {
+            isRunnable = false;
             logger.error("The security group stack must exist to create the the data base stack!");
-            return false;
         }
 
-        return !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.DATABASE.getFullName(environmentName));
+        return isRunnable;
     }
 }

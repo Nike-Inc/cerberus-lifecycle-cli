@@ -247,6 +247,9 @@ public class EnvironmentConfigToArgsMapper {
         if (config.getPrimaryRegionConfig().getRds().isPresent()) {
             args.addOption(CreateDatabaseCommand.INSTANCE_CLASS_LONG_ARG,
                     config.getPrimaryRegionConfig().getRds().get().getSize());
+
+            args.addOption(CreateDatabaseCommand.RESTORE_FROM_SNAPSHOT,
+                    config.getPrimaryRegionConfig().getRds().get().getDbClusterIdentifier());
         }
         args.addAll(getGlobalTags(config));
         return args.build();

@@ -21,6 +21,7 @@ package com.nike.cerberus.domain.input;
  */
 public class RdsRegionSpecificInput {
     private String size;
+    private String dbClusterIdentifier;
 
     public String getSize() {
         return size;
@@ -28,5 +29,13 @@ public class RdsRegionSpecificInput {
 
     public void setSize(String size) {
         this.size = size;
+    }
+
+    public String getDbClusterIdentifier() {
+        return dbClusterIdentifier;
+    }
+
+    public void setDbClusterIdentifier(String dbClusterIdentifier) {
+        this.dbClusterIdentifier = dbClusterIdentifier;
     }
 }

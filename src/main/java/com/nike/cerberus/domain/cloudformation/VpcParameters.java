@@ -37,6 +37,8 @@ public class VpcParameters {
 
     private String vpcCidrBlock;
 
+    private String environmentName;
+
     public String getAz1() {
         return az1;
     }
@@ -106,6 +108,15 @@ public class VpcParameters {
 
     public VpcParameters setVpcCidrBlock(String vpcCidrBlock) {
         this.vpcCidrBlock = vpcCidrBlock;
+        return this;
+    }
+
+    public String getEnvironmentName() {
+        return environmentName;
+    }
+
+    public VpcParameters setEnvironmentName(String environmentName) {
+        this.environmentName = environmentName;
         return this;
     }
 }
