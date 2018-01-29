@@ -43,7 +43,7 @@ public class HttpClientFactory {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public static final int DEFAULT_TIMEOUT = 15;
+    public static final int DEFAULT_TIMEOUT = 60;
     public static final TimeUnit DEFAULT_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
     private final ConfigStore configStore;
