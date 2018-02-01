@@ -55,8 +55,8 @@ management-service:
   # Dynamic parameters for setting additional properties in the CMS
   properties:
     - cms.auth.connector=com.nike.cerberus.auth.connector.onelogin.OneLoginAuthConnector
-    - cms.user.token.ttl.override=5m  # optional ttl override for username/password auth tokens
-    - cms.iam.token.ttl.override=2h  # optional ttl override for IAM-based auth tokens
+    - cms.user.token.ttl=5m  # optional ttl override for username/password auth tokens
+    - cms.iam.token.ttl=2h  # optional ttl override for IAM-based auth tokens
     - auth.connector.onelogin.api_region=us
     - auth.connector.onelogin.client_id=123
     - auth.connector.onelogin.client_secret=312
