@@ -45,6 +45,7 @@ import com.nike.cerberus.domain.input.VpcAccessWhitelistInput;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -106,10 +107,10 @@ public class EnvironmentConfigToArgsMapper {
                 args = getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
                 break;
             case CreateCmsConfigCommand.COMMAND_NAME:
-                args = getCreateCmsConfigCommandArgs(environmentConfig);
+                args = getCreateCmsConfigCommandArgs(environmentConfig, passedArgs);
                 break;
             case UpdateCmsConfigCommand.COMMAND_NAME:
-                args = getCreateCmsConfigCommandArgs(environmentConfig);
+                args = getCreateCmsConfigCommandArgs(environmentConfig, passedArgs);
                 break;
             case CreateVpcCommand.COMMAND_NAME:
                 args = getCreateVpcCommandArgs(environmentConfig);
@@ -163,13 +164,18 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateCmsConfigCommandArgs(EnvironmentConfig environmentConfig) {
+    private static List<String> getCreateCmsConfigCommandArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
         ArgsBuilder args = ArgsBuilder.create();
         ManagementServiceInput managementService = environmentConfig.getManagementService();
         args.addOption(CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, managementService.getAdminGroup());
         managementService.getProperties().forEach(property -> {
             args.addOption(CreateCmsConfigCommand.PROPERTY_SHORT_ARG, property);
         });
+
+        if (Arrays.stream(passedArgs).anyMatch(s -> s.equals(UpdateCmsConfigCommand.OVERWRITE_LONG_ARG))) {
+            args.addFlag(UpdateCmsConfigCommand.OVERWRITE_LONG_ARG);
+        }
+
         return args.build();
     }
 
