@@ -46,7 +46,7 @@ abstract public class AwsClientFactory<T extends AmazonWebServiceClient> {
     /**
      * Cache of clients by region
      */
-    private Map<Regions, T> clients = Maps.newHashMap();
+    protected Map<Regions, T> clients = Maps.newHashMap();
 
     /**
      * Factory that creates and caches Aws clients by region for re-use;
@@ -59,21 +59,21 @@ abstract public class AwsClientFactory<T extends AmazonWebServiceClient> {
     }
 
     @SuppressWarnings("unchecked")
-    private Class<T> getGenericTypeClass() {
+    protected Class<T> getGenericTypeClass() {
         TypeToken<T> typeToken = new TypeToken<T>(getClass()) {};
         return (Class<T>) typeToken.getRawType();
     }
 
-    private <M extends AmazonWebServiceClient> M createAmazonClientInstance(Class<M> clientClass, Regions region) {
+    protected <M extends AmazonWebServiceClient> M createAmazonClientInstance(Class<M> clientClass, Regions region) {
         return Region.getRegion(region)
                 .createClient(clientClass, getAWSCredentialsProviderChain(), getClientConfiguration());
     }
 
-    private ClientConfiguration getClientConfiguration() {
+    protected ClientConfiguration getClientConfiguration() {
         return new ClientConfiguration();
     }
 
-    private AWSCredentialsProviderChain getAWSCredentialsProviderChain() {
+    protected AWSCredentialsProviderChain getAWSCredentialsProviderChain() {
         String cerberusRoleToAssume = System.getenv(CERBERUS_ASSUME_ROLE_ARN) != null ?
                 System.getenv(CERBERUS_ASSUME_ROLE_ARN) : "";
         String cerberusRoleToAssumeExternalId = System.getenv(CERBERUS_ASSUME_ROLE_EXTERNAL_ID) != null ?

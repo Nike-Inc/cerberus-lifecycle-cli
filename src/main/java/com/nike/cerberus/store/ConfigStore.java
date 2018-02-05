@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
 import com.nike.cerberus.ConfigConstants;
+import com.nike.cerberus.domain.cloudformation.AuditOutputs;
 import com.nike.cerberus.domain.cloudformation.IamRolesOutputs;
 import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
 import com.nike.cerberus.domain.cloudformation.ConfigOutputs;
@@ -308,6 +309,14 @@ public class ConfigStore {
         properties.put(CMS_CERTIFICATE_TO_USE, getCertificationInformationList().getLast().getCertificateName());
         properties.put(CMK_ARNS_KEY, StringUtils.join(data.getManagementServiceCmkArns(), ","));
 
+        if (data.isAuditLoggingEnabled()) {
+            properties.put(AUDIT_LOG_PROCESSOR, String.valueOf(true));
+            properties.put(AUDIT_LOG_BUCKET, getAuditStackOutputs(getPrimaryRegion()).getAuditBucketName());
+            properties.put(AUDIT_LOG_BUCKET_REGION, getPrimaryRegion().getName());
+        } else {
+            properties.put(AUDIT_LOG_PROCESSOR, String.valueOf(false));
+        }
+
         return properties;
     }
 
@@ -476,6 +485,10 @@ public class ConfigStore {
      */
     public DatabaseOutputs getDatabaseStackOutputs(Regions region) {
         return getStackOutputs(region, getCloudFormationStackName(Stack.DATABASE), DatabaseOutputs.class);
+    }
+
+    public AuditOutputs getAuditStackOutputs(Regions region) {
+        return getStackOutputs(region, getCloudFormationStackName(Stack.AUDIT), AuditOutputs.class);
     }
 
     /**
@@ -715,5 +728,15 @@ public class ConfigStore {
 
     public EnvironmentData getEnvironmentData() {
         return getDecryptedEnvironmentData();
+    }
+
+    public void setAuditLoggingEnabled(boolean auditLoggingEnabled) {
+        EnvironmentData environmentData = getDecryptedEnvironmentData();
+        environmentData.setAuditLoggingEnabled(auditLoggingEnabled);
+        saveEnvironmentData(environmentData);
+    }
+
+    public boolean isAuditLoggingEnabled() {
+        return getEnvironmentData().isAuditLoggingEnabled();
     }
 }

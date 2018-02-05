@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Creates the S3 config bucket for the audit logs
+Outputs:
+  auditBucketName:
+    Value: !Ref 'CerberusAuditBucket'
+Parameters:
+  cmsIamRoleArn:
+    Description: The ARN for for the management service IAM Role.
+    Type: String
+  accountAdminArn:
+    Description: The ARN for a IAM user, group or role that can create this stack.
+    Type: String
+  managementServiceCmkArn:
+    Description: The KMS Key Id for the management service
+    Type: String
+Resources:
+  CerberusAuditBucket:
+    Properties:
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref 'managementServiceCmkArn'
+              SSEAlgorithm: 'aws:kms'
+    Type: AWS::S3::Bucket
+  CerberusConfigBucketAccessPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 'CerberusAuditBucket'
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:*
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Ref 'cmsIamRoleArn'
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket']]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket', /*]]
+            Sid: Allow-Bucket-Access-For-CMS
+          - Action:
+              - s3:*
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Ref 'accountAdminArn'
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket']]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket', /*]]
+            Sid: Allow-Bucket-Access-For-AuditLogAthenaIamRole
+          - Action:
+              - s3:*
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt 'AuditLogAthenaIamRole.Arn'
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket']]
+              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket', /*]]
+            Sid: Allow-Bucket-Access-For-AuditLogAthenaIamRole
+        Version: '2012-10-17'
+  AuditLogAthenaIamRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Statement:
+            - Action:
+                - sts:AssumeRole
+              Effect: Allow
+              Principal:
+                Service:
+                  - glue.amazonaws.com
+          Version: '2012-10-17'
+        Path: /
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+          - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole

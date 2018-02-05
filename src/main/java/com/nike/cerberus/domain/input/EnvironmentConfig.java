@@ -34,6 +34,7 @@ public class EnvironmentConfig {
     private List<String> additionalSubjectNames;
     private String loadBalancerSslPolicyOverride;
     private String hostedZoneId;
+    private boolean enableAuditLogs;
     private boolean generateKeysAndCerts;
     private String acmeApiUrl;
     private boolean enableLeCertFix;
@@ -113,6 +114,15 @@ public class EnvironmentConfig {
 
     public void setHostedZoneId(String hostedZoneId) {
         this.hostedZoneId = hostedZoneId;
+    }
+
+    public boolean isEnableAuditLogs() {
+        return enableAuditLogs;
+    }
+
+    public EnvironmentConfig setEnableAuditLogs(boolean enableAuditLogs) {
+        this.enableAuditLogs = enableAuditLogs;
+        return this;
     }
 
     public boolean isGenerateKeysAndCerts() {

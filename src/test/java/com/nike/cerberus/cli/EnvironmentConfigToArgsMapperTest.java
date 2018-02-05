@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.nike.cerberus.command.StackDelegate;
+import com.nike.cerberus.command.audit.CreateAuditLoggingStackCommand;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
@@ -179,6 +180,23 @@ public class EnvironmentConfigToArgsMapperTest {
                 WhitelistCidrForVpcAccessCommand.CIDR_LONG_ARG, "50.39.106.150/32",
                 WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "8443",
                 WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "22"
+        };
+
+        String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
+
+        assertArgsAreEqual(expected, actual, commandName);
+    }
+
+    @Test
+    public void test_audit() {
+        String commandName = CreateAuditLoggingStackCommand.COMMAND_NAME;
+
+        String[] userInput = {"-f", "/path/to/environment.yaml", commandName};
+
+        String[] expected = {
+                "-f", "/path/to/environment.yaml",
+                commandName,
+                CreateAuditLoggingStackCommand.ADMIN_ROLE_ARN_LONG_ARG, "arn:aws:iam::111111111:role/admin"
         };
 
         String[] actual = EnvironmentConfigToArgsMapper.getArgs(environmentConfig, userInput);
