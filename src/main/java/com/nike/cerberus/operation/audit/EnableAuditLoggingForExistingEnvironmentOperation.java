@@ -8,6 +8,7 @@ import com.nike.cerberus.command.audit.EnableAuditLoggingCommand;
 import com.nike.cerberus.command.audit.EnableAuditLoggingForExistingEnvironmentCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.core.RebootCmsCommand;
+import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.domain.cloudformation.ConfigParameters;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.composite.ChainableCommand;
@@ -50,9 +51,16 @@ public class EnableAuditLoggingForExistingEnvironmentOperation extends Composite
 
         return ImmutableList.of(
                 ChainableCommand.Builder.create()
+                        .withCommand(new UpdateStackCommand())
+                        .withOption(UpdateStackCommand.STACK_NAME_LONG_ARG, Stack.IAM_ROLES.getName())
+                        .withAdditionalArg(UpdateStackCommand.OVERWRITE_TEMPLATE_LONG_ARG)
+                        .build(),
+
+                ChainableCommand.Builder.create()
                         .withCommand(new CreateAuditLoggingStackCommand())
                         .withOption(CreateAuditLoggingStackCommand.ADMIN_ROLE_ARN_LONG_ARG, adminArn)
                         .build(),
+
                 new ChainableCommand(new CreateAuditAthenaDbAndTableCommand()),
                 new ChainableCommand(new EnableAuditLoggingCommand()),
                 new ChainableCommand(new UpdateCmsConfigCommand()),

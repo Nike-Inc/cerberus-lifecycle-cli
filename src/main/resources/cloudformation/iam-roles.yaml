@@ -12,6 +12,8 @@ Outputs:
 Resources:
   CmsIamRole:
     Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
       AssumeRolePolicyDocument:
         Statement:
           - Action:

@@ -17,6 +17,7 @@ public class EnableAuditLoggingForExistingEnvironmentCommand implements Command 
     public static final String COMMAND_NAME = "enable-audit-logging-for-existing-environment";
     public static final String COMMAND_DESCRIPTION =
             "A Composite command that will will execute the following commands in order: "
+                    + "update-stack --stack-name iam-roles --overwrite-template, "
                     + "create-audit-logging-stack, "
                     + "create-audit-log-athena-db-and-table, "
                     + "enable-audit-logging, "

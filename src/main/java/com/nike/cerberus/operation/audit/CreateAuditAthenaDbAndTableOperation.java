@@ -75,15 +75,6 @@ public class CreateAuditAthenaDbAndTableOperation implements Operation<CreateAud
             throw new RuntimeException("failed to load create athena table template", e);
         }
         log.info(executeAthenaQuery(createAuditTable, bucketName).toString());
-
-        String msg = Chalk.on("ATTENTION: ").red().bold().toString() +
-                "Table creation complete, please note that before you execute queries against '" + tableName + "'\n" +
-                "You will have to run the following query '" + Chalk.on("MSCK REPAIR TABLE " + tableName).green().bold().toString() + "'\n" +
-                "CMS will uploads logs every 5 minutes and creates partition folders for every hour.\n" +
-                "You can automate that query to run every hour or run it before you query audit data.\n" +
-                "That query is free and scans the S3 folders in the audit bucket and add the new partitions (The hour folders)";
-
-        log.info(msg);
     }
 
     @Override
