@@ -27,6 +27,10 @@ import com.google.inject.name.Names;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.Command;
+import com.nike.cerberus.command.audit.CreateAuditAthenaDbAndTableCommand;
+import com.nike.cerberus.command.audit.CreateAuditLoggingStackCommand;
+import com.nike.cerberus.command.audit.DisableAuditLoggingCommand;
+import com.nike.cerberus.command.audit.EnableAuditLoggingForExistingEnvironmentCommand;
 import com.nike.cerberus.command.certificates.RotateAcmeAccountPrivateKeyCommand;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
@@ -208,6 +212,10 @@ public class CerberusRunner {
         registerCommand(new GenerateAndRotateCertificatesCommand());
         registerCommand(new RotateAcmeAccountPrivateKeyCommand());
         registerCommand(new CleanUpRdsSnapshotsCommand());
+        registerCommand(new CreateAuditLoggingStackCommand());
+        registerCommand(new CreateAuditAthenaDbAndTableCommand());
+        registerCommand(new DisableAuditLoggingCommand());
+        registerCommand(new EnableAuditLoggingForExistingEnvironmentCommand());
     }
 
     /**

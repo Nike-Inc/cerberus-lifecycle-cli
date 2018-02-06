@@ -35,7 +35,7 @@ import java.util.List;
 public class ChainableCommand {
 
     private Command command;
-    private String[] additionalArgs;
+    private String[] additionalArgs = new String[]{};
 
 
     public ChainableCommand() {

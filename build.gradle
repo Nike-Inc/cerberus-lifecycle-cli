@@ -9,6 +9,9 @@ allprojects {
     apply plugin: "com.github.johnrengelman.shadow"
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 apply from: file('gradle/dependencies.gradle')
 apply from: file('gradle/check.gradle')
 apply from: file('gradle/integration.gradle')

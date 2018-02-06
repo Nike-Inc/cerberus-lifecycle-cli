@@ -18,6 +18,7 @@ package com.nike.cerberus.cli;
 
 import com.google.common.collect.Lists;
 import com.nike.cerberus.command.StackDelegate;
+import com.nike.cerberus.command.audit.CreateAuditLoggingStackCommand;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
@@ -142,6 +143,9 @@ public class EnvironmentConfigToArgsMapper {
             case RotateCertificatesCommand.COMMAND_NAME:
                 args = getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
                 break;
+            case CreateAuditLoggingStackCommand.COMMAND_NAME:
+                args = getCreateAuditLoggingStackCommandArgs(environmentConfig);
+                break;
             default:
                 break;
         }
@@ -150,6 +154,12 @@ public class EnvironmentConfigToArgsMapper {
                 .debug("Mapped the following args from the provided YAML\n" + String.join("\n", args));
 
         return args;
+    }
+
+    private static List<String> getCreateAuditLoggingStackCommandArgs(EnvironmentConfig environmentConfig) {
+        return ArgsBuilder.create()
+                .addOption(CreateAuditLoggingStackCommand.ADMIN_ROLE_ARN_LONG_ARG, environmentConfig.getAdminRoleArn())
+                .build();
     }
 
     private static List<String> getCreateEdgeDomainRecordCommandArgs(EnvironmentConfig environmentConfig) {

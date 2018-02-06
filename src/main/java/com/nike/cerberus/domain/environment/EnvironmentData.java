@@ -46,6 +46,8 @@ public class EnvironmentData {
 
     private Map<Regions, RegionData> regionData = new HashMap<>();;
 
+    private boolean auditLoggingEnabled;
+
     public String getEnvironmentName() {
         return environmentName;
     }
@@ -88,6 +90,15 @@ public class EnvironmentData {
 
     public LinkedList<CertificateInformation> getCertificateData() {
         return certificateInfoList;
+    }
+
+    public boolean isAuditLoggingEnabled() {
+        return auditLoggingEnabled;
+    }
+
+    public EnvironmentData setAuditLoggingEnabled(boolean auditLoggingEnabled) {
+        this.auditLoggingEnabled = auditLoggingEnabled;
+        return this;
     }
 
     public void addNewCertificateData(CertificateInformation certificateData) {

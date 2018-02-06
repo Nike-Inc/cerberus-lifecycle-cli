@@ -17,6 +17,9 @@
 package com.nike.cerberus.operation.composite;
 
 import com.google.common.collect.Lists;
+import com.nike.cerberus.command.audit.CreateAuditAthenaDbAndTableCommand;
+import com.nike.cerberus.command.audit.CreateAuditLoggingStackCommand;
+import com.nike.cerberus.command.audit.EnableAuditLoggingCommand;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
@@ -46,48 +49,54 @@ public class CreateEnvironmentOperation extends CompositeOperation<CreateEnviron
     @Override
     protected List<ChainableCommand> getCompositeCommandChain(CreateEnvironmentCommand compositeCommand) {
         List<ChainableCommand> list = Lists.newArrayList(
-            // Step 1 Create the Base Cloud Formation Stack that creates S3 Buckets, Iam Roles and KMS keys needed for config
+            // Create the Base Cloud Formation Stack that creates S3 Buckets, Iam Roles and KMS keys needed for config
             new ChainableCommand(new InitializeEnvironmentCommand()),
 
-            // Step 2 Create the VPC Cloud Formation Stack that Cerberus will use
+            // Create the VPC Cloud Formation Stack that Cerberus will use
             new ChainableCommand(new CreateVpcCommand()),
 
-            // Step 3 Create the Security Group Cloud Formation Stack
+            // Create the Security Group Cloud Formation Stack
             new ChainableCommand(new CreateSecurityGroupsCommand()),
 
-            // Step 3.5 Add the vpc whitelist CIDRs
+            // Add the vpc whitelist CIDRs
             new ChainableCommand(new WhitelistCidrForVpcAccessCommand()),
 
-            // Step 4 Create the RDS Database Cloud Formation Stack
+            // Create the RDS Database Cloud Formation Stack
             new ChainableCommand(new CreateDatabaseCommand())
         );
 
-        // Step 5 Generate the PKCS private and public keys as well as the x509 certificates needed to enable https
+        // Generate the PKCS private and public keys as well as the x509 certificates needed to enable https
         if (environmentConfig.isGenerateKeysAndCerts()) {
             list.add(new ChainableCommand(new GenerateCertificateFilesCommand()));
         }
+
+        if (environmentConfig.isEnableAuditLogs()) {
+            list.add(new ChainableCommand(new CreateAuditLoggingStackCommand()));
+            list.add(new ChainableCommand(new CreateAuditAthenaDbAndTableCommand()));
+            list.add(new ChainableCommand(new EnableAuditLoggingCommand()));
+        }
                 
         list.addAll(Lists.newArrayList(
-            // Step 6 Upload the certs and keys to S3 and the IAM Cert Management service so that the ALB and CMS can use the certs
+            // Upload the certs and keys to S3 and the IAM Cert Management service so that the ALB and CMS can use the certs
             new ChainableCommand(new UploadCertificateFilesCommand()),
 
-            // Step 7 Create the Application Load Balancer Cloud Formation Stack
+            // Create the Application Load Balancer Cloud Formation Stack
             new ChainableCommand(new CreateLoadBalancerCommand()),
 
-            // Step 8 Generate the CMS config with org specific setting and first secrets encrypt,
+            // Generate the CMS config with org specific setting and first secrets encrypt,
             // Upload to S3 for CMS to download at service start
             new ChainableCommand(new CreateCmsConfigCommand()),
 
-            // Step 9 Create the CMS Cluster Stack
+            // Create the CMS Cluster Stack
             new ChainableCommand(new CreateCmsClusterCommand()),
 
-            // Step 10 Create the Web Application Fire wall stack
+            // Create the Web Application Fire wall stack
             new ChainableCommand(new CreateWafCommand()),
 
-            // Step 11 Create the Route 53 DNS Record Stack for origin and the load balancer
+            // Create the Route 53 DNS Record Stack for origin and the load balancer
             new ChainableCommand(new CreateRoute53Command()),
 
-            // Step 12 Create the outer most domain name record that will point to the origin record
+            // Create the outer most domain name record that will point to the origin record
             new ChainableCommand(new CreateEdgeDomainRecordCommand())
         ));
 

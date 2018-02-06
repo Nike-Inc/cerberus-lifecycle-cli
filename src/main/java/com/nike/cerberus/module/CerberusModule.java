@@ -17,6 +17,7 @@
 package com.nike.cerberus.module;
 
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.athena.AmazonAthenaClient;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -44,6 +45,7 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
+import com.nike.cerberus.client.aws.AthenaAwsClientFactory;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.ProxyDelegate;
 import com.nike.cerberus.domain.environment.RegionDeserializer;
@@ -122,6 +124,7 @@ public class CerberusModule extends AbstractModule {
         bind(new TypeLiteral<AwsClientFactory<AmazonRoute53Client>>() {}).toInstance(new AwsClientFactory<AmazonRoute53Client>() {});
         bind(new TypeLiteral<AwsClientFactory<AmazonElasticLoadBalancingClient>>() {}).toInstance(new AwsClientFactory<AmazonElasticLoadBalancingClient>() {});
         bind(new TypeLiteral<AwsClientFactory<AmazonRDSClient>>() {}).toInstance(new AwsClientFactory<AmazonRDSClient>() {});
+        bind(new TypeLiteral<AwsClientFactory<AmazonAthenaClient>>() {}).toInstance(new AthenaAwsClientFactory());
     }
 
     /**

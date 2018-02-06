@@ -103,6 +103,12 @@ vpc-access-whitelist:
   cidrs:
     - 50.39.106.150/32
 
+# Enable audit logs
+# This can be turned on latter with the enable-audit-logging-for-existing-environment command
+# If enabled the CLI will create the Audit stack (S3 Bucket and IAM role) for CMS to upload logs to
+# The cli will also create an Athena table for querying the data and configure CMS to send audit logs to the S3 bucket
+enable-audit-logs: true
+
 # Global Cerberus Management Service config
 management-service:
   # Group that has admin privileges in CMS.
