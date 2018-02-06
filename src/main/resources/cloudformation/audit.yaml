@@ -10,8 +10,8 @@ Parameters:
   accountAdminArn:
     Description: The ARN for a IAM user, group or role that can create this stack.
     Type: String
-  managementServiceCmkArn:
-    Description: The KMS Key Id for the management service
+  environmentName:
+    Description: The Cerberus environment name.
     Type: String
 Resources:
   CerberusAuditBucket:
@@ -20,7 +20,7 @@ Resources:
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
-              KMSMasterKeyID: !Ref 'managementServiceCmkArn'
+              KMSMasterKeyID: !Ref 'AuditLogS3Cmk'
               SSEAlgorithm: 'aws:kms'
     Type: AWS::S3::Bucket
   CerberusConfigBucketAccessPolicy:
@@ -71,8 +71,56 @@ Resources:
               Principal:
                 Service:
                   - glue.amazonaws.com
+                  - ec2.amazonaws.com
+                  - lambda.amazonaws.com
           Version: '2012-10-17'
         Path: /
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
           - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+  AuditLogS3Cmk:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: !Join ['', ['Environment: ', !Ref 'environmentName', ' CMK for S3 to use to enable server-side of audit log data.']]
+      Enabled: 'true'
+      EnableKeyRotation: 'true'
+      KeyPolicy:
+        Statement:
+           - Sid: Allow-Root-User
+             Action:
+               - kms:*
+             Effect: Allow
+             Principal:
+               AWS:
+                 - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
+             Resource: '*'
+           - Sid: Allow-All-From-Cms-Instances
+             Action:
+               - kms:*
+             Effect: Allow
+             Principal:
+               AWS:
+                 - !Ref 'cmsIamRoleArn'
+             Resource: '*'
+           - Sid: Allow-Account-Admin
+             Action:
+               - kms:*
+             Effect: Allow
+             Principal:
+               AWS:
+                 !Ref 'accountAdminArn'
+             Resource: '*'
+           - Sid: Allow-AuditLogAthenaIamRole
+             Action:
+               - kms:*
+             Effect: Allow
+             Principal:
+               AWS:
+                 !GetAtt 'AuditLogAthenaIamRole.Arn'
+             Resource: '*'
+        Version: '2012-10-17'
+      Tags:
+        - Key: created_by
+          Value: cerberus_cli
+        - Key: created_for
+          Value: cerberus_cms

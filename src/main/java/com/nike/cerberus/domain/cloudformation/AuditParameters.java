@@ -1,9 +1,10 @@
 package com.nike.cerberus.domain.cloudformation;
 
 public class AuditParameters {
+
     private String cmsIamRoleArn;
     private String accountAdminArn;
-    private String managementServiceCmkArn;
+    private String environmentName;
 
     public String getCmsIamRoleArn() {
         return cmsIamRoleArn;
@@ -23,12 +24,12 @@ public class AuditParameters {
         return this;
     }
 
-    public String getManagementServiceCmkArn() {
-        return managementServiceCmkArn;
+    public String getEnvironmentName() {
+        return environmentName;
     }
 
-    public AuditParameters setManagementServiceCmkArn(String managementServiceCmkArn) {
-        this.managementServiceCmkArn = managementServiceCmkArn;
+    public AuditParameters setEnvironmentName(String environmentName) {
+        this.environmentName = environmentName;
         return this;
     }
 }

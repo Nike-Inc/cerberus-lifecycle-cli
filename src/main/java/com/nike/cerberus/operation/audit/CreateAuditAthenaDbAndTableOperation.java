@@ -98,6 +98,9 @@ public class CreateAuditAthenaDbAndTableOperation implements Operation<CreateAud
         return isRunnable;
     }
 
+    /**
+     * Executes an Athena query and waits for it to finish returning the results
+     */
     private GetQueryResultsResult executeAthenaQuery(String query, String bucketName) {
         AmazonAthenaClient athena = athenaClientFactory.getClient(configStore.getPrimaryRegion());
 
@@ -116,7 +119,8 @@ public class CreateAuditAthenaDbAndTableOperation implements Operation<CreateAud
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                log.info("Failed to sleep", e);
+                Thread.currentThread().interrupt();
             }
         } while (state.equals("RUNNING"));
 

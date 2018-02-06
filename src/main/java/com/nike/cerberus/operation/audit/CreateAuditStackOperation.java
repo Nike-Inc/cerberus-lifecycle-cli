@@ -1,8 +1,8 @@
 package com.nike.cerberus.operation.audit;
+
 import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.audit.CreateAuditLoggingStackCommand;
 import com.nike.cerberus.domain.cloudformation.AuditParameters;
-import com.nike.cerberus.domain.cloudformation.ConfigOutputs;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -43,11 +43,10 @@ public class CreateAuditStackOperation implements Operation<CreateAuditLoggingSt
     @Override
     public void run(CreateAuditLoggingStackCommand command) {
         Regions primaryRegion = configStore.getPrimaryRegion();
-        ConfigOutputs configOutputs = configStore.getConfigBucketStackOutputs(configStore.getPrimaryRegion());
         AuditParameters auditParameters = new AuditParameters()
                 .setAccountAdminArn(command.getAdminRoleArn())
                 .setCmsIamRoleArn(configStore.getCmsIamRoleOutputs().getCmsIamRoleArn())
-                .setManagementServiceCmkArn(configOutputs.getManagementServiceCmkArn());
+                .setEnvironmentName(environmentName);
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(auditParameters);
         cloudFormationService.createStackAndWait(primaryRegion, Stack.AUDIT, parameters, true, command.getTagsDelegate().getTags());
     }
