@@ -60,6 +60,7 @@ import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
+import com.nike.cerberus.command.core.UpdateStackTagsCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
@@ -216,6 +217,7 @@ public class CerberusRunner {
         registerCommand(new CreateAuditAthenaDbAndTableCommand());
         registerCommand(new DisableAuditLoggingCommand());
         registerCommand(new EnableAuditLoggingForExistingEnvironmentCommand());
+        registerCommand(new UpdateStackTagsCommand());
     }
 
     /**
