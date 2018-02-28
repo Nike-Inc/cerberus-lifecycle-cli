@@ -58,6 +58,11 @@ public class UpdateStackTagsOperation implements Operation<UpdateStackTagsComman
     public void run(UpdateStackTagsCommand command) {
         String stackId = command.getStack().getFullName(environmentName);
         Map<String, String> parameters = cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
+        Map<String, String> tags = command.getTagsDelegate().getTags();
+        if (!command.isOverwriteTags()){
+            Map<String, String> existingTags = cloudFormationService.getStackTags(configStore.getPrimaryRegion(), stackId);
+            existingTags.forEach((k, v) -> tags.merge(k, v, (o, n)->o));
+        }
 
         try {
             logger.info("Starting the tags update for '{}'.", stackId);

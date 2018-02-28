@@ -16,49 +16,28 @@
 
 package com.nike.cerberus.command.core;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
-import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.core.UpdateStackTagsOperation;
-import com.nike.cerberus.util.StackConverter;
+import com.nike.cerberus.operation.composite.UpdateAllStackTagsOperation;
 
-import static com.nike.cerberus.command.core.UpdateStackTagsCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.core.UpdateAllStackTagsCommand.COMMAND_NAME;
 
 
 /**
- * Command for updating the specified CloudFormation stack with tags.
+ * Command for updating all CloudFormation stacks with tags.
  */
-@Parameters(commandNames = COMMAND_NAME, commandDescription = "Updates the specified CloudFormation stack tags.")
-public class UpdateStackTagsCommand implements Command {
-
-    public static final String COMMAND_NAME = "update-stack-tags";
-    public static final String STACK_NAME_LONG_ARG = "--stack-name";
-    public static final String OVERWRITE_TAGS_LONG_ARG = "--overwrite-tags";
-
-    @Parameter(names = {STACK_NAME_LONG_ARG}, required = true, description = "The stack name to update.", converter = StackConverter.class)
-    private Stack stack;
+@Parameters(commandNames = COMMAND_NAME, commandDescription = "Updates all CloudFormation stacks with tags.")
+public class UpdateAllStackTagsCommand implements Command {
+    public static final String COMMAND_NAME = "update-all-stack-tags";
 
     @ParametersDelegate
     private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
 
-    @Parameter(names = OVERWRITE_TAGS_LONG_ARG,
-            description = "Flag for overwriting existing CloudFormation template")
-    private boolean overwriteTags;
-
     public TagParametersDelegate getTagsDelegate() {
         return tagsDelegate;
-    }
-
-    public Stack getStack() {
-        return stack;
-    }
-
-    public boolean isOverwriteTags() {
-        return overwriteTags;
     }
 
     @Override
@@ -68,6 +47,6 @@ public class UpdateStackTagsCommand implements Command {
 
     @Override
     public Class<? extends Operation<?>> getOperationClass() {
-        return UpdateStackTagsOperation.class;
+        return UpdateAllStackTagsOperation.class;
     }
 }
