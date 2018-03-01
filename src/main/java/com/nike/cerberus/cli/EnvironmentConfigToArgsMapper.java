@@ -25,6 +25,7 @@ import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
 import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
+import com.nike.cerberus.command.core.UpdateAllStackTagsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
@@ -145,6 +146,9 @@ public class EnvironmentConfigToArgsMapper {
                 break;
             case CreateAuditLoggingStackCommand.COMMAND_NAME:
                 args = getCreateAuditLoggingStackCommandArgs(environmentConfig);
+                break;
+            case UpdateAllStackTagsCommand.COMMAND_NAME:
+                args = getUpdateAllStackTagsCommandArgs(environmentConfig);
                 break;
             default:
                 break;
@@ -338,6 +342,10 @@ public class EnvironmentConfigToArgsMapper {
         }
 
         return args.build();
+    }
+
+    private static List<String> getUpdateAllStackTagsCommandArgs(EnvironmentConfig config) {
+        return getGlobalTags(config);
     }
 
     private static String getStackName(String[] passedArgs) {

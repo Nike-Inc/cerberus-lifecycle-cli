@@ -63,6 +63,11 @@ public class UpdateStackTagsOperation implements Operation<UpdateStackTagsComman
             Map<String, String> existingTags = cloudFormationService.getStackTags(configStore.getPrimaryRegion(), stackId);
             existingTags.forEach((k, v) -> tags.merge(k, v, (o, n)->o));
         }
+        if (Stack.DATABASE.equals(command.getStack())) {
+            parameters.put("cmsDbMasterPassword", configStore.getCmsDatabasePassword().orElseThrow(() ->
+                            new RuntimeException("Unable to find current database password, add new one " +
+                                    "with -PcmsDbMasterPassword=xxxxxxx")));
+        }
 
         try {
             logger.info("Starting the tags update for '{}'.", stackId);

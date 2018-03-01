@@ -42,7 +42,7 @@ public class UpdateAllStackTagsOperation extends CompositeOperation<UpdateAllSta
                             .withCommand(new UpdateStackTagsCommand())
                             .withAdditionalArg(UpdateStackTagsCommand.STACK_NAME_LONG_ARG)
                             .withAdditionalArg(stack.toString())
-                            .withAdditionalArg(compositeCommand.getTagsDelegate().toString())
+                            .withAdditionalArg(compositeCommand.getTagsDelegate().getArgs())
                             .build()
             );
         }
@@ -64,5 +64,13 @@ public class UpdateAllStackTagsOperation extends CompositeOperation<UpdateAllSta
     @Override
     public boolean isEnvironmentConfigRequired() {
         return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean skipOnNotRunnable() {
+        return true;
     }
 }

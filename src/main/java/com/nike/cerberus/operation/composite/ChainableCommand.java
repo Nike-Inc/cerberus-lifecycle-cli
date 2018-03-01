@@ -79,6 +79,13 @@ public class ChainableCommand {
             return this;
         }
 
+        public Builder withAdditionalArg(String ...additionalArg) {
+            for(String arg: additionalArg) {
+                additionalArgs.add(arg);
+            }
+            return this;
+        }
+
         public Builder withOption(String key, String value) {
             additionalArgs.add(key);
             additionalArgs.add(value);

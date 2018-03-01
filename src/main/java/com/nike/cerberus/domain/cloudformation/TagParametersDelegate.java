@@ -43,8 +43,7 @@ public class TagParametersDelegate {
         return tags;
     }
 
-    @Override
-    public String toString() {
-        return tags.entrySet().stream().map(e->String.format("--TAG%s=%s",e.getKey(),e.getValue())).collect(Collectors.joining(" "));
+    public String[] getArgs(){
+        return tags.entrySet().stream().map(e->String.format("%s%s=%s", TAG_LONG_ARG, e.getKey(), e.getValue())).toArray(String[]::new);
     }
 }
