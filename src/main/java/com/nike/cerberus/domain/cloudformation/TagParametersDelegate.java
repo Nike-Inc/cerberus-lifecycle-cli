@@ -44,6 +44,9 @@ public class TagParametersDelegate {
     }
 
     public String[] getArgs(){
-        return tags.entrySet().stream().map(e->String.format("%s%s=%s", TAG_LONG_ARG, e.getKey(), e.getValue())).toArray(String[]::new);
+        return tags.entrySet()
+                .stream()
+                .map(e -> String.format("%s%s=%s", TAG_LONG_ARG, e.getKey(), e.getValue()))
+                .toArray(String[]::new);
     }
 }
