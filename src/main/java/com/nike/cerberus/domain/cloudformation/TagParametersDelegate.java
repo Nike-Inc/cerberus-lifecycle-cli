@@ -20,6 +20,7 @@ import com.beust.jcommander.DynamicParameter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * CloudFormation input parameters common to all Cerberus CloudFormation stacks.
@@ -40,5 +41,12 @@ public class TagParametersDelegate {
 
     public Map<String, String> getTags() {
         return tags;
+    }
+
+    public String[] getArgs(){
+        return tags.entrySet()
+                .stream()
+                .map(e -> String.format("%s%s=%s", TAG_LONG_ARG, e.getKey(), e.getValue()))
+                .toArray(String[]::new);
     }
 }

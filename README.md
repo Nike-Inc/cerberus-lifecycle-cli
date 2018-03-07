@@ -15,24 +15,11 @@ To learn more about Cerberus, please see the [Cerberus website](http://engineeri
 
 ## User Environment Requirements
 
-1. JDK 1.8, with Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy 
+JDK 1.8, with Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy 
 
 ## Development Environment Requirements
 
-1. JDK 1.8, with Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy
-
-2. Python 3
-    1. boto3 and troposphere
-
-### Install Python 3 for Mac OS X
-
-Use homebrew to install Python 3.
-
-`$ brew install python3`
-
-Use pip3 to install the requirements.  Run this command from the project root.
-
-`$ pip3 install -r smaas-cf/requirements.txt`
+JDK 1.8, with Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy
 
 ## Developing
 

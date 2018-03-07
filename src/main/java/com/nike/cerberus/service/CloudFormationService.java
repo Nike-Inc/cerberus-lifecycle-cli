@@ -317,6 +317,21 @@ public class CloudFormationService {
         return parameters;
     }
 
+    public Map<String, String> getStackTags(Regions region, String stackName) {
+        AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
+        DescribeStacksRequest request = new DescribeStacksRequest().withStackName(stackName);
+        DescribeStacksResult result = cloudFormationClient.describeStacks(request);
+        Map<String, String> tags = Maps.newHashMap();
+
+        if (result.getStacks().size() > 0) {
+            tags.putAll(result.getStacks().get(0).getTags().stream().collect(
+                    Collectors.toMap(Tag::getKey, Tag::getValue)));
+
+        }
+
+        return tags;
+    }
+
     /**
      * Returns the current status of the named stack.
      *

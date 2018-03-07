@@ -41,6 +41,7 @@ import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesComma
 import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
+import com.nike.cerberus.command.core.UpdateAllStackTagsCommand;
 import com.nike.cerberus.command.rds.CleanUpRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
@@ -60,6 +61,7 @@ import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
+import com.nike.cerberus.command.core.UpdateStackTagsCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
@@ -216,6 +218,8 @@ public class CerberusRunner {
         registerCommand(new CreateAuditAthenaDbAndTableCommand());
         registerCommand(new DisableAuditLoggingCommand());
         registerCommand(new EnableAuditLoggingForExistingEnvironmentCommand());
+        registerCommand(new UpdateStackTagsCommand());
+        registerCommand(new UpdateAllStackTagsCommand());
     }
 
     /**
