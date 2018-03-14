@@ -126,6 +126,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
     @Override
     public boolean isRunnable(UpdateStackCommand command) {
+        configStore.isConfigSynchronized();
         boolean isRunnable = true;
 
         String fullName = command.getStack().getFullName(environmentName);

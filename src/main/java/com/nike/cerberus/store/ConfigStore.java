@@ -739,4 +739,52 @@ public class ConfigStore {
     public boolean isAuditLoggingEnabled() {
         return getEnvironmentData().isAuditLoggingEnabled();
     }
+
+    /***
+     * Returns whether configs (environment.json, cms/environment.properties) are the same in the regions defined in
+     * environment.json
+     * @return False if the configs are different and true if the configs are the same
+     */
+    public boolean isConfigSynchronized(){
+        EnvironmentData environmentData = getDecryptedEnvironmentData();
+        Map<Regions, RegionData> map = environmentData.getRegionData();
+        String lastProperties = null;
+        String lastEnvironmentData = null;
+        Regions lastRegions = null;
+        boolean result = true;
+        for (Map.Entry<Regions, RegionData> entry: map.entrySet()){
+            Regions currentRegions = entry.getKey();
+            StoreService storeService = getStoreServiceForRegion(currentRegions, environmentData);
+
+            Optional<String> cmsConfigString = storeService.get(ConfigConstants.CMS_ENV_CONFIG_PATH);
+            if (!cmsConfigString.isPresent()) {
+                throw new IllegalStateException("No cms properties available!");
+            }
+            if (lastProperties == null){
+                lastProperties = cmsConfigString.get();
+            } else {
+                if (!lastProperties.equals(cmsConfigString.get())){
+                    logger.info(String.format("Discrepancy found between %s of %s and %s", ConfigConstants.CMS_ENV_CONFIG_PATH, lastRegions, currentRegions));
+                    result = false;
+                }
+            }
+
+            Optional<String> environmentDataString = storeService.get(ConfigConstants.ENVIRONMENT_DATA_FILE);
+            if (!environmentDataString.isPresent()) {
+                throw new IllegalStateException("No environment data available!");
+            }
+            if (lastEnvironmentData == null){
+                lastEnvironmentData = environmentDataString.get();
+            } else {
+                if (!lastEnvironmentData.equals(environmentDataString.get())){
+                    logger.info(String.format("Discrepancy found between %s of %s and %s", ConfigConstants.ENVIRONMENT_DATA_FILE, lastRegions, currentRegions));
+                    result = false;
+                }
+            }
+
+            lastRegions = currentRegions;
+        }
+
+        return result;
+    }
 }
