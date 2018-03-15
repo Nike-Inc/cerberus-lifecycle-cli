@@ -748,7 +748,7 @@ public class ConfigStore {
     public boolean isConfigSynchronized(){
         EnvironmentData environmentData = getDecryptedEnvironmentData();
         Map<Regions, RegionData> map = environmentData.getRegionData();
-        String lastProperties = null;
+        Properties lastProperties = null;
         String lastEnvironmentData = null;
         Regions lastRegions = null;
         boolean result = true;
@@ -757,13 +757,20 @@ public class ConfigStore {
             StoreService storeService = getStoreServiceForRegion(currentRegions, environmentData);
 
             Optional<String> cmsConfigString = storeService.get(ConfigConstants.CMS_ENV_CONFIG_PATH);
+            cmsConfigString = cmsConfigString.map(encryptionService::decrypt);
             if (!cmsConfigString.isPresent()) {
                 throw new IllegalStateException("No cms properties available!");
             }
+            Properties properties = new Properties();
+            try {
+                properties.load(new StringReader(cmsConfigString.get()));
+            } catch (IOException ioe) {
+                throw new IllegalStateException("Failed to read CMS properties");
+            }
             if (lastProperties == null){
-                lastProperties = cmsConfigString.get();
+                lastProperties = properties;
             } else {
-                if (!lastProperties.equals(cmsConfigString.get())){
+                if (!lastProperties.equals(properties)){
                     logger.info(String.format("Discrepancy found between %s of %s and %s", ConfigConstants.CMS_ENV_CONFIG_PATH, lastRegions, currentRegions));
                     result = false;
                 }
