@@ -65,7 +65,6 @@ public class ViewConfigOperation implements Operation<ViewConfigCommand> {
 
     @Override
     public boolean isRunnable(final ViewConfigCommand command) {
-        configStore.isConfigSynchronized();
         return true;
     }
 }

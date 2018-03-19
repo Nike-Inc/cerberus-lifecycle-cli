@@ -67,6 +67,7 @@ import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
 import com.nike.cerberus.operation.Operation;
+import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.LocalEnvironmentValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,6 +124,13 @@ public class CerberusRunner {
                 // fail early if there is any problem in local environment
                 LocalEnvironmentValidator validator = injector.getInstance(LocalEnvironmentValidator.class);
                 validator.validate();
+
+                if (!cerberusCommand.isSkipDataCheck()){
+                    ConfigStore configStore = injector.getInstance(ConfigStore.class);
+                    if (!configStore.isConfigSynchronized()){
+                        throw new RuntimeException("Discrepancies in config found between regions. Rerun with -s to skip this check.");
+                    }
+                }
 
                 Operation operation = injector.getInstance(command.getOperationClass());
 

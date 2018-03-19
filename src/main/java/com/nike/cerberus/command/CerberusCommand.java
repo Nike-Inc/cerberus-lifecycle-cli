@@ -84,6 +84,9 @@ public class CerberusCommand {
     @Parameter(names = {"--version", "-v"}, description = "Prints the version of the CLI.")
     private boolean version;
 
+    @Parameter(names = {"--skip-data-check", "-s"}, description = "Skips checking for config discrepancies between regions.")
+    private boolean skipDataCheck;
+
     @Parameter(names = {"--no-tty"}, description = "Flag to set when no tty is availible, ex: running on a Continuous Integration (CI) server")
     boolean noTty = false;
 
@@ -184,4 +187,6 @@ public class CerberusCommand {
     public ProxyDelegate getProxyDelegate() {
         return proxyDelegate;
     }
+
+    public boolean isSkipDataCheck() { return skipDataCheck; }
 }

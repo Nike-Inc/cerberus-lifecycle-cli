@@ -525,7 +525,7 @@ public class ConfigStore {
         return cloudFormationObjectMapper.convertValue(stackOutputs, parameterClass);
     }
 
-    private EnvironmentData getDecryptedEnvironmentData() {
+    protected EnvironmentData getDecryptedEnvironmentData() {
         if (! storeServiceMap.containsKey(configRegion)) {
             String bucket = findConfigBucketInSuppliedConfigRegion();
             storeServiceMap.put(configRegion, new S3StoreService(amazonS3ClientFactory.getClient(configRegion), bucket, ""));
@@ -583,7 +583,7 @@ public class ConfigStore {
         });
     }
 
-    private StoreService getStoreServiceForRegion(Regions region, EnvironmentData environmentData) {
+    protected StoreService getStoreServiceForRegion(Regions region, EnvironmentData environmentData) {
         if (!storeServiceMap.containsKey(region)) {
             String bucket = environmentData.getRegionData().get(region).getConfigBucket()
                     .orElseThrow(() -> new RuntimeException("bucket not configured for region: " + region));
@@ -750,11 +750,11 @@ public class ConfigStore {
         Map<Regions, RegionData> map = environmentData.getRegionData();
         Properties lastProperties = null;
         String lastEnvironmentData = null;
-        Regions lastRegions = null;
+        Regions lastRegion = null;
         boolean result = true;
         for (Map.Entry<Regions, RegionData> entry: map.entrySet()){
-            Regions currentRegions = entry.getKey();
-            StoreService storeService = getStoreServiceForRegion(currentRegions, environmentData);
+            Regions currentRegion = entry.getKey();
+            StoreService storeService = getStoreServiceForRegion(currentRegion, environmentData);
 
             Optional<String> cmsConfigString = storeService.get(ConfigConstants.CMS_ENV_CONFIG_PATH);
             cmsConfigString = cmsConfigString.map(encryptionService::decrypt);
@@ -769,11 +769,9 @@ public class ConfigStore {
             }
             if (lastProperties == null){
                 lastProperties = properties;
-            } else {
-                if (!lastProperties.equals(properties)){
-                    logger.info(String.format("Discrepancy found between %s of %s and %s", ConfigConstants.CMS_ENV_CONFIG_PATH, lastRegions, currentRegions));
-                    result = false;
-                }
+            } else if (!lastProperties.equals(properties)){
+                logger.info("Discrepancy found between {} of {} and {}", ConfigConstants.CMS_ENV_CONFIG_PATH, lastRegion, currentRegion);
+                result = false;
             }
 
             Optional<String> environmentDataString = storeService.get(ConfigConstants.ENVIRONMENT_DATA_FILE);
@@ -782,14 +780,12 @@ public class ConfigStore {
             }
             if (lastEnvironmentData == null){
                 lastEnvironmentData = environmentDataString.get();
-            } else {
-                if (!lastEnvironmentData.equals(environmentDataString.get())){
-                    logger.info(String.format("Discrepancy found between %s of %s and %s", ConfigConstants.ENVIRONMENT_DATA_FILE, lastRegions, currentRegions));
-                    result = false;
-                }
+            } else if (!lastEnvironmentData.equals(environmentDataString.get())){
+                logger.info("Discrepancy found between {} of {} and {}", ConfigConstants.ENVIRONMENT_DATA_FILE, lastRegion, currentRegion);
+                result = false;
             }
 
-            lastRegions = currentRegions;
+            lastRegion = currentRegion;
         }
 
         return result;
