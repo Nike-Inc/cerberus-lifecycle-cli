@@ -2,7 +2,7 @@ package com.nike.cerberus.store;
 
 import com.amazonaws.regions.Regions;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nike.cerberus.ConfigConstants;
+import com.google.common.collect.ImmutableSet;
 import com.nike.cerberus.domain.environment.EnvironmentData;
 import com.nike.cerberus.domain.environment.RegionData;
 import com.nike.cerberus.module.CerberusModule;
@@ -13,10 +13,13 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
@@ -24,31 +27,31 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class ConfigStoreTest {
     @Mock
-    EncryptionService encryptionService;
+    private EncryptionService encryptionService;
 
     @Spy
-    StoreService storeServiceUswest2;
+    private StoreService storeServiceUswest2;
 
     @Spy
-    StoreService storeServiceUseast1;
+    private StoreService storeServiceUseast1;
 
     @Spy
-    StoreService storeServiceUseast2;
+    private StoreService storeServiceUseast2;
 
     private ObjectMapper objectMapper;
     private ConfigStore configStore;
-
-    private final String environmentProperties1 = "ramen_1:yuzu\nramen_2:kizuki\n";
-    private final String environmentProperties2 = "ramen_1:ryoma\nramen_2:kizuki\n";
     private EnvironmentData initEnvironmentdata = new EnvironmentData();
+    private List<StoreService> storeServices;
 
     @Before
     public void setUp() {
+        initMocks(this);
+        storeServices = Arrays.asList(storeServiceUseast1, storeServiceUseast2, storeServiceUswest2);
         initEnvironmentdata.addRegionData(Regions.US_WEST_2, new RegionData());
         initEnvironmentdata.addRegionData(Regions.US_EAST_1, new RegionData());
         initEnvironmentdata.addRegionData(Regions.US_EAST_2, new RegionData());
         objectMapper = CerberusModule.configObjectMapper();
-        initMocks(this);
+
         configStore = spy(new ConfigStore(null, null, null,
                 null, objectMapper, null, "env1",
                 "us-west-2", encryptionService));
@@ -57,44 +60,37 @@ public class ConfigStoreTest {
         doReturn(storeServiceUswest2).when(configStore).getStoreServiceForRegion(Regions.US_WEST_2, initEnvironmentdata);
         doReturn(storeServiceUseast1).when(configStore).getStoreServiceForRegion(Regions.US_EAST_1, initEnvironmentdata);
         doReturn(storeServiceUseast2).when(configStore).getStoreServiceForRegion(Regions.US_EAST_2, initEnvironmentdata);
-
-        doReturn(environmentProperties1).when(encryptionService).decrypt(argThat(s -> s.equals("i'm encrypted properties")));
-        doReturn(environmentProperties2).when(encryptionService).decrypt(argThat(s -> s.equals("i'm encrypted properties too")));
-
-
-
     }
 
     @Test
     public void testIdenticalConfig() {
-        doReturn(Optional.of("i'm encrypted")).when(storeServiceUswest2).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted")).when(storeServiceUseast1).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted")).when(storeServiceUseast2).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted properties")).when(storeServiceUswest2).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
-        doReturn(Optional.of("i'm encrypted properties")).when(storeServiceUseast1).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
-        doReturn(Optional.of("i'm encrypted properties")).when(storeServiceUseast2).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
+        storeServices.forEach(s -> doReturn(ImmutableSet.of("a.txt", "cms/b.txt")).when(s).getKeysInPartialPath(any()));
+        storeServices.forEach(s -> doReturn(Optional.of("a.txt hash")).when(s).getHash(argThat(h -> h.equals("a.txt"))));
+        storeServices.forEach(s -> doReturn(Optional.of("b.txt hash")).when(s).getHash(argThat(h -> h.equals("cms/b.txt"))));
+
         assertTrue(configStore.isConfigSynchronized());
     }
 
     @Test
-    public void testMismatchedEnvironmentData() {
-        doReturn(Optional.of("i'm encrypted")).when(storeServiceUswest2).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted")).when(storeServiceUseast1).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted too")).when(storeServiceUseast2).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted properties")).when(storeServiceUswest2).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
-        doReturn(Optional.of("i'm encrypted properties")).when(storeServiceUseast1).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
-        doReturn(Optional.of("i'm encrypted properties")).when(storeServiceUseast2).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
+    public void testMissingFile() {
+        doReturn(ImmutableSet.of("a.txt", "cms/b.txt")).when(storeServiceUswest2).getKeysInPartialPath(any());
+        doReturn(ImmutableSet.of("a.txt", "cms/b.txt")).when(storeServiceUseast1).getKeysInPartialPath(any());
+        doReturn(ImmutableSet.of("a.txt")).when(storeServiceUseast2).getKeysInPartialPath(any());
+
+        storeServices.forEach(s -> doReturn(Optional.of("a.txt hash")).when(s).getHash(argThat(h -> h.equals("a.txt"))));
+        storeServices.forEach(s -> doReturn(Optional.of("b.txt hash")).when(s).getHash(argThat(h -> h.equals("cms/b.txt"))));
+
         assertFalse(configStore.isConfigSynchronized());
     }
 
     @Test
-    public void testMismatchedProperties() {
-        doReturn(Optional.of("i'm encrypted")).when(storeServiceUswest2).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted")).when(storeServiceUseast1).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted")).when(storeServiceUseast2).get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-        doReturn(Optional.of("i'm encrypted properties")).when(storeServiceUswest2).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
-        doReturn(Optional.of("i'm encrypted properties")).when(storeServiceUseast1).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
-        doReturn(Optional.of("i'm encrypted properties too")).when(storeServiceUseast2).get(ConfigConstants.CMS_ENV_CONFIG_PATH);
+    public void testMismatchedHash() {
+        storeServices.forEach(s -> doReturn(ImmutableSet.of("a.txt", "cms/b.txt")).when(s).getKeysInPartialPath(any()));
+        storeServices.forEach(s -> doReturn(Optional.of("a.txt hash")).when(s).getHash(argThat(h -> h.equals("a.txt"))));
+        doReturn(Optional.of("b.txt hash")).when(storeServiceUswest2).getHash(argThat(h -> h.equals("cms/b.txt")));
+        doReturn(Optional.of("b.txt hash v2")).when(storeServiceUseast1).getHash(argThat(h -> h.equals("cms/b.txt")));
+        doReturn(Optional.of("b.txt hash v2")).when(storeServiceUseast2).getHash(argThat(h -> h.equals("cms/b.txt")));
+
         assertFalse(configStore.isConfigSynchronized());
     }
 }
