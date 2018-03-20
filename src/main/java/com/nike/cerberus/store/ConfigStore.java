@@ -749,7 +749,7 @@ public class ConfigStore {
         EnvironmentData environmentData = getDecryptedEnvironmentData();
         Map<Regions, RegionData> map = environmentData.getRegionData();
 
-        Map<String, String> firstLiterallyHashMap = null;
+        Map<String, String> firstS3KeyToHashValueMap = null;
         Regions firstRegion = null;
         boolean result = true;
         for (Map.Entry<Regions, RegionData> entry: map.entrySet()){
@@ -757,13 +757,11 @@ public class ConfigStore {
             StoreService storeService = getStoreServiceForRegion(currentRegion, environmentData);
 
             // null hash values are treated as if they're equal
-//            Map<String, String> literallyHashMap = Maps.uniqueIndex(storeService.getKeysInPartialPath(""), s -> storeService.getHash(s).toString());
-            Set<String> keysInPartialPath = storeService.getKeysInPartialPath("");
-            Map<String, String> literallyHashMap = Maps.uniqueIndex(keysInPartialPath, s -> storeService.getHash(s).toString());
+            Map<String, String> s3KeyToHashValueMap = Maps.uniqueIndex(storeService.getKeysInPartialPath(""), s -> storeService.getHash(s).toString());
             if (firstRegion == null){
-                firstLiterallyHashMap = literallyHashMap;
+                firstS3KeyToHashValueMap = s3KeyToHashValueMap;
                 firstRegion = currentRegion;
-            } else if (!firstLiterallyHashMap.equals(literallyHashMap)){
+            } else if (!firstS3KeyToHashValueMap.equals(s3KeyToHashValueMap)){
                 logger.info("Discrepancies found between configs of {} and {}", firstRegion, currentRegion);
                 result = false;
             }
