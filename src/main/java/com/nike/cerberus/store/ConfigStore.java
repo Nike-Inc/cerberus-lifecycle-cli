@@ -31,6 +31,7 @@ import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
+import com.google.common.collect.Maps;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.cloudformation.AuditOutputs;
 import com.nike.cerberus.domain.cloudformation.IamRolesOutputs;
@@ -741,51 +742,31 @@ public class ConfigStore {
     }
 
     /***
-     * Returns whether configs (environment.json, cms/environment.properties) are the same in the regions defined in
-     * environment.json
-     * @return False if the configs are different and true if the configs are the same
+     * Returns whether the config buckets are in sync in the regions as defined in environment.json
+     * @return False if the config buckets are out of sync and true if the configs are in sync
      */
     public boolean isConfigSynchronized(){
         EnvironmentData environmentData = getDecryptedEnvironmentData();
         Map<Regions, RegionData> map = environmentData.getRegionData();
-        Properties lastProperties = null;
-        String lastEnvironmentData = null;
-        Regions lastRegion = null;
+
+        Map<String, String> firstLiterallyHashMap = null;
+        Regions firstRegion = null;
         boolean result = true;
         for (Map.Entry<Regions, RegionData> entry: map.entrySet()){
             Regions currentRegion = entry.getKey();
             StoreService storeService = getStoreServiceForRegion(currentRegion, environmentData);
 
-            Optional<String> cmsConfigString = storeService.get(ConfigConstants.CMS_ENV_CONFIG_PATH);
-            cmsConfigString = cmsConfigString.map(encryptionService::decrypt);
-            if (!cmsConfigString.isPresent()) {
-                throw new IllegalStateException("No cms properties available!");
-            }
-            Properties properties = new Properties();
-            try {
-                properties.load(new StringReader(cmsConfigString.get()));
-            } catch (IOException ioe) {
-                throw new IllegalStateException("Failed to read CMS properties");
-            }
-            if (lastProperties == null){
-                lastProperties = properties;
-            } else if (!lastProperties.equals(properties)){
-                logger.info("Discrepancy found between {} of {} and {}", ConfigConstants.CMS_ENV_CONFIG_PATH, lastRegion, currentRegion);
+            // null hash values are treated as if they're equal
+//            Map<String, String> literallyHashMap = Maps.uniqueIndex(storeService.getKeysInPartialPath(""), s -> storeService.getHash(s).toString());
+            Set<String> keysInPartialPath = storeService.getKeysInPartialPath("");
+            Map<String, String> literallyHashMap = Maps.uniqueIndex(keysInPartialPath, s -> storeService.getHash(s).toString());
+            if (firstRegion == null){
+                firstLiterallyHashMap = literallyHashMap;
+                firstRegion = currentRegion;
+            } else if (!firstLiterallyHashMap.equals(literallyHashMap)){
+                logger.info("Discrepancies found between configs of {} and {}", firstRegion, currentRegion);
                 result = false;
             }
-
-            Optional<String> environmentDataString = storeService.get(ConfigConstants.ENVIRONMENT_DATA_FILE);
-            if (!environmentDataString.isPresent()) {
-                throw new IllegalStateException("No environment data available!");
-            }
-            if (lastEnvironmentData == null){
-                lastEnvironmentData = environmentDataString.get();
-            } else if (!lastEnvironmentData.equals(environmentDataString.get())){
-                logger.info("Discrepancy found between {} of {} and {}", ConfigConstants.ENVIRONMENT_DATA_FILE, lastRegion, currentRegion);
-                result = false;
-            }
-
-            lastRegion = currentRegion;
         }
 
         return result;
