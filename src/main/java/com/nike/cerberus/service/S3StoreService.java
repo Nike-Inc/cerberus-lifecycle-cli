@@ -163,4 +163,11 @@ public class S3StoreService implements StoreService {
             return String.format("%s/%s", s3Prefix, path);
         }
     }
+
+    @Override
+    public Optional<String> getHash(String path) {
+        ObjectMetadata objectMetadata = s3Client.getObjectMetadata(s3Bucket, path);
+        logger.debug("The hash for {} is {}", path, objectMetadata.getETag().toString());
+        return Optional.ofNullable(objectMetadata.getETag());
+    }
 }

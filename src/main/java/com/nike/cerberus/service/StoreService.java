@@ -36,4 +36,6 @@ public interface StoreService {
     Set<String> listUnderPartialPath(String path);
 
     void deleteAllKeysOnPartialPath(String path);
+
+    Optional<String> getHash(String path);
 }

@@ -67,11 +67,15 @@ import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.module.PropsModule;
 import com.nike.cerberus.operation.Operation;
+import com.nike.cerberus.service.ConsoleService;
+import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.LocalEnvironmentValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+
+import static com.nike.cerberus.service.ConsoleService.DefaultAction.NO;
 
 /**
  * CLI entry point.
@@ -123,6 +127,17 @@ public class CerberusRunner {
                 // fail early if there is any problem in local environment
                 LocalEnvironmentValidator validator = injector.getInstance(LocalEnvironmentValidator.class);
                 validator.validate();
+
+                ConfigStore configStore = injector.getInstance(ConfigStore.class);
+                if (!cerberusCommand.isSkipDataCheck() && !configStore.isConfigSynchronized()){
+                    ConsoleService consoleService = injector.getInstance(ConsoleService.class);
+                    String msg = "The config buckets are out of sync between regions. Do you wish to proceed?";
+                    if (cerberusCommand.isTty()) {
+                        consoleService.askUserToProceed(msg, NO);
+                    } else {
+                        throw new RuntimeException("Discrepancies in config buckets detected between regions. Rerun with -s to skip data check.");
+                    }
+                }
 
                 Operation operation = injector.getInstance(command.getOperationClass());
 

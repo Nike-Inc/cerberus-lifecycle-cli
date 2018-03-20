@@ -31,6 +31,7 @@ import com.amazonaws.services.securitytoken.model.GetCallerIdentityResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
+import com.google.common.collect.Maps;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.cloudformation.AuditOutputs;
 import com.nike.cerberus.domain.cloudformation.IamRolesOutputs;
@@ -525,7 +526,7 @@ public class ConfigStore {
         return cloudFormationObjectMapper.convertValue(stackOutputs, parameterClass);
     }
 
-    private EnvironmentData getDecryptedEnvironmentData() {
+    protected EnvironmentData getDecryptedEnvironmentData() {
         if (! storeServiceMap.containsKey(configRegion)) {
             String bucket = findConfigBucketInSuppliedConfigRegion();
             storeServiceMap.put(configRegion, new S3StoreService(amazonS3ClientFactory.getClient(configRegion), bucket, ""));
@@ -583,7 +584,7 @@ public class ConfigStore {
         });
     }
 
-    private StoreService getStoreServiceForRegion(Regions region, EnvironmentData environmentData) {
+    protected StoreService getStoreServiceForRegion(Regions region, EnvironmentData environmentData) {
         if (!storeServiceMap.containsKey(region)) {
             String bucket = environmentData.getRegionData().get(region).getConfigBucket()
                     .orElseThrow(() -> new RuntimeException("bucket not configured for region: " + region));
@@ -738,5 +739,34 @@ public class ConfigStore {
 
     public boolean isAuditLoggingEnabled() {
         return getEnvironmentData().isAuditLoggingEnabled();
+    }
+
+    /***
+     * Returns whether the config buckets are in sync in the regions as defined in environment.json
+     * @return False if the config buckets are out of sync and true if the configs are in sync
+     */
+    public boolean isConfigSynchronized(){
+        EnvironmentData environmentData = getDecryptedEnvironmentData();
+        Map<Regions, RegionData> map = environmentData.getRegionData();
+
+        Map<String, String> firstS3KeyToHashValueMap = null;
+        Regions firstRegion = null;
+        boolean result = true;
+        for (Map.Entry<Regions, RegionData> entry: map.entrySet()){
+            Regions currentRegion = entry.getKey();
+            StoreService storeService = getStoreServiceForRegion(currentRegion, environmentData);
+
+            // null hash values are treated as if they're equal
+            Map<String, String> s3KeyToHashValueMap = Maps.uniqueIndex(storeService.getKeysInPartialPath(""), s -> storeService.getHash(s).toString());
+            if (firstRegion == null){
+                firstS3KeyToHashValueMap = s3KeyToHashValueMap;
+                firstRegion = currentRegion;
+            } else if (!firstS3KeyToHashValueMap.equals(s3KeyToHashValueMap)){
+                logger.info("Discrepancies found between configs of {} and {}", firstRegion, currentRegion);
+                result = false;
+            }
+        }
+
+        return result;
     }
 }
