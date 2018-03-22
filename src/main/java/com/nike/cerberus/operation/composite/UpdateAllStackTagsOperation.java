@@ -16,7 +16,7 @@
 
 package com.nike.cerberus.operation.composite;
 
-import com.nike.cerberus.command.core.UpdateAllStackTagsCommand;
+import com.nike.cerberus.command.composite.UpdateAllStackTagsCommand;
 import com.nike.cerberus.command.core.UpdateStackTagsCommand;
 import com.nike.cerberus.domain.environment.Stack;
 

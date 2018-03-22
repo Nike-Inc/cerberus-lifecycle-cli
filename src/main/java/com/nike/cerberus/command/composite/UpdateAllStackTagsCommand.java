@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.core;
+package com.nike.cerberus.command.composite;
 
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
@@ -23,7 +23,7 @@ import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.composite.UpdateAllStackTagsOperation;
 
-import static com.nike.cerberus.command.core.UpdateAllStackTagsCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.composite.UpdateAllStackTagsCommand.COMMAND_NAME;
 
 
 /**

@@ -25,7 +25,7 @@ import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
 import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
-import com.nike.cerberus.command.core.UpdateAllStackTagsCommand;
+import com.nike.cerberus.command.composite.UpdateAllStackTagsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
 import com.nike.cerberus.command.core.CreateLoadBalancerCommand;

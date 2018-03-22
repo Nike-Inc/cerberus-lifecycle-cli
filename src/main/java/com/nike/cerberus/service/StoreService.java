@@ -38,4 +38,6 @@ public interface StoreService {
     void deleteAllKeysOnPartialPath(String path);
 
     Optional<String> getHash(String path);
+
+    void copyFrom(String sourceIdentifier, String path);
 }

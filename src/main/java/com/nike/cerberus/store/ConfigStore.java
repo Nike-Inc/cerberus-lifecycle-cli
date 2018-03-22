@@ -659,6 +659,12 @@ public class ConfigStore {
         return getDecryptedEnvironmentData().getPrimaryRegion();
     }
 
+    public List<Regions> getSyncDestinationRegions() {
+        List<Regions> regions = getDecryptedEnvironmentData().getConfigRegions();
+        regions.remove(configRegion);
+        return regions;
+    }
+
     public List<Regions> getConfigEnabledRegions() {
         return getDecryptedEnvironmentData().getConfigRegions();
     }
@@ -757,7 +763,7 @@ public class ConfigStore {
             StoreService storeService = getStoreServiceForRegion(currentRegion, environmentData);
 
             // null hash values are treated as if they're equal
-            Map<String, String> s3KeyToHashValueMap = Maps.uniqueIndex(storeService.getKeysInPartialPath(""), s -> storeService.getHash(s).toString());
+            Map<String, String> s3KeyToHashValueMap = Maps.asMap(storeService.getKeysInPartialPath(""), s -> storeService.getHash(s).toString());
             if (firstRegion == null){
                 firstS3KeyToHashValueMap = s3KeyToHashValueMap;
                 firstRegion = currentRegion;
@@ -768,5 +774,18 @@ public class ConfigStore {
         }
 
         return result;
+    }
+
+    public void sync(Regions destinationRegion) {
+        EnvironmentData decryptedEnvironmentData = getDecryptedEnvironmentData();
+        StoreService destinationStoreService = getStoreServiceForRegion(destinationRegion, decryptedEnvironmentData);
+        String sourceBucket = findConfigBucketInSuppliedConfigRegion();
+        listKeys().forEach(k -> destinationStoreService.copyFrom(sourceBucket, k));
+    }
+
+    public Set<String> listKeys() {
+        StoreService storeService = getStoreServiceForRegion(configRegion, getDecryptedEnvironmentData());
+        Set<String> keys = storeService.getKeysInPartialPath("");
+        return keys;
     }
 }
