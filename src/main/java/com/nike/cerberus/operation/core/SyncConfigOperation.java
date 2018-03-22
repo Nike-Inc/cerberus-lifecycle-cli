@@ -24,10 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.nike.cerberus.module.CerberusModule.CONFIG_REGION;
 
 /**
  * Operation for syncing configs between regions.
@@ -39,19 +42,26 @@ public class SyncConfigOperation implements Operation<SyncConfigCommand> {
 
     private final ConfigStore configStore;
 
+    private Regions configRegion;
+
     @Inject
-    public SyncConfigOperation(ConfigStore configStore) {
+    public SyncConfigOperation(ConfigStore configStore, @Named(CONFIG_REGION) String configRegion) {
         this.configStore = configStore;
+        this.configRegion = Regions.fromName(configRegion);
     }
 
     @Override
     public void run(SyncConfigCommand command) {
+        if (!command.isAll() && configRegion.equals(Regions.fromName(command.getDestinationRegionName()))){
+            throw new RuntimeException("The source and destination region must be different.");
+        }
         List<Regions> destinationRegions = command.isAll() ? configStore.getSyncDestinationRegions() : Arrays.asList(Regions.fromName(command.getDestinationRegionName()));
 
         if (command.isDryrun()){
-            logger.info("Destination buckets: {}", destinationRegions.stream().map(r -> configStore.getConfigBucketForRegion(r)).collect(Collectors.joining(", ")));
+            logger.info("Destination buckets: {}", destinationRegions.stream()
+                    .map(region -> configStore.getConfigBucketForRegion(region)).collect(Collectors.joining(", ")));
             logger.info("Files to be copied over:");
-            configStore.listKeys().forEach(k -> logger.info(k));
+            configStore.listKeys().forEach(key -> logger.info(key));
         } else {
             for (Regions region: destinationRegions) {
                 logger.info("Destination bucket: {}", configStore.getConfigBucketForRegion(region));

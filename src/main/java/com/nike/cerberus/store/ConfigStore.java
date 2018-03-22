@@ -763,7 +763,7 @@ public class ConfigStore {
             StoreService storeService = getStoreServiceForRegion(currentRegion, environmentData);
 
             // null hash values are treated as if they're equal
-            Map<String, String> s3KeyToHashValueMap = Maps.asMap(storeService.getKeysInPartialPath(""), s -> storeService.getHash(s).toString());
+            Map<String, String> s3KeyToHashValueMap = Maps.asMap(storeService.getKeysInPartialPath(""), key -> storeService.getHash(key).toString());
             if (firstRegion == null){
                 firstS3KeyToHashValueMap = s3KeyToHashValueMap;
                 firstRegion = currentRegion;
@@ -776,6 +776,10 @@ public class ConfigStore {
         return result;
     }
 
+    /***
+     * Copy all files from config region's config bucket to destination region's config bucket
+     * @param destinationRegion Region to copy files to
+     */
     public void sync(Regions destinationRegion) {
         EnvironmentData decryptedEnvironmentData = getDecryptedEnvironmentData();
         StoreService destinationStoreService = getStoreServiceForRegion(destinationRegion, decryptedEnvironmentData);
@@ -783,6 +787,10 @@ public class ConfigStore {
         listKeys().forEach(k -> destinationStoreService.copyFrom(sourceBucket, k));
     }
 
+    /***
+     * List every key in the config bucket in the config region
+     * @return Set of keys
+     */
     public Set<String> listKeys() {
         StoreService storeService = getStoreServiceForRegion(configRegion, getDecryptedEnvironmentData());
         Set<String> keys = storeService.getKeysInPartialPath("");

@@ -172,8 +172,8 @@ public class S3StoreService implements StoreService {
     }
 
     @Override
-    public void copyFrom(String sourceIdentifier, String path) {
-        logger.info("Copying {}", path);
-        s3Client.copyObject(sourceIdentifier, path, s3Bucket, path);
+    public void copyFrom(String sourceBucketName, String sourceS3key) {
+        logger.info("Copying {}", sourceS3key);
+        s3Client.copyObject(sourceBucketName, sourceS3key, s3Bucket, sourceS3key);
     }
 }
