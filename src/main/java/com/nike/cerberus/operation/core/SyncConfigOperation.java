@@ -52,9 +52,6 @@ public class SyncConfigOperation implements Operation<SyncConfigCommand> {
 
     @Override
     public void run(SyncConfigCommand command) {
-        if (!command.isAll() && configRegion.equals(Regions.fromName(command.getDestinationRegionName()))){
-            throw new RuntimeException("The source and destination region must be different.");
-        }
         List<Regions> destinationRegions = command.isAll() ? configStore.getSyncDestinationRegions() : Arrays.asList(Regions.fromName(command.getDestinationRegionName()));
 
         if (command.isDryrun()){
@@ -73,6 +70,11 @@ public class SyncConfigOperation implements Operation<SyncConfigCommand> {
 
     @Override
     public boolean isRunnable(SyncConfigCommand command) {
-        return true;
+        boolean isRunnable = true;
+        if (!command.isAll() && configRegion.equals(Regions.fromName(command.getDestinationRegionName()))){
+            isRunnable = false;
+            logger.error("The source and destination region must be different.");
+        }
+        return isRunnable;
     }
 }
