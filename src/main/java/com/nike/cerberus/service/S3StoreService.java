@@ -170,4 +170,10 @@ public class S3StoreService implements StoreService {
         logger.debug("The hash for {} is {}", path, objectMetadata.getETag().toString());
         return Optional.ofNullable(objectMetadata.getETag());
     }
+
+    @Override
+    public void copyFrom(String sourceBucketName, String sourceS3key) {
+        logger.info("Copying {}", sourceS3key);
+        s3Client.copyObject(sourceBucketName, sourceS3key, s3Bucket, sourceS3key);
+    }
 }
