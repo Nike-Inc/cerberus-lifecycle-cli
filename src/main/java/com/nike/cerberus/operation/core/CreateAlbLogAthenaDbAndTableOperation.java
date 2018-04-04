@@ -1,20 +1,11 @@
-package com.nike.cerberus.operation.audit;
+package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.athena.AmazonAthenaClient;
-import com.amazonaws.services.athena.model.GetQueryExecutionRequest;
-import com.amazonaws.services.athena.model.GetQueryResultsRequest;
-import com.amazonaws.services.athena.model.GetQueryResultsResult;
-import com.amazonaws.services.athena.model.ResultConfiguration;
-import com.amazonaws.services.athena.model.StartQueryExecutionRequest;
-import com.amazonaws.services.athena.model.StartQueryExecutionResult;
-import com.github.tomaslanger.chalk.Chalk;
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.command.audit.CreateAuditAthenaDbAndTableCommand;
-import com.nike.cerberus.domain.cloudformation.AuditOutputs;
+import com.nike.cerberus.command.core.CreateAlbLogAthenaDbAndTableCommand;
+import com.nike.cerberus.domain.cloudformation.LoadBalancerOutputs;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.AthenaService;
-import com.nike.cerberus.service.AwsClientFactory;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.io.IOUtils;
@@ -23,44 +14,44 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-
 import java.io.IOException;
 
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
-public class CreateAuditAthenaDbAndTableOperation implements Operation<CreateAuditAthenaDbAndTableCommand> {
+public class CreateAlbLogAthenaDbAndTableOperation implements Operation<CreateAlbLogAthenaDbAndTableCommand> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final CloudFormationService cloudFormationService;
     private final ConfigStore configStore;
-    private final AthenaService athenaService;
     private final String databaseName;
     private final String tableName;
     private final String environmentName;
+    private final AthenaService athenaService;
 
     @Inject
-    public CreateAuditAthenaDbAndTableOperation(CloudFormationService cloudFormationService,
-                                                ConfigStore configStore,
-                                                @Named(ENV_NAME) String environmentName,
-                                                AthenaService athenaService) {
+    public CreateAlbLogAthenaDbAndTableOperation(CloudFormationService cloudFormationService,
+                                                 ConfigStore configStore,
+                                                 @Named(ENV_NAME) String environmentName,
+                                                 AthenaService athenaService) {
 
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
-        this.athenaService = athenaService;
 
-        databaseName = environmentName + "_audit_db";
-        tableName = databaseName + ".audit_data";
+        databaseName = environmentName + "_alb_db";
+        tableName = databaseName + ".alb_logs";
         this.environmentName = environmentName;
+        this.athenaService = athenaService;
     }
 
     @Override
-    public void run(CreateAuditAthenaDbAndTableCommand command) {
-        AuditOutputs outputs =
+    public void run(CreateAlbLogAthenaDbAndTableCommand command) {
+        LoadBalancerOutputs outputs =
                 configStore.getStackOutputs(configStore.getPrimaryRegion(),
-                        Stack.AUDIT.getFullName(environmentName), AuditOutputs.class);
+                        Stack.LOAD_BALANCER.getFullName(environmentName), LoadBalancerOutputs.class);
 
-        String bucketName = outputs.getAuditBucketName();
+        String bucketName = outputs.getLoadBalancerAccessLogBucket();
+        String accountId = outputs.getLoadBalancerPhysicalId().split(":")[4];
 
         log.info("Creating Athena DB");
         String createDb = "CREATE DATABASE IF NOT EXISTS " + databaseName + ";";
@@ -68,10 +59,11 @@ public class CreateAuditAthenaDbAndTableOperation implements Operation<CreateAud
         log.info("Creating table");
         String createAuditTable;
         try {
-            String template = "/com/nike/cerberus/operation/audit/create_audit_table.ddl";
+            String template = "/com/nike/cerberus/operation/log_process/create_alb_log_table.ddl";
             createAuditTable = IOUtils.toString(getClass().getResourceAsStream(template), ConfigConstants.DEFAULT_ENCODING);
             createAuditTable = createAuditTable.replace("@@TABLE_NAME@@", tableName);
             createAuditTable = createAuditTable.replace("@@BUCKET_NAME@@", bucketName);
+            createAuditTable = createAuditTable.replace("@@ACCOUNT_ID@@", accountId);
         } catch (IOException e) {
             throw new RuntimeException("failed to load create athena table template", e);
         }
@@ -79,11 +71,11 @@ public class CreateAuditAthenaDbAndTableOperation implements Operation<CreateAud
     }
 
     @Override
-    public boolean isRunnable(CreateAuditAthenaDbAndTableCommand command) {
+    public boolean isRunnable(CreateAlbLogAthenaDbAndTableCommand command) {
         boolean isRunnable = true;
 
-        if (! cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.AUDIT.getFullName(environmentName))) {
-            log.error("You must create the audit stack using create-audit-logging-stack command");
+        if (! cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.LOAD_BALANCER.getFullName(environmentName))) {
+            log.error("You must create the audit stack using create-alb-log-athena-db-and-table command");
             isRunnable = false;
         }
 
