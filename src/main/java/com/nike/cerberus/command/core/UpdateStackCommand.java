@@ -31,7 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.nike.cerberus.command.core.UpdateStackCommand.COMMAND_NAME;
-
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
+import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
 
 /**
  * Command for updating the specified CloudFormation stack with the new parameters.
@@ -76,6 +77,14 @@ public class UpdateStackCommand implements Command {
     @Override
     public String getCommandName() {
         return COMMAND_NAME;
+    }
+
+    @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
+            description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
+    private boolean skipAmiTagCheck;
+
+    public boolean isSkipAmiTagCheck() {
+        return skipAmiTagCheck;
     }
 
     @Override
