@@ -76,7 +76,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                     Optional.ofNullable(tags.getOrDefault("ownerGroup", null))));
         }
 
-        if (Stack.CMS.equals(command.getStack())) {
+        if (Stack.CMS.equals(command.getStack()) && ! command.isSkipAmiTagCheck()) {
             command.getDynamicParameters().forEach((key, value) -> {
                 if (key.equals("amiId")) {
                     amiTagCheckService.validateAmiTagForStack(value, Stack.CMS);
