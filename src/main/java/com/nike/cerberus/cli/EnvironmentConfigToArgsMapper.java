@@ -268,8 +268,10 @@ public class EnvironmentConfigToArgsMapper {
             args.addOption(CreateDatabaseCommand.INSTANCE_CLASS_LONG_ARG,
                     config.getPrimaryRegionConfig().getRds().get().getSize());
 
-            args.addOption(CreateDatabaseCommand.RESTORE_FROM_SNAPSHOT,
-                    config.getPrimaryRegionConfig().getRds().get().getDbClusterIdentifier());
+            String snapshotIdentifier = config.getPrimaryRegionConfig().getRds().get().getDbClusterIdentifier();
+            if (StringUtils.isNotBlank(snapshotIdentifier)) {
+                args.addOption(CreateDatabaseCommand.RESTORE_FROM_SNAPSHOT, snapshotIdentifier);
+            }
         }
         args.addAll(getGlobalTags(config));
         return args.build();
