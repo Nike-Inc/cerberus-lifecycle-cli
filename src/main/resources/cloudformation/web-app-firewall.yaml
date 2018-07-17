@@ -47,6 +47,14 @@ Resources:
             Type: BLOCK
           Priority: 5
           RuleId: !Ref 'WAFAutoBlockRule'
+        - Action:
+            Type: ALLOW
+          Priority: 6
+          RuleId: !Ref 'CerberusSecretAndSecureFileRule'
+        - Action:
+            Type: BLOCK
+          Priority: 7
+          RuleId: !Ref 'CerberusWafXssRule'
     Type: AWS::WAFRegional::WebACL
   CerberusWebACLAssociation:
     Type: "AWS::WAFRegional::WebACLAssociation"
@@ -96,6 +104,53 @@ Resources:
         - DataId: !Ref 'CerberusWafSqlInjectionMatchSet'
           Negated: 'false'
           Type: SqlInjectionMatch
+    Type: AWS::WAFRegional::Rule
+  CerberusWafXssMatchSet:
+    Properties:
+      Name: CerberusWafXssMatchSet
+      XssMatchTuples:
+        - FieldToMatch:
+            Type: URI
+          TextTransformation: NONE
+        - FieldToMatch:
+            Type: QUERY_STRING
+          TextTransformation: NONE
+        - FieldToMatch:
+            Type: BODY
+          TextTransformation: NONE
+    Type: AWS::WAFRegional::XssMatchSet
+  CerberusWafXssRule:
+    Properties:
+      MetricName: CerberusWafXss
+      Name: CerberusWafXssRule
+      Predicates:
+        - DataId: !Ref 'CerberusWafXssMatchSet'
+          Negated: 'false'
+          Type: XssMatch
+    Type: AWS::WAFRegional::Rule
+  CerberusSecretAndSecureFileMatchSet:
+    Properties:
+      Name: CerberusSecretAndSecureFileMatchSet
+      ByteMatchTuples:
+        - FieldToMatch:
+            Type: URI
+          TargetString: /secret/
+          TextTransformation: "NONE"
+          PositionalConstraint: "CONTAINS"
+        - FieldToMatch:
+            Type: URI
+          TargetString: /secure-file/
+          TextTransformation: "NONE"
+          PositionalConstraint: "CONTAINS"
+    Type: AWS::WAFRegional::ByteMatchSet
+  CerberusSecretAndSecureFileRule:
+    Properties:
+      MetricName: CerberusSecretAndSecureFile
+      Name: CerberusSecretAndSecureFileRule
+      Predicates:
+        - DataId: !Ref 'CerberusSecretAndSecureFileMatchSet'
+          Negated: 'false'
+          Type: ByteMatch
     Type: AWS::WAFRegional::Rule
   WAFAutoBlockRule:
     DependsOn: WAFAutoBlockSet
