@@ -36,21 +36,25 @@ Resources:
           Priority: 2
           RuleId: !Ref 'CerberusWafSqlInjectionRule'
         - Action:
-            Type: BLOCK
-          Priority: 3
-          RuleId: !Ref 'CerberusWafXssRule'
-        - Action:
             Type: ALLOW
-          Priority: 4
+          Priority: 3
           RuleId: !Ref 'WAFWhiteListRule'
         - Action:
             Type: BLOCK
-          Priority: 5
+          Priority: 4
           RuleId: !Ref 'WAFManualBlockRule'
         - Action:
             Type: BLOCK
-          Priority: 6
+          Priority: 5
           RuleId: !Ref 'WAFAutoBlockRule'
+        - Action:
+            Type: ALLOW
+          Priority: 6
+          RuleId: !Ref 'CerberusSecretAndSecureFileRule'
+        - Action:
+            Type: BLOCK
+          Priority: 7
+          RuleId: !Ref 'CerberusWafXssRule'
     Type: AWS::WAFRegional::WebACL
   CerberusWebACLAssociation:
     Type: "AWS::WAFRegional::WebACLAssociation"
@@ -123,6 +127,30 @@ Resources:
         - DataId: !Ref 'CerberusWafXssMatchSet'
           Negated: 'false'
           Type: XssMatch
+    Type: AWS::WAFRegional::Rule
+  CerberusSecretAndSecureFileMatchSet:
+    Properties:
+      Name: CerberusSecretAndSecureFileMatchSet
+      ByteMatchTuples:
+        - FieldToMatch:
+            Type: URI
+          TargetString: /secret/
+          TextTransformation: "NONE"
+          PositionalConstraint: "CONTAINS"
+        - FieldToMatch:
+            Type: URI
+          TargetString: /secure-file/
+          TextTransformation: "NONE"
+          PositionalConstraint: "CONTAINS"
+    Type: AWS::WAFRegional::ByteMatchSet
+  CerberusSecretAndSecureFileRule:
+    Properties:
+      MetricName: CerberusSecretAndSecureFile
+      Name: CerberusSecretAndSecureFileRule
+      Predicates:
+        - DataId: !Ref 'CerberusSecretAndSecureFileMatchSet'
+          Negated: 'false'
+          Type: ByteMatch
     Type: AWS::WAFRegional::Rule
   WAFAutoBlockRule:
     DependsOn: WAFAutoBlockSet
