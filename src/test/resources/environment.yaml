@@ -47,10 +47,28 @@ hosted-zone-id: X5CT6JROG9F2DR
 # 'ELBSecurityPolicy-2016-08' if you have clients running on deprecated Java versions and need to maintain tls 1.0 and
 # 1.1 support use ELBSecurityPolicy-2016-08
 # load-balancer-ssl-policy-override: ELBSecurityPolicy-2016-08
+generate-keys-and-certs: true
+# API URL to an ACME provider, if not a special ACME url, should end in /directory
+# The ACME provider must support DNS-01 domain verification challenges such as the LetsEncrypt Boulder ACME V1 impl.
+# LetsEncrypt is a free, automated, and open Certificate Authority, visit https://letsencrypt.org/ for more info.
+#acme-api-url: acme://letsencrypt.org/staging #For testing.
+acme-api-url: acme://letsencrypt.org
+# If you use LetsEncrypt and don't have their certs installed in your trust store you can set this
+# to true to use a hardcoded cert provided by the acme4j client, or visit https://letsencrypt.org/certificates/
+enable-le-cert-fix: true
+# Contact email to send to ACME provider when creating certs
+acme-contact-email: justin.field@example.com
+# The path to the certs, if you are generating the certs using an ACME provider
+# If you wish to provide your own certs set `generate-keys-and-certs` to false and
+# see the instructions below for the 5 required files that must be in this folder: 
+# domain-private-key-pkcs1.pem
+# domain-private-key-pkcs8.pem
+# domain-public-key.pem
+# domain-cert.crt
+# chain.crt
+certificate-directory: /path/to/certs/
 
-# If you wish to use your own certs set this to false or else fill out the ACME api information
-# Else if you are providing your own keys and certs the following files are required.
-#
+# Here's a description of the files you must place at the directory specified by "certificate-directory"
 # domain-private-key-pkcs1.pem - Used by the ALB
 #       The private key in pkcs1 pem format used to sign your csr when generating your certs.
 #       PKCS #1 keys are human readable files that look like the following
@@ -77,22 +95,6 @@ hosted-zone-id: X5CT6JROG9F2DR
 #
 # chain.crt - Used by the ALB
 #       The x509 certificate chain
-#
-generate-keys-and-certs: true
-# API URL to an ACME provider, if not a special ACME url, should end in /directory
-# The ACME provider must support DNS-01 domain verification challenges such as the LetsEncrypt Boulder ACME V1 impl.
-# LetsEncrypt is a free, automated, and open Certificate Authority, visit https://letsencrypt.org/ for more info.
-#acme-api-url: acme://letsencrypt.org/staging #For testing.
-acme-api-url: acme://letsencrypt.org
-# If you use LetsEncrypt and don't have their certs installed in your trust store you can set this
-# to true to use a hardcoded cert provided by the acme4j client, or visit https://letsencrypt.org/certificates/
-enable-le-cert-fix: true
-# Contact email to send to ACME provider when creating certs
-acme-contact-email: justin.field@example.com
-# The path to the certs, if you are generating the certs using an ACME provider
-# If you wish to provide your own certs set generate to false and
-# see the comment header above generate-keys-and-certs for required files that must be in this folder.
-certificate-directory: /path/to/certs/
 
 # Here we can define the ports and CIDRs that we want to allow ingress into the Cerberus VPC for this environment
 # You can add your current ip or proxy boxes here and use the above proxy config
