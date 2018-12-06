@@ -68,8 +68,7 @@ acme-contact-email: justin.field@example.com
 # chain.crt
 certificate-directory: /path/to/certs/
 
-# If you are providing your own keys and certs the following files are required.
-#
+# Here's a description of the files you must place at the directory specified by "certificate-directory"
 # domain-private-key-pkcs1.pem - Used by the ALB
 #       The private key in pkcs1 pem format used to sign your csr when generating your certs.
 #       PKCS #1 keys are human readable files that look like the following
