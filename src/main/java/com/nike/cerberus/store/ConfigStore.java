@@ -324,19 +324,23 @@ public class ConfigStore {
     /**
      * System properties not set with -P param
      */
-    public Properties getCmsSystemProperties() {
+    public Properties getCmsSystemProperties(boolean shouldLoadExistingProperties) {
 
         Properties properties = new Properties();
-        Properties existingProperties = getAllExistingCmsEnvProperties();
+
+        Properties existingProperties;
+        if (shouldLoadExistingProperties) {
+            existingProperties = getAllExistingCmsEnvProperties();
+
+            existingProperties.forEach((key, value) -> {
+                if (SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(key)) {
+                    properties.put(key, value);
+                }
+            });
+        }
 
         // overwrite any of the automatically generated properties that may have changed
-        existingProperties.putAll(generateBaseCmsSystemProperties());
-
-        existingProperties.forEach((key, value) -> {
-            if (SYSTEM_CONFIGURED_CMS_PROPERTIES.contains(key)) {
-                properties.put(key, value);
-            }
-        });
+        properties.putAll(generateBaseCmsSystemProperties());
 
         if (!properties.containsKey(HASH_SALT)) {
             properties.put(HASH_SALT, saltGenerator.generateSalt());
