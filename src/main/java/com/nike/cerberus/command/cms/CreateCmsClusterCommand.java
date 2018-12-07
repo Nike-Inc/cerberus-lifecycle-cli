@@ -16,7 +16,6 @@
 
 package com.nike.cerberus.command.cms;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
@@ -24,8 +23,6 @@ import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.cms.CreateCmsClusterOperation;
 
-import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_ARG;
-import static com.nike.cerberus.ConfigConstants.SKIP_AMI_TAG_CHECK_DESCRIPTION;
 import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
 
 /**
@@ -46,14 +43,6 @@ public class CreateCmsClusterCommand implements Command {
     @Override
     public String getCommandName() {
         return COMMAND_NAME;
-    }
-
-    @Parameter(names = SKIP_AMI_TAG_CHECK_ARG,
-            description = SKIP_AMI_TAG_CHECK_DESCRIPTION)
-    private boolean skipAmiTagCheck;
-
-    public boolean isSkipAmiTagCheck() {
-        return skipAmiTagCheck;
     }
 
     @Override

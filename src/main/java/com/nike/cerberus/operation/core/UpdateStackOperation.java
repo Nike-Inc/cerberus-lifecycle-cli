@@ -20,7 +20,6 @@ import com.amazonaws.AmazonServiceException;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
 import com.nike.cerberus.store.ConfigStore;
@@ -47,19 +46,16 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     private final Ec2UserDataService ec2UserDataService;
     private final String environmentName;
     private final ConfigStore configStore;
-    private final AmiTagCheckService amiTagCheckService;
 
     @Inject
     public UpdateStackOperation(CloudFormationService cloudFormationService,
                                 Ec2UserDataService ec2UserDataService,
                                 @Named(ENV_NAME) String environmentName,
-                                AmiTagCheckService amiTagCheckService,
                                 ConfigStore configStore) {
 
         this.cloudFormationService = cloudFormationService;
         this.ec2UserDataService = ec2UserDataService;
         this.environmentName = environmentName;
-        this.amiTagCheckService = amiTagCheckService;
         this.configStore = configStore;
     }
 
@@ -76,13 +72,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                     Optional.ofNullable(tags.getOrDefault("ownerGroup", null))));
         }
 
-        if (Stack.CMS.equals(command.getStack()) && ! command.isSkipAmiTagCheck()) {
-            command.getDynamicParameters().forEach((key, value) -> {
-                if (key.equals("amiId")) {
-                    amiTagCheckService.validateAmiTagForStack(value, Stack.CMS);
-                }
-            });
-        } else if (Stack.DATABASE.equals(command.getStack())) {
+        if (Stack.DATABASE.equals(command.getStack())) {
             Optional<String> dbPasswordOverwrite = command.getDynamicParameters().entrySet().stream()
                     .filter(entry -> entry.getKey().equals("cmsDbMasterPassword"))
                     .map(Map.Entry::getValue)
