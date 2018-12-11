@@ -19,6 +19,7 @@ package com.nike.cerberus.cli;
 import ch.qos.logback.classic.Level;
 import com.beust.jcommander.JCommander;
 import com.github.tomaslanger.chalk.Chalk;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -131,7 +132,9 @@ public class CerberusRunner {
                 validator.validate();
 
                 ConfigStore configStore = injector.getInstance(ConfigStore.class);
-                if (!cerberusCommand.isSkipDataCheck() && !configStore.isConfigSynchronized()){
+                if (!ImmutableList.of(CreateEnvironmentCommand.COMMAND_NAME, InitializeEnvironmentCommand.COMMAND_NAME)
+                    .contains(commandName) && !cerberusCommand.isSkipDataCheck() && !configStore.isConfigSynchronized()) {
+
                     ConsoleService consoleService = injector.getInstance(ConsoleService.class);
                     String msg = "The config buckets are out of sync between regions. Do you wish to proceed?";
                     if (cerberusCommand.isTty()) {

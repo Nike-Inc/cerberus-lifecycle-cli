@@ -22,7 +22,6 @@ import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.environment.CertificateInformation;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.service.AmiTagCheckService;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.Ec2UserDataService;
 import com.nike.cerberus.store.ConfigStore;
@@ -49,8 +48,6 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
     private final Ec2UserDataService ec2UserDataService;
 
-    private final AmiTagCheckService amiTagCheckService;
-
     private final ConfigStore configStore;
 
     private final CloudFormationObjectMapper cloudFormationObjectMapper;
@@ -60,7 +57,6 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
     @Inject
     public CreateCmsClusterOperation(CloudFormationService cloudFormationService,
                                      Ec2UserDataService ec2UserDataService,
-                                     AmiTagCheckService amiTagCheckService,
                                      ConfigStore configStore,
                                      CloudFormationObjectMapper cloudFormationObjectMapper,
                                      @Named(ENV_NAME) String environmentName) {
@@ -68,7 +64,6 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
         this.ec2UserDataService = ec2UserDataService;
-        this.amiTagCheckService = amiTagCheckService;
         this.configStore = configStore;
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
     }
@@ -82,11 +77,6 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
         if (certInfoListForStack.isEmpty()) {
             throw new IllegalStateException("Certificate for cerberus environment has not been uploaded!");
-        }
-
-        // Make sure the given AmiId is for CMS component. Check if it contains required tag
-        if (!command.isSkipAmiTagCheck()) {
-            amiTagCheckService.validateAmiTagForStack(command.getStackDelegate().getAmiId(), Stack.CMS);
         }
 
         CmsParameters cmsParameters = new CmsParameters()
