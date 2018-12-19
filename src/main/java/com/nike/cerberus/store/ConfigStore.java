@@ -325,9 +325,6 @@ public class ConfigStore {
      * System properties not set with -P param
      */
     public Properties getCmsSystemProperties(boolean shouldLoadExistingProperties, boolean shouldIgnoreDefaultCmsProperties) {
-        System.out.println("shouldLoadExistingProperties: " + shouldLoadExistingProperties);
-        System.out.println("shouldIgnoreDefaultCmsProperties: " + shouldIgnoreDefaultCmsProperties);
-
         Properties properties = new Properties();
 
         Properties existingProperties;
