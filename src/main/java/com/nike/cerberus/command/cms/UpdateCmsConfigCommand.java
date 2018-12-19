@@ -37,6 +37,7 @@ public class UpdateCmsConfigCommand implements Command {
     public static final String COMMAND_NAME = "update-cms-config";
     public static final String OVERWRITE_LONG_ARG = "--overwrite";
     public static final String FORCE_ARG = "--force";
+    public static final String IGNORE_DEFAULT_CONFIGURATIONS_ARGUMENT = "--ignore-default-configurations";
 
     @Parameter(names = CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, description = "Group that has admin privileges in CMS.")
     private String adminGroup;
@@ -49,6 +50,9 @@ public class UpdateCmsConfigCommand implements Command {
 
     @Parameter(names = FORCE_ARG, description = "Force allow overwriting of system generated property. This may break your configuration.")
     private boolean force = false;
+
+    @Parameter(names = IGNORE_DEFAULT_CONFIGURATIONS_ARGUMENT, description = "Ignores default configurations of the CMS.  ")
+    private boolean ignoreDefaultConfigurations = false;
 
     public String getAdminGroup() {
         return adminGroup;
@@ -64,6 +68,10 @@ public class UpdateCmsConfigCommand implements Command {
 
     public boolean isForce() {
         return force;
+    }
+
+    public boolean isIgnoreDefaultConfigurations() {
+        return ignoreDefaultConfigurations;
     }
 
     @Override
