@@ -324,7 +324,9 @@ public class ConfigStore {
     /**
      * System properties not set with -P param
      */
-    public Properties getCmsSystemProperties(boolean shouldLoadExistingProperties) {
+    public Properties getCmsSystemProperties(boolean shouldLoadExistingProperties, boolean shouldIgnoreDefaultCmsProperties) {
+        System.out.println("shouldLoadExistingProperties: " + shouldLoadExistingProperties);
+        System.out.println("shouldIgnoreDefaultCmsProperties: " + shouldIgnoreDefaultCmsProperties);
 
         Properties properties = new Properties();
 
@@ -339,8 +341,10 @@ public class ConfigStore {
             });
         }
 
-        // overwrite any of the automatically generated properties that may have changed
-        properties.putAll(generateBaseCmsSystemProperties());
+        if (!shouldIgnoreDefaultCmsProperties) {
+            // overwrite any of the automatically generated properties that may have changed
+            properties.putAll(generateBaseCmsSystemProperties());
+        }
 
         if (!properties.containsKey(HASH_SALT)) {
             properties.put(HASH_SALT, saltGenerator.generateSalt());

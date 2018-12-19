@@ -49,7 +49,7 @@ public class UpdateCmsConfigOperation implements Operation<UpdateCmsConfigComman
 
         logger.debug("Retrieving configuration data from the configuration bucket.");
 
-        final Properties newProperties = configStore.getCmsSystemProperties(true);
+        final Properties newProperties = configStore.getCmsSystemProperties(true, command.isIgnoreDefaultConfigurations());
         final Properties existingCustomProperties = configStore.getExistingCmsUserProperties();
         if (!command.getOverwrite()) {
             // keep existing custom properties
