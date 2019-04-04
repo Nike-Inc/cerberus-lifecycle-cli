@@ -631,6 +631,7 @@ public class ConfigStore {
                     }
                     if (bucketLocationResult == null) {
                         logger.debug("Failed to determine region for bucket: {} skipping...", bucketName);
+                        continue;
                     }
                 }
                 Regions bucketRegion = StringUtils.equals("US", bucketLocationResult) ? Regions.US_EAST_1 : Regions.fromName(bucketLocationResult);
