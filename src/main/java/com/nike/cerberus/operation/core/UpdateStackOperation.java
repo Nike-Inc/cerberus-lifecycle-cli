@@ -64,7 +64,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         String stackId = command.getStack().getFullName(environmentName);
 
         Map<String, String> parameters = cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
-        Map<String, String> tags = command.getTagsDelegate().getTags();
+        Map<String, String> tags = command.getCloudFormationParametersDelegate().getTags();
 
         // only some stacks need user data
         if (command.getStack().needsUserData()) {
@@ -100,7 +100,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                     parameters,
                     true,
                     command.isOverwriteTemplate(),
-                    command.getTagsDelegate().getTags()
+                    command.getCloudFormationParametersDelegate().getTags()
             );
 
             logger.info("Update complete.");

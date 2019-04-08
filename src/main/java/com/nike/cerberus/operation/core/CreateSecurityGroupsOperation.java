@@ -73,7 +73,7 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
                 Stack.SECURITY_GROUPS,
                 parameters,
                 true,
-                command.getTagParameters().getTags());
+                command.getCloudFormationParametersDelegate().getTags());
     }
 
     @Override

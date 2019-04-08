@@ -19,7 +19,7 @@ package com.nike.cerberus.command.core;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
+import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.CreateWafOperation;
 
@@ -35,10 +35,10 @@ public class CreateWafCommand implements Command {
     public static final String COMMAND_NAME = "create-waf";
 
     @ParametersDelegate
-    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
+    private CloudFormationParametersDelegate cloudFormationParametersDelegate = new CloudFormationParametersDelegate();
 
-    public TagParametersDelegate getTagsDelegate() {
-        return tagsDelegate;
+    public CloudFormationParametersDelegate getCloudFormationParametersDelegate() {
+        return cloudFormationParametersDelegate;
     }
 
     @Override

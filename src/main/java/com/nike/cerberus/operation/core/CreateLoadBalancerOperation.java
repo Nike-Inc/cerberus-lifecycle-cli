@@ -127,7 +127,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
                 Stack.LOAD_BALANCER,
                 parameters,
                 true,
-                command.getTagsDelegate().getTags());
+                command.getCloudFormationParametersDelegate().getTags());
     }
 
     @Override

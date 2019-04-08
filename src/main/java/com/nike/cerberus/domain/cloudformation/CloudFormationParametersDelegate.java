@@ -20,12 +20,11 @@ import com.beust.jcommander.DynamicParameter;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * CloudFormation input parameters common to all Cerberus CloudFormation stacks.
  */
-public class TagParametersDelegate {
+public class CloudFormationParametersDelegate {
 
     public static final String TAG_LONG_ARG = "--TAG";
     public static final String TAG_SHORT_ARG = "-T";

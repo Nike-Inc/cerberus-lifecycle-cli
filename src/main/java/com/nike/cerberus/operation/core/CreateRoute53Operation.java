@@ -80,7 +80,7 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
                 Stack.ROUTE53,
                 parameters,
                 true,
-                command.getTagsDelegate().getTags());
+                command.getCloudFormationParametersDelegate().getTags());
     }
 
     @Override

@@ -42,7 +42,7 @@ public class UpdateAllStackTagsOperation extends CompositeOperation<UpdateAllSta
                             .withCommand(new UpdateStackTagsCommand())
                             .withAdditionalArg(UpdateStackTagsCommand.STACK_NAME_LONG_ARG)
                             .withAdditionalArg(stack.toString())
-                            .withAdditionalArg(compositeCommand.getTagsDelegate().getArgs())
+                            .withAdditionalArg(compositeCommand.getCloudFormationParametersDelegate().getArgs())
                             .build()
             );
         }

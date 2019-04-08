@@ -48,7 +48,7 @@ public class CreateAuditStackOperation implements Operation<CreateAuditLoggingSt
                 .setCmsIamRoleArn(configStore.getCmsIamRoleOutputs().getCmsIamRoleArn())
                 .setEnvironmentName(environmentName);
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(auditParameters);
-        cloudFormationService.createStackAndWait(primaryRegion, Stack.AUDIT, parameters, true, command.getTagsDelegate().getTags());
+        cloudFormationService.createStackAndWait(primaryRegion, Stack.AUDIT, parameters, true, command.getCloudFormationParametersDelegate().getTags());
     }
 
 

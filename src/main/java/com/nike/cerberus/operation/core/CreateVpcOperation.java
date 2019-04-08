@@ -84,7 +84,7 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
                 Stack.VPC,
                 parameters,
                 true,
-                command.getTagsDelegate().getTags());
+                command.getCloudFormationParametersDelegate().getTags());
     }
 
     @Override
