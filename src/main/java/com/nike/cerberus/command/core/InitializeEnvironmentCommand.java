@@ -20,7 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
+import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.InitializeEnvironmentOperation;
 
@@ -69,7 +69,7 @@ public class InitializeEnvironmentCommand implements Command {
     private String primaryRegion;
 
     @ParametersDelegate
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
+    private CloudFormationParametersDelegate cloudFormationParametersDelegate = new CloudFormationParametersDelegate();
 
     public String getAdminRoleArn() {
         return adminRoleArn;
@@ -83,8 +83,8 @@ public class InitializeEnvironmentCommand implements Command {
         return primaryRegion;
     }
 
-    public TagParametersDelegate getTagsDelegate() {
-        return tagParameters;
+    public CloudFormationParametersDelegate getTagsDelegate() {
+        return cloudFormationParametersDelegate;
     }
 
     @Override

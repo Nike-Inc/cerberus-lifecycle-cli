@@ -20,7 +20,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
+import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.UpdateStackTagsOperation;
@@ -43,14 +43,14 @@ public class UpdateStackTagsCommand implements Command {
     private Stack stack;
 
     @ParametersDelegate
-    private TagParametersDelegate tagsDelegate = new TagParametersDelegate();
+    private CloudFormationParametersDelegate cloudFormationParametersDelegate = new CloudFormationParametersDelegate();
 
     @Parameter(names = OVERWRITE_TAGS_LONG_ARG,
             description = "Flag for overwriting existing CloudFormation template")
     private boolean overwriteTags;
 
-    public TagParametersDelegate getTagsDelegate() {
-        return tagsDelegate;
+    public CloudFormationParametersDelegate getCloudFormationParametersDelegate() {
+        return cloudFormationParametersDelegate;
     }
 
     public Stack getStack() {

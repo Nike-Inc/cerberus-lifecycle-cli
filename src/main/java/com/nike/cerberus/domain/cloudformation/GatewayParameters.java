@@ -56,7 +56,7 @@ public class GatewayParameters implements LaunchConfigParameters {
     private LaunchConfigParametersDelegate launchConfigParameters = new LaunchConfigParametersDelegate();
 
     @JsonUnwrapped
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
+    private CloudFormationParametersDelegate cloudFormationParametersDelegate = new CloudFormationParametersDelegate();
 
     public String getVpcId() {
         return vpcId;
@@ -167,12 +167,12 @@ public class GatewayParameters implements LaunchConfigParameters {
         return this;
     }
 
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
+    public CloudFormationParametersDelegate getCloudFormationParametersDelegate() {
+        return cloudFormationParametersDelegate;
     }
 
-    public GatewayParameters setTagParameters(TagParametersDelegate tagParameters) {
-        this.tagParameters = tagParameters;
+    public GatewayParameters setCloudFormationParametersDelegate(CloudFormationParametersDelegate cloudFormationParametersDelegate) {
+        this.cloudFormationParametersDelegate = cloudFormationParametersDelegate;
         return this;
     }
 

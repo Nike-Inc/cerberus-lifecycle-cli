@@ -19,7 +19,7 @@ package com.nike.cerberus.command;
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParametersDelegate;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
+import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class StackDelegate {
     private String keyPairName;
 
     @ParametersDelegate
-    private TagParametersDelegate tagParameters = new TagParametersDelegate();
+    private CloudFormationParametersDelegate cloudFormationParametersDelegate = new CloudFormationParametersDelegate();
 
     @DynamicParameter(names = PARAMETER_SHORT_ARG, description = "Dynamic parameters for overriding the values for specific parameters in the CloudFormation.")
     private Map<String, String> dynamicParameters = new HashMap<>();
@@ -61,8 +61,8 @@ public class StackDelegate {
         return keyPairName;
     }
 
-    public TagParametersDelegate getTagParameters() {
-        return tagParameters;
+    public CloudFormationParametersDelegate getCloudFormationParametersDelegate() {
+        return cloudFormationParametersDelegate;
     }
 
     public Map<String, String> getDynamicParameters() {

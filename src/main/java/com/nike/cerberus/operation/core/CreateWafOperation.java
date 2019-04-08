@@ -72,7 +72,7 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
                 Stack.WAF,
                 parameters,
                 true,
-                command.getTagsDelegate().getTags()
+                command.getCloudFormationParametersDelegate().getTags()
         );
     }
 

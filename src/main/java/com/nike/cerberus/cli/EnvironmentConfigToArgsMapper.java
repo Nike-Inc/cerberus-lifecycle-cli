@@ -38,7 +38,7 @@ import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersD
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.domain.cloudformation.TagParametersDelegate;
+import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementServiceInput;
 import com.nike.cerberus.domain.input.ManagementServiceRegionSpecificInput;
@@ -225,7 +225,7 @@ public class EnvironmentConfigToArgsMapper {
     private static List<String> getGlobalTags(EnvironmentConfig environmentConfig) {
         ArgsBuilder args = ArgsBuilder.create();
         environmentConfig.getGlobalTags().forEach((key, value) ->
-                args.addDynamicProperty(TagParametersDelegate.TAG_SHORT_ARG, key, value)
+                args.addDynamicProperty(CloudFormationParametersDelegate.TAG_SHORT_ARG, key, value)
         );
         return args.build();
     }
