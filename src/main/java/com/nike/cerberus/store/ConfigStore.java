@@ -297,18 +297,36 @@ public class ConfigStore {
         String cmsIamRoleArn = data.getCmsIamRoleArn();
         String adminRoleArn = data.getAdminIamRoleArn();
         String rootUserArn = data.getRootIamRoleArn();
-        String jdbcUrl = getDatabaseStackOutputs(getPrimaryRegion()).getCmsDbJdbcConnectionString();
+
+        String jdbcUrl = null;
+        try {
+            jdbcUrl = getDatabaseStackOutputs(getPrimaryRegion()).getCmsDbJdbcConnectionString();
+        } catch (Exception e) {
+            logger.error(Chalk.on("Failed to get the JDBC url for the primary region, is there a regional outage?").red().toString());
+            logger.error(Chalk.on("leaving JDBC.url unset properly, requires that that JDBC.${REGION_THAT_CMS_IS_RUNNING_IN_THAT_IS_NOT_NECESSARILY_THE_PRIMARY}.url to be set and valid").red().toString());
+        }
 
         Properties properties = new Properties();
         properties.put(ROOT_USER_ARN_KEY, rootUserArn);
         properties.put(ADMIN_ROLE_ARN_KEY, adminRoleArn);
         properties.put(CMS_ROLE_ARN_KEY, cmsIamRoleArn);
-        properties.put(JDBC_URL_KEY, jdbcUrl);
+        Optional.ofNullable(jdbcUrl).ifPresent(url -> properties.put(JDBC_URL_KEY, url));
         properties.put(JDBC_USERNAME_KEY, ConfigConstants.DEFAULT_CMS_DB_NAME);
         properties.put(JDBC_PASSWORD_KEY, cmsDatabasePassword);
         properties.put(CMS_ENV_NAME, environmentName);
         properties.put(CMS_CERTIFICATE_TO_USE, getCertificationInformationList().getLast().getCertificateName());
         properties.put(CMK_ARNS_KEY, StringUtils.join(data.getManagementServiceCmkArns(), ","));
+
+        getCmsRegions().forEach(region -> {
+            try {
+                String url = getDatabaseStackOutputs(region).getCmsDbJdbcConnectionString();
+                properties.put(String.format("JDBC.%s.url", region.getName()), url);
+            } catch (IllegalStateException e) {
+                logger.info(Chalk.on("You can safely ignore the below messages if have not configured CMS to run in an additional region other than the primary region.").blue().toString());
+                logger.error(Chalk.on("Failed to fetch database stack outputs and set JDBC.{}.url, has a Database stack been created for that region?").red().toString(), region.getName());
+                logger.warn(Chalk.on("CMS in region: {} will fall back to JDBC.url, which defaults to the primary region RDS write cluster, and will not be available in its vpc.").yellow().toString(), region.getName());
+            }
+        });
 
         if (data.isAuditLoggingEnabled()) {
             properties.put(AUDIT_LOG_PROCESSOR, String.valueOf(true));
@@ -673,6 +691,10 @@ public class ConfigStore {
 
     public List<Regions> getConfigEnabledRegions() {
         return getDecryptedEnvironmentData().getConfigRegions();
+    }
+
+    public List<Regions> getCmsRegions() {
+        return getDecryptedEnvironmentData().getCmsRegions();
     }
 
     /**
