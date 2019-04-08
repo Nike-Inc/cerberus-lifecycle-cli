@@ -138,6 +138,18 @@ public class EnvironmentData {
     }
 
     @JsonIgnore
+    public List<Regions> getCmsRegions() {
+        List<Regions> regions = new LinkedList<>();
+        regionData.forEach((region, rData) -> {
+            if (rData.getManagementServiceCmkArn().isPresent()
+                && rData.getConfigBucket().isPresent()) {
+                regions.add(region);
+            }
+        });
+        return regions;
+    }
+
+    @JsonIgnore
     public Regions getPrimaryRegion() {
         return regionData.entrySet().stream()
                 .filter(entry -> entry.getValue().isPrimary()).findFirst()
