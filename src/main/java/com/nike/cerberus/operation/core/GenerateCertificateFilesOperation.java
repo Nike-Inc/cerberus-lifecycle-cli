@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Nike, Inc.
+ * Copyright (c) 2019 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,9 +73,9 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
     )
     @Override
     public void run(GenerateCertificateFilesCommand command) {
-        GenerateCertificateFilesCommandParametersDelegate parameters = 
+        GenerateCertificateFilesCommandParametersDelegate parameters =
                 command.getGenerateCertificateFilesCommandParametersDelegate();
-        
+
         // The common name ex: demo.example.com
         String commonName = StringUtils.isNotBlank(parameters.getEdgeDomainNameOverride()) ?
                 parameters.getEdgeDomainNameOverride() :
@@ -98,11 +98,11 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
         subjectAlternativeNames.add(loadBalancerName);
 
         // Enable the use of the hard coded lets encrypt cert if enabled
-        if (parameters.enableLetsEncryptCertfix()) {
+        if (parameters.isEnableLetsEncryptCertfix()) {
             log.warn("Setting acme4j.le.certfix system property to 'true', this only works if you use the special " +
                     "acme:// lets encrypt addr. See: https://shredzone.org/maven/acme4j/usage/session.html" +
                     " and https://shredzone.org/maven/acme4j/provider.html");
-            
+
             System.setProperty("acme4j.le.certfix", "true");
         }
 
@@ -113,7 +113,7 @@ public class GenerateCertificateFilesOperation implements Operation<GenerateCert
             // check that we can write to the provided dir
             FileUtils.forceMkdir(certDir);
             if (!certDir.isDirectory() || !certDir.canWrite()) {
-                throw new RuntimeException("The certificate directory is not a directory or is not writable, path: " 
+                throw new RuntimeException("The certificate directory is not a directory or is not writable, path: "
                         + certDir.getAbsolutePath());
             }
 

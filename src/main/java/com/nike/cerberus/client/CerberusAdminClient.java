@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Nike, Inc.
+ * Copyright (c) 2019 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ public class CerberusAdminClient {
 
             return httpClient.newCall(requestBuilder.build()).execute();
         } catch (IOException e) {
-            if (e instanceof SSLException
+            if (e instanceof SSLException // NOPMD
                     && e.getMessage() != null
                     && e.getMessage().contains("Unrecognized SSL message, plaintext connection?")) {
                 throw new VaultClientException("I/O error while communicating with vault. Unrecognized SSL message may be due to a web proxy e.g. AnyConnect", e);
