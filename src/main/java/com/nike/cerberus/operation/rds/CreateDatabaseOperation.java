@@ -123,7 +123,7 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
             logger.error("The database stack already exists, use update-stack");
         }
 
-        if (region != configStore.getPrimaryRegion() & !configStore.getCmsDatabasePassword().isPresent()) {
+        if (region != configStore.getPrimaryRegion() && !configStore.getCmsDatabasePassword().isPresent()) {
             isRunnable = false;
             logger.error("Expected the database password to exists before a secondary stack was created!");
         }
