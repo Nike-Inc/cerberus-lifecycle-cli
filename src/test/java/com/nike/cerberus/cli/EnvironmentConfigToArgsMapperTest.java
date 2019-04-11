@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2019 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,8 +99,7 @@ public class EnvironmentConfigToArgsMapperTest {
                 "-f", "/path/to/environment.yaml",
                 commandName,
                 InitializeEnvironmentCommand.ADMIN_ROLE_ARN_LONG_ARG, "arn:aws:iam::111111111:role/admin",
-                InitializeEnvironmentCommand.REGION_LONG_ARG, "us-west-2",
-                InitializeEnvironmentCommand.REGION_LONG_ARG, "us-east-1",
+                InitializeEnvironmentCommand.REGION_LONG_ARG, "us-west-2", "us-east-1",
                 InitializeEnvironmentCommand.PRIMARY_REGION, "us-west-2",
                 "-TownerEmail=obvisouly.fake@nike.com",
                 "-TcostCenter=11111",

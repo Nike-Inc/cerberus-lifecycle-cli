@@ -139,7 +139,7 @@
 
 		<h1><a href="http://findbugs.sourceforge.net">FindBugs</a> Report</h1>
 
-	<h2>Project Information</h2>	
+	<h2>Project Information</h2>
 	<xsl:apply-templates select="/BugCollection/Project"/>
 
 	<h2>Metrics</h2>
@@ -151,7 +151,7 @@
 			<xsl:sort select="." order="ascending"/>
 			<xsl:variable name="catkey" select="."/>
 			<xsl:variable name="catdesc" select="/BugCollection/BugCategory[@category=$catkey]/Description"/>
-			
+
 			<li><a href="#Warnings_{$catkey}"><xsl:value-of select="$catdesc"/> Warnings</a></li>
 		</xsl:for-each>
 
@@ -174,7 +174,7 @@
 					<xsl:otherwise>tablerow1</xsl:otherwise>
 				</xsl:choose>
 			</xsl:variable>
-			
+
 		<tr class="{$styleclass}">
 			<td><a href="#Warnings_{$catkey}"><xsl:value-of select="$catdesc"/> Warnings</a></td>
 			<td align="right"><xsl:value-of select="count(/BugCollection/BugInstance[(@category=$catkey) and not(@last)])"/></td>
@@ -200,7 +200,7 @@
 		<xsl:sort select="." order="ascending"/>
 		<xsl:variable name="catkey" select="."/>
 		<xsl:variable name="catdesc" select="/BugCollection/BugCategory[@category=$catkey]/Description"/>
-			
+
 		<xsl:call-template name="generateWarningTable">
 			<xsl:with-param name="warningSet" select="/BugCollection/BugInstance[(@category=$catkey) and not(@last)]"/>
 			<xsl:with-param name="sectionTitle"><xsl:value-of select="$catdesc"/> Warnings</xsl:with-param>
@@ -220,14 +220,14 @@
 </xsl:template>
 
 <xsl:template match="Project">
-	<p>Project: 
+	<p>Project:
 		<xsl:choose>
 			<xsl:when test='string-length(/BugCollection/Project/@projectName)>0'><xsl:value-of select="/BugCollection/Project/@projectName" /></xsl:when>
 			<xsl:otherwise><xsl:value-of select="/BugCollection/Project/@filename" /></xsl:otherwise>
 		</xsl:choose>
 	</p>
 	<p>FindBugs version: <xsl:value-of select="/BugCollection/@version"/></p>
-	
+
 	<p>Code analyzed:</p>
 	<ul>
 		<xsl:for-each select="./Jar">
@@ -293,7 +293,7 @@
     <xsl:variable name="format" select="'#######0.00'"/>
 
 	<p><xsl:value-of select="@total_size"/> lines of code analyzed,
-	in <xsl:value-of select="@total_classes"/> classes, 
+	in <xsl:value-of select="@total_classes"/> classes,
 	in <xsl:value-of select="@num_packages"/> packages.</p>
 	<table width="500" cellpadding="5" cellspacing="2">
 	    <tr class="tableheader">

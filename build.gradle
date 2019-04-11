@@ -18,12 +18,8 @@ apply from: file('gradle/integration.gradle')
 
 mainClassName = 'com.nike.cerberus.cli.CerberusRunner'
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.4'
-}
-
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2019 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
