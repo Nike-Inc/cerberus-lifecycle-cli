@@ -88,18 +88,19 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
 
     @Override
     public void run(CreateLoadBalancerCommand command) {
-        Regions loadBalancerRegion = configStore.getPrimaryRegion();
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
 
-        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
+        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs(region);
 
         // Use latest cert, if there happens to be more than one for some reason
         String sslCertificateArn = configStore.getCertificationInformationList()
                 .getLast().getIdentityManagementCertificateArn();
 
-        if (!regionToAwsElbAccountIdMap.containsKey(loadBalancerRegion.getName())) {
+        if (!regionToAwsElbAccountIdMap.containsKey(region.getName())) {
             throw new RuntimeException(
                     String.format("The region: %s was not in the region to AWS ELB Account Id map: [ %s ]",
-                            loadBalancerRegion.getName(),
+                            region.getName(),
                             regionToAwsElbAccountIdMap.entrySet().stream()
                                     .map(entry -> entry.getKey() + "->" + entry.getValue())
                                     .collect(joining(", ")))
@@ -113,7 +114,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
-                .setElasticLoadBalancingAccountId(regionToAwsElbAccountIdMap.get(loadBalancerRegion.getName()));
+                .setElasticLoadBalancingAccountId(regionToAwsElbAccountIdMap.get(region.getName()));
 
 
         if (StringUtils.isNotBlank(command.getLoadBalancerSslPolicyOverride())) {
@@ -123,7 +124,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(loadBalancerParameters);
 
         cloudFormationService.createStackAndWait(
-                loadBalancerRegion,
+                region,
                 Stack.LOAD_BALANCER,
                 parameters,
                 true,
@@ -132,9 +133,12 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
 
     @Override
     public boolean isRunnable(CreateLoadBalancerCommand command) {
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+
         boolean isRunnable = true;
 
-        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+        if (!cloudFormationService.isStackPresent(region,
                 Stack.SECURITY_GROUPS.getFullName(environmentName))) {
             logger.error("The security group stack must exist to create the load balancer!");
             isRunnable = false;
@@ -145,7 +149,7 @@ public class CreateLoadBalancerOperation implements Operation<CreateLoadBalancer
             isRunnable = false;
         }
 
-        if (cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+        if (cloudFormationService.isStackPresent(region,
                 Stack.LOAD_BALANCER.getFullName(environmentName))) {
             logger.error("The load balancer stack already exists");
             isRunnable = false;

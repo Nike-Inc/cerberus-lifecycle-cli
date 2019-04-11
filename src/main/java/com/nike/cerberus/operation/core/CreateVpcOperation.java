@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.regions.Regions;
 import com.beust.jcommander.internal.Maps;
 import com.nike.cerberus.command.core.CreateVpcCommand;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
@@ -69,7 +70,10 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
 
     @Override
     public void run(CreateVpcCommand command) {
-        Map<Integer, String> azByIdentifier = mapAvailabilityZones();
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+
+        Map<Integer, String> azByIdentifier = mapAvailabilityZones(region);
 
         VpcParameters vpcParameters = new VpcParameters()
                 .setAz1(azByIdentifier.get(1))
@@ -80,7 +84,7 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(vpcParameters);
 
         cloudFormationService.createStackAndWait(
-                configStore.getPrimaryRegion(),
+                region,
                 Stack.VPC,
                 parameters,
                 true,
@@ -89,12 +93,15 @@ public class CreateVpcOperation implements Operation<CreateVpcCommand> {
 
     @Override
     public boolean isRunnable(CreateVpcCommand command) {
-        return !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+
+        return !cloudFormationService.isStackPresent(region,
                 Stack.VPC.getFullName(environmentName));
     }
 
-    private Map<Integer, String> mapAvailabilityZones() {
-        List<String> zones = ec2Service.getAvailabilityZones();
+    private Map<Integer, String> mapAvailabilityZones(Regions region) {
+        List<String> zones = ec2Service.getAvailabilityZones(region);
 
         if (zones.size() < MINIMUM_AZS) {
             throw new IllegalStateException("Not enough availability zones for the selected region.");

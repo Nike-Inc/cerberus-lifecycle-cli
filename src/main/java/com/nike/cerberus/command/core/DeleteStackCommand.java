@@ -25,6 +25,7 @@ import com.nike.cerberus.operation.core.DeleteStackOperation;
 import com.nike.cerberus.util.StackConverter;
 
 import static com.nike.cerberus.command.core.DeleteStackCommand.COMMAND_NAME;
+import static com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate.STACK_REGION;
 
 @Parameters(
         commandNames = {
@@ -38,8 +39,6 @@ public class DeleteStackCommand implements Command {
 
     public static final String STACK_NAME_LONG_ARG = "--stack-name";
 
-    public static final String REGION_LONG_ARG = "--region";
-
     @Parameter(
             names = {STACK_NAME_LONG_ARG},
             required = true,
@@ -48,7 +47,7 @@ public class DeleteStackCommand implements Command {
     private Stack stack;
 
     @Parameter(
-            names = {REGION_LONG_ARG},
+            names = {STACK_REGION},
             description = "Region to delete stack in, defaults to primary region"
     )
     private String region;

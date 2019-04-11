@@ -11,6 +11,7 @@ import javax.inject.Named;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate.STACK_REGION;
 import static com.nike.cerberus.domain.environment.Stack.*;
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
@@ -62,7 +63,7 @@ public class DeleteEnvironmentOperation extends CompositeOperation<DeleteEnviron
             chainableCommandList.add(ChainableCommand.Builder.create()
                     .withCommand(new DeleteStackCommand())
                     .withOption(DeleteStackCommand.STACK_NAME_LONG_ARG, CONFIG.getName())
-                    .withOption(DeleteStackCommand.REGION_LONG_ARG, region.getName())
+                    .withOption(STACK_REGION, region.getName())
                     .build());
         });
 

@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.route53.model.RRType;
 import com.amazonaws.services.route53.model.ResourceRecord;
 import com.amazonaws.services.route53.model.ResourceRecordSet;
@@ -72,29 +73,32 @@ public class CreateEdgeDomainRecordOperation implements Operation<CreateEdgeDoma
 
     @Override
     public void run(CreateEdgeDomainRecordCommand command) {
-        String recordValue = configStore.getRoute53StackOutputs().getOriginDomainName();
+        Regions region = command.getStackRegion().orElse(configStore.getPrimaryRegion());
+        String recordValue = configStore.getRoute53StackOutputs(region).getOriginDomainName();
         String recordSetName = getEdgeDomainName(command.getBaseDomainName(), command.getEdgeDomainNameOverride());
 
         route53Service.createRoute53RecordSet(command.getHostedZoneId(),
                 recordSetName,
                 recordValue,
                 RRType.CNAME,
-                RESOURCE_RECORD_TTL);
+                RESOURCE_RECORD_TTL,
+                region);
     }
 
     @Override
     public boolean isRunnable(CreateEdgeDomainRecordCommand command) {
+        Regions region = command.getStackRegion().orElse(configStore.getPrimaryRegion());
         String recordSetName = getEdgeDomainName(command.getBaseDomainName(), command.getEdgeDomainNameOverride());
 
         boolean isRunnable = true;
 
-        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.ROUTE53.getFullName(environmentName))) {
+        if (!cloudFormationService.isStackPresent(region, Stack.ROUTE53.getFullName(environmentName))) {
             logger.error("The route53 stack must be present");
             return false;
         }
 
         Optional<ResourceRecordSet> edgeRecordOptional = route53Service
-                .getRecordSetByName(recordSetName, command.getHostedZoneId());
+                .getRecordSetByName(recordSetName, command.getHostedZoneId(), region);
 
         if (edgeRecordOptional.isPresent()) {
             String msg = String.format(

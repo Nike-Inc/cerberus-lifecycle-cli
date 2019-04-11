@@ -51,7 +51,7 @@ public class UpdateCmsConfigCommand implements Command {
     @Parameter(names = FORCE_ARG, description = "Force allow overwriting of system generated property. This may break your configuration.")
     private boolean force = false;
 
-    @Parameter(names = IGNORE_DEFAULT_CONFIGURATIONS_ARGUMENT, description = "Ignores default configurations of the CMS.  ")
+    @Parameter(names = IGNORE_DEFAULT_CONFIGURATIONS_ARGUMENT, description = "Ignores default configurations of the CMS.")
     private boolean ignoreDefaultConfigurations = false;
 
     public String getAdminGroup() {

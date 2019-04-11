@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.command.core;
 
+import com.amazonaws.regions.Regions;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
@@ -24,8 +25,11 @@ import com.nike.cerberus.operation.core.WhitelistCidrForVpcAccessOperation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand.COMMAND_NAME;
+import static com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate.STACK_REGION;
+import static com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate.STACK_REGION_DESCRIPTION;
 
 /**
  * Command for granting CIDRs ingress to specific ports within the Cerberus VPC.
@@ -43,12 +47,19 @@ public class WhitelistCidrForVpcAccessCommand implements Command {
     @Parameter(names = PORT_LONG_ARG, description = "The ports to grant ingress on within the Cerberus VPC.")
     private List<Integer> ports = new ArrayList<>();
 
+    @Parameter(names = STACK_REGION, description = STACK_REGION_DESCRIPTION)
+    private String stackRegion;
+
     public List<String> getCidrs() {
         return cidrs;
     }
 
     public List<Integer> getPorts() {
         return ports;
+    }
+
+    public Optional<Regions> getStackRegion() {
+        return stackRegion == null ? Optional.empty() : Optional.of(Regions.fromName(stackRegion));
     }
 
     @Override

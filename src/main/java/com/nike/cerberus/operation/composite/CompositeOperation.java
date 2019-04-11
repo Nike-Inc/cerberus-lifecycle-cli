@@ -76,7 +76,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
 
             // Parse the yaml and additional args to get args to pass to jcommander
             List<String> argsList = EnvironmentConfigToArgsMapper.getArgsForCommand(
-                    environmentConfig, chainedCommand.getCommandName(), additionalArgs);
+                    environmentConfig, chainedCommand.getCommandName(), additionalArgs, chainableCommand.getStackRegion());
 
             // If the mapper doesn't have a mapping for a given command it will return an empty list
             // in this case we will just use the args manually provided by the chainable command
@@ -114,6 +114,7 @@ public abstract class CompositeOperation<T extends Command> implements Operation
             log.info("Finished command: {}\n", chainedCommand.getCommandName());
         }
     }
+
 
     /**
      * Implement this method to define the ordered list of chained commands that will get executed

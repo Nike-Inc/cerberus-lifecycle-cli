@@ -24,20 +24,12 @@ import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
 import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
-import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
+import com.nike.cerberus.command.composite.CreateCmsResourcesForRegionCommand;
+import com.nike.cerberus.command.core.*;
 import com.nike.cerberus.command.composite.UpdateAllStackTagsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
-import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
-import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
-import com.nike.cerberus.command.core.CreateRoute53Command;
-import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
-import com.nike.cerberus.command.core.CreateVpcCommand;
-import com.nike.cerberus.command.core.CreateWafCommand;
-import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
-import com.nike.cerberus.command.core.GenerateCertificateFilesCommandParametersDelegate;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommandParametersDelegate;
-import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementServiceInput;
@@ -47,18 +39,20 @@ import com.nike.cerberus.domain.input.VpcAccessWhitelistInput;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+
+import static com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate.STACK_REGION;
 
 public class EnvironmentConfigToArgsMapper {
-
-    public static final String STACK_NAME_KEY = "--stack-name";
 
     private EnvironmentConfigToArgsMapper() {
 
     }
 
+    /**
+     * removes the prefix args for the args array ex: -e demo -r us-west-2 commandName --some-other-arg foo will
+     * return an array with ['commandName', '--some-other-arg', 'foo']
+     */
     public static String[] getArgs(EnvironmentConfig environmentConfig, String[] passedArgs) {
         List<String> args = new LinkedList<>();
         String commandName = null;
@@ -86,10 +80,33 @@ public class EnvironmentConfigToArgsMapper {
         }
 
         // convert to string array and return
-        return args.toArray(new String[args.size()]);
+        return args.toArray(new String[0]);
     }
 
     public static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs) {
+        if (environmentConfig == null) {
+            return Lists.newArrayList(passedArgs);
+        }
+        return getArgsForCommand(environmentConfig, commandName, passedArgs, environmentConfig.getPrimaryRegion());
+    }
+
+    public static List<String> getArgsForCommand(EnvironmentConfig environmentConfig, String commandName, String[] passedArgs, Optional<String> region) {
+        if (environmentConfig == null) {
+            return Lists.newArrayList(passedArgs);
+        }
+
+        if (region.isPresent()) {
+            return getArgsForCommand(environmentConfig, commandName, passedArgs, region.get());
+        } else {
+            return getArgsForCommand(environmentConfig, commandName, passedArgs, environmentConfig.getPrimaryRegion());
+        }
+    }
+
+    public static List<String> getArgsForCommand(EnvironmentConfig environmentConfig,
+                                                 String commandName,
+                                                 String[] passedArgs,
+                                                 String stackRegion) {
+
         if (environmentConfig == null) {
             return Lists.newArrayList(passedArgs);
         }
@@ -103,10 +120,10 @@ public class EnvironmentConfigToArgsMapper {
                 args = getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
                 break;
             case CreateCmsClusterCommand.COMMAND_NAME:
-                args = getCreateCmsClusterCommandArgs(environmentConfig);
+                args = getCreateCmsClusterCommandArgs(environmentConfig, stackRegion);
                 break;
             case WhitelistCidrForVpcAccessCommand.COMMAND_NAME:
-                args = getWhitelistCidrForVpcAccessCommandArgs(environmentConfig);
+                args = getWhitelistCidrForVpcAccessCommandArgs(environmentConfig, stackRegion);
                 break;
             case CreateCmsConfigCommand.COMMAND_NAME:
                 args = getCreateCmsConfigCommandArgs(environmentConfig, passedArgs);
@@ -115,19 +132,19 @@ public class EnvironmentConfigToArgsMapper {
                 args = getCreateCmsConfigCommandArgs(environmentConfig, passedArgs);
                 break;
             case CreateVpcCommand.COMMAND_NAME:
-                args = getCreateVpcCommandArgs(environmentConfig);
+                args = getCreateVpcCommandArgs(environmentConfig, stackRegion);
                 break;
             case CreateSecurityGroupsCommand.COMMAND_NAME:
-                args = getCreateSecurityGroupsCommandArgs(environmentConfig);
+                args = getCreateSecurityGroupsCommandArgs(environmentConfig, stackRegion);
                 break;
             case CreateDatabaseCommand.COMMAND_NAME:
-                args = getCreateDatabaseCommandArgs(environmentConfig);
+                args = getCreateDatabaseCommandArgs(environmentConfig, stackRegion);
                 break;
             case CreateLoadBalancerCommand.COMMAND_NAME:
-                args = getCreateLoadBalancerCommandArgs(environmentConfig);
+                args = getCreateLoadBalancerCommandArgs(environmentConfig, stackRegion);
                 break;
             case CreateRoute53Command.COMMAND_NAME:
-                args = getCreateRoute53CommandArgs(environmentConfig);
+                args = getCreateRoute53CommandArgs(environmentConfig, stackRegion);
                 break;
             case CreateWafCommand.COMMAND_NAME:
                 args = getCreateWafCommandArgs(environmentConfig);
@@ -148,7 +165,13 @@ public class EnvironmentConfigToArgsMapper {
                 args = getCreateAuditLoggingStackCommandArgs(environmentConfig);
                 break;
             case UpdateAllStackTagsCommand.COMMAND_NAME:
-                args = getUpdateAllStackTagsCommandArgs(environmentConfig);
+                args = getUpdateAllStackTagsCommandArgs(environmentConfig, stackRegion);
+                break;
+            case CreateAlbLogAthenaDbAndTableCommand.COMMAND_NAME:
+                args = getCreateAlbLogAthenaDbAndTableCommandArg(environmentConfig, stackRegion);
+                break;
+            case CreateCmsResourcesForRegionCommand.COMMAND_NAME:
+                args = Arrays.asList(passedArgs);
                 break;
             default:
                 break;
@@ -158,6 +181,12 @@ public class EnvironmentConfigToArgsMapper {
                 .debug("Mapped the following args from the provided YAML\n" + String.join("\n", args));
 
         return args;
+    }
+
+    private static List<String> getCreateAlbLogAthenaDbAndTableCommandArg(EnvironmentConfig config, String region) {
+        return ArgsBuilder.create()
+            .addOption(STACK_REGION, region)
+            .build();
     }
 
     private static List<String> getCreateAuditLoggingStackCommandArgs(EnvironmentConfig environmentConfig) {
@@ -182,9 +211,7 @@ public class EnvironmentConfigToArgsMapper {
         ArgsBuilder args = ArgsBuilder.create();
         ManagementServiceInput managementService = environmentConfig.getManagementService();
         args.addOption(CreateCmsConfigCommand.ADMIN_GROUP_LONG_ARG, managementService.getAdminGroup());
-        managementService.getProperties().forEach(property -> {
-            args.addOption(CreateCmsConfigCommand.PROPERTY_SHORT_ARG, property);
-        });
+        managementService.getProperties().forEach(property -> args.addOption(CreateCmsConfigCommand.PROPERTY_SHORT_ARG, property));
 
         if (Arrays.stream(passedArgs).anyMatch(s -> s.equals(UpdateCmsConfigCommand.OVERWRITE_LONG_ARG))) {
             args.addFlag(UpdateCmsConfigCommand.OVERWRITE_LONG_ARG);
@@ -193,28 +220,24 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getWhitelistCidrForVpcAccessCommandArgs(EnvironmentConfig environmentConfig) {
-        ArgsBuilder args = ArgsBuilder.create();
+    private static List<String> getWhitelistCidrForVpcAccessCommandArgs(EnvironmentConfig environmentConfig, String region) {
+        ArgsBuilder args = ArgsBuilder.create()
+            .addOption(STACK_REGION, region);
 
         VpcAccessWhitelistInput vpcAccessWhitelist = environmentConfig.getVpcAccessWhitelist();
-
-        vpcAccessWhitelist.getCidrs().forEach(cidr -> {
-            args.addOption(WhitelistCidrForVpcAccessCommand.CIDR_LONG_ARG, cidr);
-        });
-
-        vpcAccessWhitelist.getPorts().forEach(port -> {
-            args.addOption(WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, port);
-        });
+        vpcAccessWhitelist.getCidrs().forEach(cidr -> args.addOption(WhitelistCidrForVpcAccessCommand.CIDR_LONG_ARG, cidr));
+        vpcAccessWhitelist.getPorts().forEach(port -> args.addOption(WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, port));
 
         return args.build();
     }
 
-    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig config) {
-        RegionSpecificConfigurationInput primaryRegion = config.getPrimaryRegionConfig();
-        ManagementServiceRegionSpecificInput cmsConfig = primaryRegion.getManagementService().orElseThrow(() ->
-                new RuntimeException("management service config not defined in primary region config"));
+    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig config, String region) {
+        RegionSpecificConfigurationInput regionConfig = config.getRegionConfig(region);
+        ManagementServiceRegionSpecificInput cmsConfig = regionConfig.getManagementService().orElseThrow(() ->
+                new RuntimeException("management service config not defined in config for region: " + region));
 
         return ArgsBuilder.create()
+                .addOption(STACK_REGION, region)
                 .addOption(StackDelegate.AMI_ID_LONG_ARG, cmsConfig.getAmiId())
                 .addOption(StackDelegate.INSTANCE_SIZE_LONG_ARG, cmsConfig.getInstanceSize())
                 .addOption(StackDelegate.KEY_PAIR_NAME_LONG_ARG, cmsConfig.getKeyPairName())
@@ -254,21 +277,26 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config) {
-        return getGlobalTags(config);
+    private static List<String> getCreateVpcCommandArgs(EnvironmentConfig config, String region) {
+        return ArgsBuilder.create()
+            .addOption(STACK_REGION, region)
+            .addAll(getGlobalTags(config)).build();
     }
 
-    private static List<String> getCreateSecurityGroupsCommandArgs(EnvironmentConfig config) {
-        return getGlobalTags(config);
+    private static List<String> getCreateSecurityGroupsCommandArgs(EnvironmentConfig config, String region) {
+        return ArgsBuilder.create()
+            .addOption(STACK_REGION, region)
+            .addAll(getGlobalTags(config)).build();
     }
 
-    private static List<String> getCreateDatabaseCommandArgs(EnvironmentConfig config) {
-        ArgsBuilder args = ArgsBuilder.create();
-        if (config.getPrimaryRegionConfig().getRds().isPresent()) {
+    private static List<String> getCreateDatabaseCommandArgs(EnvironmentConfig config, String region) {
+        ArgsBuilder args = ArgsBuilder.create().addOption(STACK_REGION, region);
+
+        if (config.getRegionConfig(region).getRds().isPresent()) {
             args.addOption(CreateDatabaseCommand.INSTANCE_CLASS_LONG_ARG,
-                    config.getPrimaryRegionConfig().getRds().get().getSize());
+                    config.getRegionConfig(region).getRds().get().getSize());
 
-            String snapshotIdentifier = config.getPrimaryRegionConfig().getRds().get().getDbClusterIdentifier();
+            String snapshotIdentifier = config.getRegionConfig(region).getRds().get().getDbClusterIdentifier();
             if (StringUtils.isNotBlank(snapshotIdentifier)) {
                 args.addOption(CreateDatabaseCommand.RESTORE_FROM_SNAPSHOT, snapshotIdentifier);
             }
@@ -277,8 +305,8 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateLoadBalancerCommandArgs(EnvironmentConfig config) {
-        ArgsBuilder args = ArgsBuilder.create();
+    private static List<String> getCreateLoadBalancerCommandArgs(EnvironmentConfig config, String region) {
+        ArgsBuilder args = ArgsBuilder.create().addOption(STACK_REGION, region);
         if (StringUtils.isNotBlank(config.getLoadBalancerSslPolicyOverride())) {
             args.addOption(CreateLoadBalancerCommand.LOAD_BALANCER_SSL_POLICY_OVERRIDE_LONG_ARG,
                     config.getLoadBalancerSslPolicyOverride());
@@ -288,8 +316,9 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateRoute53CommandArgs(EnvironmentConfig config) {
+    private static List<String> getCreateRoute53CommandArgs(EnvironmentConfig config, String region) {
         ArgsBuilder args = ArgsBuilder.create()
+                .addOption(STACK_REGION, region)
                 .addOption(CreateRoute53Command.BASE_DOMAIN_NAME_LONG_ARG, config.getBaseDomainName())
                 .addOption(CreateRoute53Command.HOSTED_ZONE_ID_LONG_ARG, config.getHostedZoneId());
 
@@ -298,9 +327,9 @@ public class EnvironmentConfigToArgsMapper {
             args.addOption(CreateRoute53Command.ORIGIN_DOMAIN_NAME_OVERRIDE, config.getOriginDomainNameOverride());
         }
 
-        if (config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().isPresent()) {
+        if (config.getRegionConfig(region).getLoadBalancerDomainNameOverride().isPresent()) {
             args.addOption(CreateRoute53Command.LOAD_BALANCER_DOMAIN_NAME_OVERRIDE,
-                    config.getPrimaryRegionConfig().getLoadBalancerDomainNameOverride().orElse(null));
+                    config.getRegionConfig(region).getLoadBalancerDomainNameOverride().orElse(null));
         }
 
         return args.build();
@@ -346,16 +375,9 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getUpdateAllStackTagsCommandArgs(EnvironmentConfig config) {
-        return getGlobalTags(config);
-    }
-
-    private static String getStackName(String[] passedArgs) {
-        for (int i = 0; i < passedArgs.length; i++) {
-            if (StringUtils.equals(passedArgs[i], STACK_NAME_KEY)) {
-                return passedArgs[i + 1];
-            }
-        }
-        return null;
+    private static List<String> getUpdateAllStackTagsCommandArgs(EnvironmentConfig config, String region) {
+        return ArgsBuilder.create()
+            .addOption(STACK_REGION, region)
+            .addAll(getGlobalTags(config)).build();
     }
 }

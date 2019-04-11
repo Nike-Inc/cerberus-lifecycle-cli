@@ -60,7 +60,7 @@ public class CreateDatabaseCommand implements Command {
             description = "option for setting a snapshot identifier on the RDS stack to restore from the snapshot " +
                     "while standing up the new RDS cluster via cloudformation"
     )
-    String snapshotIdentifier;
+    private String snapshotIdentifier;
 
     public String getSnapshotIdentifier() {
         return snapshotIdentifier;

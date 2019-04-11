@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.service;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.athena.AmazonAthenaClient;
 import com.amazonaws.services.athena.model.GetQueryExecutionRequest;
 import com.amazonaws.services.athena.model.GetQueryResultsRequest;
@@ -36,21 +37,19 @@ public class AthenaService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private AmazonAthenaClient athena;
-
-
+    private AwsClientFactory<AmazonAthenaClient> athenaClientFactory;
 
     @Inject
-    public AthenaService(AwsClientFactory<AmazonAthenaClient> athenaClientFactory,
-                         ConfigStore configStore) {
+    public AthenaService(AwsClientFactory<AmazonAthenaClient> athenaClientFactory) {
 
-        this.athena = athenaClientFactory.getClient(configStore.getPrimaryRegion());
+        this.athenaClientFactory = athenaClientFactory;
     }
 
     /**
      * Executes an Athena query and waits for it to finish returning the results
      */
-    public GetQueryResultsResult executeAthenaQuery(String query, String bucketName) {
+    public GetQueryResultsResult executeAthenaQuery(String query, String bucketName, Regions region) {
+        AmazonAthenaClient athena = athenaClientFactory.getClient(region);
         StartQueryExecutionResult result = athena
                 .startQueryExecution(new StartQueryExecutionRequest()
                         .withQueryString(query)

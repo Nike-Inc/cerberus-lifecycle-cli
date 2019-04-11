@@ -75,7 +75,7 @@ public class CreateEnvironmentOperation extends CompositeOperation<CreateEnviron
             list.add(new ChainableCommand(new CreateAuditAthenaDbAndTableCommand()));
             list.add(new ChainableCommand(new EnableAuditLoggingCommand()));
         }
-                
+
         list.addAll(Lists.newArrayList(
             // Upload the certs and keys to S3 and the IAM Cert Management service so that the ALB and CMS can use the certs
             new ChainableCommand(new UploadCertificateFilesCommand()),
