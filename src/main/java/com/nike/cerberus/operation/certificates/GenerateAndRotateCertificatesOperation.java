@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Nike, Inc.
+ * Copyright (c) 2019 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class GenerateAndRotateCertificatesOperation extends CompositeOperation<G
                         parameters.getContactEmail()
                 );
 
-        if (parameters.enableLetsEncryptCertfix()) {
+        if (parameters.isEnableLetsEncryptCertfix()) {
             generateCertificateFilesCommandBuilder.withAdditionalArg(ENABLE_LE_CERTFIX_LONG_ARG);
         }
 
