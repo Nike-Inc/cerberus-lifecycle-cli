@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Nike, Inc.
+ * Copyright (c) 2019 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,7 @@ public class Stack implements Comparable<Stack> {
         return templatePath;
     }
 
-    public boolean needsUserData() {
+    public boolean isNeedsUserData() {
         return needsUserData;
     }
 

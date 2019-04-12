@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Nike, Inc.
+ * Copyright (c) 2019 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
         Map<String, String> tags = command.getCloudFormationParametersDelegate().getTags();
 
         // only some stacks need user data
-        if (command.getStack().needsUserData()) {
+        if (command.getStack().isNeedsUserData()) {
             parameters.put("userData", ec2UserDataService.getUserData(configStore.getPrimaryRegion(), command.getStack(),
                     Optional.ofNullable(tags.getOrDefault("ownerGroup", null))));
         }

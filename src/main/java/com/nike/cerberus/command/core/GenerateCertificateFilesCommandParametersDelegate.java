@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2017 Nike, Inc. 
+ * Copyright (c) 2019 Nike, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GenerateCertificateFilesCommandParametersDelegate {
-    
+
     public static final String BASE_DOMAIN_LONG_ARG = "--base-domain";
     public static final String EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG = "--edge-domain-name-override";
     public static final String ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG = "--origin-domain-name-override";
@@ -49,7 +49,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
                     "demo.us-west-2.cerberus.example and the cert will be valid for both"
     )
     private String baseDomainName;
-    
+
     @Parameter(
             names = {
                     EDGE_DOMAIN_NAME_OVERRIDE_LONG_ARG
@@ -57,7 +57,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
             description = "This command uses {environment}.{base-domain} as the common name, override it with this option"
     )
     private String edgeDomainNameOverride;
-    
+
     @Parameter(
             names = {
                     ORIGIN_DOMAIN_NAME_OVERRIDE_LONG_ARG
@@ -66,7 +66,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
                     "this command automatically creates a subject alternate name for this, override it with this option"
     )
     private String originDomainNameOverride;
-    
+
     @Parameter(
             names = {
                     LOAD_BALANCER_DOMAIN_NAME_OVERRIDE_LONG_ARG
@@ -75,7 +75,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
                     "this command automatically creates a subject alternate name for this, override it with this option"
     )
     private String loadBalancerDomainNameOverride;
-    
+
     @Parameter(
             names = {
                     HOSTED_ZONE_ID_LONG_ARG
@@ -84,7 +84,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
             required = true
     )
     private String hostedZoneId;
-    
+
     @Parameter(
             names = {
                     SUBJECT_ALT_NAME_LONG_ARG
@@ -112,7 +112,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
             required = true
     )
     private String certDir;
-    
+
     @Parameter(
             names = {
                     ACME_API_LONG_ARG
@@ -121,7 +121,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
             required = true
     )
     private String acmeApiUrl;
-    
+
     @Parameter(
             names = {
                     CONTACT_EMAIL_LONG_ARG
@@ -165,7 +165,7 @@ public class GenerateCertificateFilesCommandParametersDelegate {
         return subjectAlternativeNames;
     }
 
-    public boolean enableLetsEncryptCertfix() {
+    public boolean isEnableLetsEncryptCertfix() {
         return enableLetsEncryptCertfix;
     }
 

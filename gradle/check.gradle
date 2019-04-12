@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 Nike, Inc.
+ * Copyright (c) 2019 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 apply plugin: 'findbugs'
 apply plugin: 'pmd'
-apply plugin: 'cobertura'
+apply plugin: "jacoco"
 apply plugin: 'com.github.kt3k.coveralls'
 
 findbugs {
@@ -27,6 +27,8 @@ findbugs {
 
 pmd {
     sourceSets = [project.sourceSets.main]
+    ruleSets = []
+    ruleSetFiles = files('codequality/pmd.xml')
 }
 
 tasks.withType(FindBugs) {
@@ -35,15 +37,19 @@ tasks.withType(FindBugs) {
     }
 }
 
-cobertura {
-    // https://github.com/stevesaliman/gradle-cobertura-plugin/blob/master/usage.md
-    coverageReportDir = new File("$buildDir/reports/cobertura")
-    coverageFormats = ['html', 'xml']
-    coverageIgnoreTrivial = true
-    coverageExcludes = [
-    ]
+jacoco {
+    toolVersion = "0.8.3"
+    reportsDir = file("$buildDir/reports/jacoco")
 }
-test.finalizedBy(project.tasks.coberturaReport)
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+    }
+}
+
+test.finalizedBy(project.tasks.jacocoTestReport)
 
 task findbugsHtml {
     group = "Verification"
