@@ -16,7 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
-import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
@@ -51,7 +51,7 @@ public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCi
 
     private final ConfigStore configStore;
 
-    private final AmazonEC2 ec2Client;
+    private final AwsClientFactory<AmazonEC2Client> amazonS3ClientFactory;
 
     private final String environmentName;
 
@@ -63,13 +63,16 @@ public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCi
 
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
-        this.ec2Client = amazonS3ClientFactory.getClient(configStore.getPrimaryRegion());
+        this.amazonS3ClientFactory = amazonS3ClientFactory;
         this.environmentName = environmentName;
     }
 
     @Override
     public void run(WhitelistCidrForVpcAccessCommand command) {
-        SecurityGroupOutputs securityGroupOutputs = configStore.getSecurityGroupStackOutputs();
+        Regions region = command.getStackRegion().orElse(configStore.getPrimaryRegion());
+        AmazonEC2Client ec2Client = amazonS3ClientFactory.getClient(region);
+
+        SecurityGroupOutputs securityGroupOutputs = configStore.getSecurityGroupStackOutputs(region);
 
         logger.info("Revoking the previous ingress rules...");
         DescribeSecurityGroupsResult securityGroupsResult = ec2Client.describeSecurityGroups(
@@ -105,11 +108,11 @@ public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCi
 
     @Override
     public boolean isRunnable(WhitelistCidrForVpcAccessCommand command) {
+        Regions region = command.getStackRegion().orElse(configStore.getPrimaryRegion());
         try {
-            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.IAM_ROLES.getFullName(environmentName));
-        } catch (IllegalArgumentException iae) {
-            logger.error("Could not create the CMS cluster." +
-                    "Make sure the load balancer, security group, and base stacks have all been created.", iae);
+            cloudFormationService.getStackId(region, Stack.SECURITY_GROUPS.getFullName(environmentName));
+        } catch (Exception e) {
+            logger.error("The security group stack must exist before you can white list ingress to the VPC Ingress SG.", e);
             return false;
         }
 

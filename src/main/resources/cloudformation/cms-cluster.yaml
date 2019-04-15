@@ -8,8 +8,8 @@ Outputs:
   cmsInstanceProfileName:
     Value: !Ref 'CmsInstanceProfile'
 Parameters:
-  baseStackName:
-    Description: The name of the Cerberus base CloudFormation stack
+  cmsIamRoleName:
+    Description: The name of CMS Iam Role from the IAM role stack in the primary region.
     Type: String
   amiId:
     Description: The AMI ID for the CMS instances
@@ -86,7 +86,7 @@ Resources:
     Properties:
       Path: /
       Roles:
-        - Fn::ImportValue: !Sub "${baseStackName}-cmsIamRoleName"
+        - !Ref 'cmsIamRoleName'
     Type: AWS::IAM::InstanceProfile
   CmsLaunchConfiguration:
     Properties:

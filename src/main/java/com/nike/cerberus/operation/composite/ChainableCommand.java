@@ -17,11 +17,12 @@
 package com.nike.cerberus.operation.composite;
 
 import com.nike.cerberus.command.Command;
-import com.nike.cerberus.operation.Operation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 @SuppressFBWarnings(
         value = "EI_EXPOSE_REP",
@@ -36,6 +37,7 @@ public class ChainableCommand {
 
     private Command command;
     private String[] additionalArgs = new String[]{};
+    private String stackRegion;
 
 
     public ChainableCommand() {
@@ -43,6 +45,11 @@ public class ChainableCommand {
 
     public ChainableCommand(Command command) {
         this.command = command;
+    }
+
+    public ChainableCommand(Command command, String stackRegion) {
+        this.command = command;
+        this.stackRegion = stackRegion;
     }
 
     public ChainableCommand(Command command, String[] additionalArgs) {
@@ -58,9 +65,14 @@ public class ChainableCommand {
         return additionalArgs;
     }
 
+    public Optional<String> getStackRegion() {
+        return Optional.ofNullable(stackRegion);
+    }
+
     public static final class Builder {
         private Command command;
         private List<String> additionalArgs = new LinkedList<>();
+        private String stackRegion;
 
         private Builder() {
         }
@@ -80,9 +92,7 @@ public class ChainableCommand {
         }
 
         public Builder withAdditionalArg(String ...additionalArg) {
-            for(String arg: additionalArg) {
-                additionalArgs.add(arg);
-            }
+            additionalArgs.addAll(Arrays.asList(additionalArg));
             return this;
         }
 
@@ -92,10 +102,16 @@ public class ChainableCommand {
             return this;
         }
 
+        public Builder withStackRegion(String stackRegion) {
+            this.stackRegion = stackRegion;
+            return this;
+        }
+
         public ChainableCommand build() {
             ChainableCommand chainableCommand = new ChainableCommand();
             chainableCommand.command = this.command;
             chainableCommand.additionalArgs = this.additionalArgs.toArray(new String[additionalArgs.size()]);
+            chainableCommand.stackRegion = this.stackRegion;
             return chainableCommand;
         }
     }

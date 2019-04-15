@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.CreateRoute53Command;
 import com.nike.cerberus.domain.cloudformation.Route53Parameters;
 import com.nike.cerberus.domain.environment.Stack;
@@ -67,16 +68,19 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
 
     @Override
     public void run(CreateRoute53Command command) {
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+
         Route53Parameters route53Parameters = new Route53Parameters()
                 .setHostedZoneId(command.getHostedZoneId())
-                .setLoadBalancerDomainName(getLoadBalancerDomainName(command.getBaseDomainName(), command.getLoadBalancerDomainNameOverride()))
+                .setLoadBalancerDomainName(getLoadBalancerDomainName(command.getBaseDomainName(), command.getLoadBalancerDomainNameOverride(), region))
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
-                .setOriginDomainName(getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride()));
+                .setOriginDomainName(getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride(), region));
 
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(route53Parameters);
 
         cloudFormationService.createStackAndWait(
-                configStore.getPrimaryRegion(),
+            region,
                 Stack.ROUTE53,
                 parameters,
                 true,
@@ -85,25 +89,27 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
 
     @Override
     public boolean isRunnable(CreateRoute53Command command) {
-        String loadBalancerDomainName = getLoadBalancerDomainName(command.getBaseDomainName(), command.getLoadBalancerDomainNameOverride());
-        String originDomainName = getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride());
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+        String loadBalancerDomainName = getLoadBalancerDomainName(command.getBaseDomainName(), command.getLoadBalancerDomainNameOverride(), region);
+        String originDomainName = getOriginDomainName(command.getBaseDomainName(), command.getOriginDomainNameOverride(), region);
 
         boolean isRunnable = true;
-        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+        if (!cloudFormationService.isStackPresent(region,
                 Stack.LOAD_BALANCER.getFullName(environmentName))) {
             logger.error("The load balancer stack must exist to create the Route53 record!");
             isRunnable = false;
         }
-        if (cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+        if (cloudFormationService.isStackPresent(region,
                 Stack.ROUTE53.getFullName(environmentName))) {
             logger.error("Route53 stack already exists.");
             isRunnable = false;
         }
-        if (route53Service.getRecordSetByName(loadBalancerDomainName, command.getHostedZoneId()).isPresent()) {
+        if (route53Service.getRecordSetByName(loadBalancerDomainName, command.getHostedZoneId(), region).isPresent()) {
             logger.error("The load balancer name is already registered");
             isRunnable = false;
         }
-        if (route53Service.getRecordSetByName(originDomainName, command.getHostedZoneId()).isPresent()) {
+        if (route53Service.getRecordSetByName(originDomainName, command.getHostedZoneId(), region).isPresent()) {
             logger.error("The origin name is already registered");
             isRunnable = false;
         }
@@ -111,18 +117,19 @@ public class CreateRoute53Operation implements Operation<CreateRoute53Command> {
         return isRunnable;
     }
 
-    private String getLoadBalancerDomainName(String baseDomainName, String loadBalancerDomainNameOverride) {
+    private String getLoadBalancerDomainName(String baseDomainName, String loadBalancerDomainNameOverride, Regions region) {
         String defaultLoadBalancerDomainName = String.format("%s.%s.%s",
                 environmentName,
-                configStore.getPrimaryRegion().getName(),
+                region.getName(),
                 baseDomainName);
 
         return StringUtils.isBlank(loadBalancerDomainNameOverride) ?
                 defaultLoadBalancerDomainName : loadBalancerDomainNameOverride;
     }
 
-    private String getOriginDomainName(String baseDomainName, String originDomainNameOverride) {
-        String defaultOriginDomainName = String.format("origin.%s.%s",
+    private String getOriginDomainName(String baseDomainName, String originDomainNameOverride, Regions region) {
+        String defaultOriginDomainName = String.format("origin.%s.%s.%s",
+                region.getName(),
                 environmentName,
                 baseDomainName);
 

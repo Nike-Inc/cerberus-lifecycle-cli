@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.operation.cms;
 
+import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
@@ -70,7 +71,10 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
     @Override
     public void run(CreateCmsClusterCommand command) {
-        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
+        Regions region = command.getStackDelegate().getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+
+        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs(region);
         List<CertificateInformation> certInfoListForStack = configStore.getCertificationInformationList();
 
         Map<String, String> tags = command.getStackDelegate().getCloudFormationParametersDelegate().getTags();
@@ -79,11 +83,13 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
             throw new IllegalStateException("Certificate for cerberus environment has not been uploaded!");
         }
 
+        String cmsIamRoleName = configStore.getCmsIamRoleOutputs(configStore.getPrimaryRegion()).getCmsIamRoleName();
+
         CmsParameters cmsParameters = new CmsParameters()
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
-                .setBaseStackName(Stack.IAM_ROLES.getFullName(environmentName))
+                .setCmsIamRoleName(cmsIamRoleName)
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName));
 
@@ -91,7 +97,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         cmsParameters.getLaunchConfigParameters().setInstanceSize(command.getStackDelegate().getInstanceSize());
         cmsParameters.getLaunchConfigParameters().setKeyPairName(command.getStackDelegate().getKeyPairName());
         cmsParameters.getLaunchConfigParameters().setUserData(ec2UserDataService.getUserData(
-                configStore.getPrimaryRegion(), Stack.CMS,
+                region, Stack.CMS,
                 Optional.ofNullable(tags.getOrDefault("ownerGroup", null))));
 
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(cmsParameters);
@@ -100,7 +106,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         parameters.putAll(command.getStackDelegate().getDynamicParameters());
 
         cloudFormationService.createStackAndWait(
-                configStore.getPrimaryRegion(),
+                region,
                 Stack.CMS,
                 parameters, true,
                 tags);
@@ -108,17 +114,31 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
 
     @Override
     public boolean isRunnable(CreateCmsClusterCommand command) {
+        Regions region = command.getStackDelegate().getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+
+        boolean isRunnable = true;
+
         try {
-            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.LOAD_BALANCER.getFullName(environmentName));
-            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.SECURITY_GROUPS.getFullName(environmentName));
+            cloudFormationService.getStackId(region, Stack.LOAD_BALANCER.getFullName(environmentName));
+            cloudFormationService.getStackId(region, Stack.SECURITY_GROUPS.getFullName(environmentName));
             cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.IAM_ROLES.getFullName(environmentName));
-        } catch (IllegalArgumentException iae) {
+        } catch (Exception e) {
             logger.error("Could not create the CMS cluster." +
-                    "Make sure the load balancer, security group, and base stacks have all been created.", iae);
-            return false;
+                    "Make sure the load balancer, security group, and base stacks have all been created.", e);
+            isRunnable = false;
         }
 
-        return configStore.getCmsEnvConfig().isPresent() &&
-                !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.CMS.getFullName(environmentName));
+        if (!configStore.getCmsEnvConfig().isPresent()) {
+            logger.error("Cannot create CMS cluster before create cms config command has been ran");
+            isRunnable = false;
+        }
+
+        if (cloudFormationService.isStackPresent(region, Stack.CMS.getFullName(environmentName))) {
+            logger.error("The cms cluster already exists");
+            isRunnable = false;
+        }
+
+        return isRunnable;
     }
 }

@@ -17,7 +17,6 @@
 package com.nike.cerberus.service;
 
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.route53.AmazonRoute53;
 import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.route53.model.Change;
 import com.amazonaws.services.route53.model.ChangeAction;
@@ -32,10 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.Optional;
-
-import static com.nike.cerberus.module.CerberusModule.CONFIG_REGION;
 
 /**
  * Service wrapper for AWS CloudFormation.
@@ -44,21 +40,22 @@ public class Route53Service {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final AmazonRoute53 route53Client;
+    private final AwsClientFactory<AmazonRoute53Client> route53ClientFactory;
 
     @Inject
-    public Route53Service(AwsClientFactory<AmazonRoute53Client> route53ClientFactory,
-                          @Named(CONFIG_REGION) String configRegion) {
+    public Route53Service(AwsClientFactory<AmazonRoute53Client> route53ClientFactory) {
 
         // not region specific config region works
-        this.route53Client = route53ClientFactory.getClient(Regions.fromName(configRegion));
+        this.route53ClientFactory = route53ClientFactory;
     }
 
     public void createRoute53RecordSet(String hostedZoneId,
                                        String recordSetName,
                                        String recordValue,
                                        RRType recordSetType,
-                                       String resourceRecordTtl) {
+                                       String resourceRecordTtl,
+                                       Regions region) {
+
         logger.info("Creating Route53 record name: {}, value: {}", recordSetName, recordValue);
 
         ResourceRecord record = new ResourceRecord().withValue(recordValue);
@@ -73,13 +70,16 @@ public class Route53Service {
                         .withAction(ChangeAction.UPSERT)
                         .withResourceRecordSet(recordSet));
 
-        route53Client.changeResourceRecordSets(new ChangeResourceRecordSetsRequest()
+        route53ClientFactory.getClient(region).changeResourceRecordSets(new ChangeResourceRecordSetsRequest()
                 .withHostedZoneId(hostedZoneId)
                 .withChangeBatch(recordSetChangeBatch));
     }
 
-    public Optional<ResourceRecordSet> getRecordSetByName(String recordSetName, String hostedZoneId) {
-        ListResourceRecordSetsResult recordSets = route53Client.listResourceRecordSets(
+    public Optional<ResourceRecordSet> getRecordSetByName(String recordSetName,
+                                                          String hostedZoneId,
+                                                          Regions region) {
+
+        ListResourceRecordSetsResult recordSets = route53ClientFactory.getClient(region).listResourceRecordSets(
                 new ListResourceRecordSetsRequest()
                         .withHostedZoneId(hostedZoneId));
 

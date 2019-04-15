@@ -254,9 +254,10 @@ public class ConfigStore {
     public void storeCmsEnvConfig(Properties cmsConfigMap) {
         StringBuilder cmsConfigContents = new StringBuilder();
 
-        cmsConfigMap.keySet().forEach(key -> {
-            cmsConfigContents.append(key).append('=').append(cmsConfigMap.get(key)).append('\n');
-        });
+        cmsConfigMap.keySet()
+            .stream()
+            .sorted()
+            .forEach(key -> cmsConfigContents.append(key).append('=').append(cmsConfigMap.get(key)).append('\n'));
 
         encryptAndSaveObject(ConfigConstants.CMS_ENV_CONFIG_PATH, cmsConfigContents.toString(), getDecryptedEnvironmentData());
     }

@@ -16,10 +16,13 @@
 
 package com.nike.cerberus.domain.cloudformation;
 
+import com.amazonaws.regions.Regions;
 import com.beust.jcommander.DynamicParameter;
+import com.beust.jcommander.Parameter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * CloudFormation input parameters common to all Cerberus CloudFormation stacks.
@@ -28,6 +31,9 @@ public class CloudFormationParametersDelegate {
 
     public static final String TAG_LONG_ARG = "--TAG";
     public static final String TAG_SHORT_ARG = "-T";
+
+    public static final String STACK_REGION = "--stack-region";
+    public static final String STACK_REGION_DESCRIPTION = "The region for the stack, ex: us-west-2, will default to the primary region.";
 
     @DynamicParameter(
             names = {
@@ -38,8 +44,15 @@ public class CloudFormationParametersDelegate {
     )
     private Map<String, String> tags = new HashMap<>();
 
+    @Parameter(names = STACK_REGION, description = STACK_REGION_DESCRIPTION)
+    private String stackRegion;
+
     public Map<String, String> getTags() {
         return tags;
+    }
+
+    public Optional<Regions> getStackRegion() {
+        return stackRegion == null ? Optional.empty() : Optional.of(Regions.fromName(stackRegion));
     }
 
     public String[] getArgs(){

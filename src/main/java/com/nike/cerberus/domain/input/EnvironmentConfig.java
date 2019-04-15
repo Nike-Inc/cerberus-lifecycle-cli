@@ -19,6 +19,9 @@ package com.nike.cerberus.domain.input;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static com.google.common.collect.MoreCollectors.onlyElement;
 
 /**
  * Stores all YAML data for a given Cerberus environment
@@ -193,13 +196,19 @@ public class EnvironmentConfig {
         return getPrimaryEntry().getValue();
     }
 
+    public RegionSpecificConfigurationInput getRegionConfig(String region) {
+        return Optional.ofNullable(getRegionSpecificConfiguration().get(region))
+            .orElseThrow(() -> new RuntimeException(String
+                .format("Failed to find region config for %s in region specific config", region)));
+    }
+
     public String getPrimaryRegion() {
         return getPrimaryEntry().getKey();
     }
 
     private Map.Entry<String, RegionSpecificConfigurationInput> getPrimaryEntry() {
         return regionSpecificConfiguration.entrySet().stream()
-                .filter(entry -> entry.getValue() != null && entry.getValue().isPrimary()).findFirst()
-                .orElseThrow(() -> new RuntimeException("Failed to find primary region in region specific config"));
+            .filter(entry -> entry.getValue() != null && entry.getValue().isPrimary())
+            .collect(onlyElement());
     }
 }

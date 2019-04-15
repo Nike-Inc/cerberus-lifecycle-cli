@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
 import com.nike.cerberus.domain.cloudformation.SecurityGroupParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
@@ -53,6 +54,7 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
                                          CloudFormationService cloudFormationService,
                                          ConfigStore configStore,
                                          CloudFormationObjectMapper cloudFormationObjectMapper) {
+
         this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
         this.configStore = configStore;
@@ -61,7 +63,10 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
 
     @Override
     public void run(CreateSecurityGroupsCommand command) {
-        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+
+        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs(region);
 
         SecurityGroupParameters securityGroupParameters = new SecurityGroupParameters()
                 .setVpcId(vpcOutputs.getVpcId());
@@ -69,7 +74,7 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(securityGroupParameters);
 
         cloudFormationService.createStackAndWait(
-                configStore.getPrimaryRegion(),
+                region,
                 Stack.SECURITY_GROUPS,
                 parameters,
                 true,
@@ -78,7 +83,10 @@ public class CreateSecurityGroupsOperation implements Operation<CreateSecurityGr
 
     @Override
     public boolean isRunnable(CreateSecurityGroupsCommand command) {
-        return !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
+
+        return !cloudFormationService.isStackPresent(region,
                 Stack.SECURITY_GROUPS.getFullName(environmentName));
     }
 

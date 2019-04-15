@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  */
 public class CmsParameters implements LaunchConfigParameters {
 
-    private String baseStackName;
+    private String cmsIamRoleName;
 
     private String loadBalancerStackName;
 
@@ -38,12 +38,12 @@ public class CmsParameters implements LaunchConfigParameters {
     @JsonUnwrapped
     private LaunchConfigParametersDelegate launchConfigParameters = new LaunchConfigParametersDelegate();
 
-    public String getBaseStackName() {
-        return baseStackName;
+    public String getCmsIamRoleName() {
+        return cmsIamRoleName;
     }
 
-    public CmsParameters setBaseStackName(String baseStackName) {
-        this.baseStackName = baseStackName;
+    public CmsParameters setCmsIamRoleName(String cmsIamRoleName) {
+        this.cmsIamRoleName = cmsIamRoleName;
         return this;
     }
 

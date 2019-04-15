@@ -16,13 +16,18 @@
 
 package com.nike.cerberus.command.core;
 
+import com.amazonaws.regions.Regions;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.operation.core.CreateEdgeDomainRecordOperation;
 
+import java.util.Optional;
+
 import static com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand.COMMAND_NAME;
+import static com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate.STACK_REGION;
+import static com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate.STACK_REGION_DESCRIPTION;
 
 /**
  * Command to create the edge domain Route53 record for Cerberus.
@@ -39,6 +44,9 @@ public class CreateEdgeDomainRecordCommand implements Command {
 
     public static final String EDGE_DOMAIN_NAME_OVERRIDE = "--edge-domain-name-override";
 
+    @Parameter(names = STACK_REGION, description = STACK_REGION_DESCRIPTION)
+    private String stackRegion;
+
     @Parameter(names = BASE_DOMAIN_NAME_LONG_ARG,
             description = "The base domain name for Cerberus (e.g. url: https://env.cerberus.example.com => base hostname: cerberus.example.com)",
             required = true)
@@ -52,6 +60,10 @@ public class CreateEdgeDomainRecordCommand implements Command {
             description = "The Route53 Hosted Zone in which to create the new Cerberus record",
             required = true)
     private String hostedZoneId;
+
+    public Optional<Regions> getStackRegion() {
+        return stackRegion == null ? Optional.empty() : Optional.of(Regions.fromName(stackRegion));
+    }
 
     public String getBaseDomainName() {
         return baseDomainName;

@@ -36,15 +36,12 @@ import com.nike.cerberus.command.certificates.RotateAcmeAccountPrivateKeyCommand
 import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
-import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
-import com.nike.cerberus.command.composite.DeleteEnvironmentCommand;
+import com.nike.cerberus.command.composite.*;
 import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
-import com.nike.cerberus.command.composite.PrintAllStackInformationCommand;
 import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
 import com.nike.cerberus.command.core.CreateAlbLogAthenaDbAndTableCommand;
 import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
 import com.nike.cerberus.command.core.SyncConfigCommand;
-import com.nike.cerberus.command.composite.UpdateAllStackTagsCommand;
 import com.nike.cerberus.command.rds.CleanUpRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
@@ -242,6 +239,7 @@ public class CerberusRunner {
         registerCommand(new UpdateAllStackTagsCommand());
         registerCommand(new SyncConfigCommand());
         registerCommand(new CreateAlbLogAthenaDbAndTableCommand());
+        registerCommand(new CreateCmsResourcesForRegionCommand());
     }
 
     /**

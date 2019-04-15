@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.regions.Regions;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.command.core.CreateAlbLogAthenaDbAndTableCommand;
 import com.nike.cerberus.domain.cloudformation.LoadBalancerOutputs;
@@ -62,8 +63,10 @@ public class CreateAlbLogAthenaDbAndTableOperation implements Operation<CreateAl
 
     @Override
     public void run(CreateAlbLogAthenaDbAndTableCommand command) {
+        Regions region = command.getStackRegion().orElse(configStore.getPrimaryRegion());
+
         LoadBalancerOutputs outputs =
-                configStore.getStackOutputs(configStore.getPrimaryRegion(),
+                configStore.getStackOutputs(region,
                         Stack.LOAD_BALANCER.getFullName(environmentName), LoadBalancerOutputs.class);
 
         String bucketName = outputs.getLoadBalancerAccessLogBucket();
@@ -71,7 +74,7 @@ public class CreateAlbLogAthenaDbAndTableOperation implements Operation<CreateAl
 
         log.info("Creating Athena DB");
         String createDb = "CREATE DATABASE IF NOT EXISTS " + databaseName + ";";
-        log.info(athenaService.executeAthenaQuery(createDb, bucketName).toString());
+        log.info(athenaService.executeAthenaQuery(createDb, bucketName, region).toString());
         log.info("Creating table");
         String createAuditTable;
         try {
@@ -83,14 +86,15 @@ public class CreateAlbLogAthenaDbAndTableOperation implements Operation<CreateAl
         } catch (IOException e) {
             throw new RuntimeException("failed to load create athena table template", e);
         }
-        log.info(athenaService.executeAthenaQuery(createAuditTable, bucketName).toString());
+        log.info(athenaService.executeAthenaQuery(createAuditTable, bucketName, region).toString());
     }
 
     @Override
     public boolean isRunnable(CreateAlbLogAthenaDbAndTableCommand command) {
+        Regions region = command.getStackRegion().orElse(configStore.getPrimaryRegion());
         boolean isRunnable = true;
 
-        if (! cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.LOAD_BALANCER.getFullName(environmentName))) {
+        if (! cloudFormationService.isStackPresent(region, Stack.LOAD_BALANCER.getFullName(environmentName))) {
             log.error("You must create the audit stack using create-alb-log-athena-db-and-table command");
             isRunnable = false;
         }

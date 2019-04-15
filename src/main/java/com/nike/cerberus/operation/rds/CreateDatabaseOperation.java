@@ -67,11 +67,19 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
     @Override
     public void run(CreateDatabaseCommand command) {
-        Regions region = configStore.getPrimaryRegion();
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+            .orElse(configStore.getPrimaryRegion());
 
-        VpcParameters vpcParameters = configStore.getVpcStackParameters();
-        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs();
-        String databasePassword = passwordGenerator.get();
+        VpcParameters vpcParameters = configStore.getVpcStackParameters(region);
+        VpcOutputs vpcOutputs = configStore.getVpcStackOutputs(region);
+
+        String databasePassword;
+        if (region == configStore.getPrimaryRegion()) {
+            databasePassword = passwordGenerator.get();
+        } else {
+            databasePassword = configStore.getCmsDatabasePassword()
+                .orElseThrow(() -> new RuntimeException("Expected the database password to exists before a secondary stack was created!"));
+        }
 
         DatabaseParameters databaseParameters = new DatabaseParameters()
                 .setCmsDbMasterPassword(databasePassword)
@@ -102,16 +110,22 @@ public class CreateDatabaseOperation implements Operation<CreateDatabaseCommand>
 
     @Override
     public boolean isRunnable(CreateDatabaseCommand command) {
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion().orElse(configStore.getPrimaryRegion());
         boolean isRunnable = true;
 
-        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.SECURITY_GROUPS.getFullName(environmentName))) {
+        if (!cloudFormationService.isStackPresent(region, Stack.SECURITY_GROUPS.getFullName(environmentName))) {
             isRunnable = false;
             logger.error("The security group stack must exist to create the the data base stack!");
         }
 
-        if (cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.DATABASE.getFullName(environmentName))) {
+        if (cloudFormationService.isStackPresent(region, Stack.DATABASE.getFullName(environmentName))) {
             isRunnable = false;
             logger.error("The database stack already exists, use update-stack");
+        }
+
+        if (region != configStore.getPrimaryRegion() && !configStore.getCmsDatabasePassword().isPresent()) {
+            isRunnable = false;
+            logger.error("Expected the database password to exists before a secondary stack was created!");
         }
 
         return isRunnable;

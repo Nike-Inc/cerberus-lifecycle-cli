@@ -80,7 +80,7 @@ public class CreateAuditAthenaDbAndTableOperation implements Operation<CreateAud
 
         log.info("Creating Athena DB");
         String createDb = "CREATE DATABASE IF NOT EXISTS " + databaseName + ";";
-        log.info(athenaService.executeAthenaQuery(createDb, bucketName).toString());
+        log.info(athenaService.executeAthenaQuery(createDb, bucketName, configStore.getPrimaryRegion()).toString());
         log.info("Creating table");
         String createAuditTable;
         try {
@@ -91,7 +91,7 @@ public class CreateAuditAthenaDbAndTableOperation implements Operation<CreateAud
         } catch (IOException e) {
             throw new RuntimeException("failed to load create athena table template", e);
         }
-        log.info(athenaService.executeAthenaQuery(createAuditTable, bucketName).toString());
+        log.info(athenaService.executeAthenaQuery(createAuditTable, bucketName, configStore.getPrimaryRegion()).toString());
     }
 
     @Override
