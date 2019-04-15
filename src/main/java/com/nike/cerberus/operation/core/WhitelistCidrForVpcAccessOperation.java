@@ -111,8 +111,8 @@ public class WhitelistCidrForVpcAccessOperation implements Operation<WhitelistCi
         Regions region = command.getStackRegion().orElse(configStore.getPrimaryRegion());
         try {
             cloudFormationService.getStackId(region, Stack.SECURITY_GROUPS.getFullName(environmentName));
-        } catch (IllegalArgumentException iae) {
-            logger.error("The security group stack must exist before you can white list ingress to the VPC Ingress SG.", iae);
+        } catch (Exception e) {
+            logger.error("The security group stack must exist before you can white list ingress to the VPC Ingress SG.", e);
             return false;
         }
 
