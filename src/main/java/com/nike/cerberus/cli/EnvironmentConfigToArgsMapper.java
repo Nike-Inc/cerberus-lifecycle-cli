@@ -30,14 +30,12 @@ import com.nike.cerberus.command.composite.UpdateAllStackTagsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommandParametersDelegate;
-import com.nike.cerberus.command.rds.RestoreRdsSnapshotCommand;
 import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementServiceInput;
 import com.nike.cerberus.domain.input.ManagementServiceRegionSpecificInput;
 import com.nike.cerberus.domain.input.RegionSpecificConfigurationInput;
 import com.nike.cerberus.domain.input.VpcAccessWhitelistInput;
-import com.nike.cerberus.operation.rds.RestoreRdsSnapshotOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
@@ -173,9 +171,6 @@ public class EnvironmentConfigToArgsMapper {
                 args = getCreateAlbLogAthenaDbAndTableCommandArg(environmentConfig, stackRegion);
                 break;
             case CreateCmsResourcesForRegionCommand.COMMAND_NAME:
-                args = Arrays.asList(passedArgs);
-                break;
-            case RestoreRdsSnapshotCommand.COMMAND_NAME:
                 args = Arrays.asList(passedArgs);
                 break;
             default:

@@ -62,7 +62,6 @@ import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.core.ViewConfigCommand;
 import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 import com.nike.cerberus.command.core.UpdateStackTagsCommand;
-import com.nike.cerberus.command.rds.RestoreRdsSnapshotCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
 import com.nike.cerberus.module.CerberusModule;
@@ -241,7 +240,6 @@ public class CerberusRunner {
         registerCommand(new SyncConfigCommand());
         registerCommand(new CreateAlbLogAthenaDbAndTableCommand());
         registerCommand(new CreateCmsResourcesForRegionCommand());
-        registerCommand(new RestoreRdsSnapshotCommand());
     }
 
     /**

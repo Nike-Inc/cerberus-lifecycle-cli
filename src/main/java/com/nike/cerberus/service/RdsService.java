@@ -50,8 +50,8 @@ public class RdsService {
     private final AwsClientFactory<AmazonRDSClient> amazonRDSClientFactory;
     private final ConfigStore configStore;
     private final String environmentName;
-    private final String DESIRED_STATE = "available";
-    private final String COPYING_STATE = "copying";
+    private static final String DESIRED_STATE = "available";
+    private static final String COPYING_STATE = "copying";
 
     @Inject
     public RdsService(AwsClientFactory<AmazonRDSClient> amazonRDSClientFactory,

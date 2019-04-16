@@ -115,7 +115,6 @@ public abstract class CompositeOperation<T extends Command> implements Operation
         }
     }
 
-
     /**
      * Implement this method to define the ordered list of chained commands that will get executed
      *
