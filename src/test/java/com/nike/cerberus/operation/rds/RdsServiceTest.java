@@ -16,8 +16,11 @@
 
 package com.nike.cerberus.operation.rds;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.DBClusterSnapshot;
+import com.amazonaws.services.rds.model.DescribeDBClusterSnapshotsResult;
+import com.nike.cerberus.operation.UnexpectedRdsSnapshotStatusException;
 import com.nike.cerberus.service.AwsClientFactory;
 import com.nike.cerberus.service.RdsService;
 import com.nike.cerberus.store.ConfigStore;
@@ -29,9 +32,14 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Deque;
+import java.util.LinkedList;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class RdsServiceTest {
 
@@ -43,10 +51,14 @@ public class RdsServiceTest {
     private RdsService rdsService;
 
     @Mock
+    private AmazonRDSClient amazonRDSClient;
+
+    @Mock
     private AwsClientFactory<AmazonRDSClient> rdsClientFactory;
 
     @Before
     public void before() {
+        initMocks(this);
         rdsService = new RdsService(rdsClientFactory, configStore, envName);
     }
 
@@ -93,4 +105,31 @@ public class RdsServiceTest {
         assertFalse(actual);
     }
 
+    @Test
+    public void test_that_wait_for_snapshot_to_become_available_returns_when_snapshot_status_is_available() {
+        Deque<DBClusterSnapshot> dbClusterSnapshots = new LinkedList<>();
+        dbClusterSnapshots.add(new DBClusterSnapshot().withDBClusterSnapshotIdentifier("ssid").withStatus("available"));
+        Deque<Regions> regions = new LinkedList<>();
+        regions.add(Regions.US_EAST_1);
+
+        when(rdsClientFactory.getClient(Regions.US_EAST_1)).thenReturn(amazonRDSClient);
+        DescribeDBClusterSnapshotsResult result = new DescribeDBClusterSnapshotsResult().withDBClusterSnapshots(dbClusterSnapshots);
+        when(amazonRDSClient.describeDBClusterSnapshots(any())).thenReturn(result);
+
+        rdsService.waitForSnapshotsToBecomeAvailable(dbClusterSnapshots, regions);
+    }
+
+    @Test(expected = UnexpectedRdsSnapshotStatusException.class)
+    public void test_that_wait_for_snapshot_to_become_available_throws_exception_when_snapshot_status_is_unknown() {
+        Deque<DBClusterSnapshot> dbClusterSnapshots = new LinkedList<>();
+        dbClusterSnapshots.add(new DBClusterSnapshot().withDBClusterSnapshotIdentifier("ssid").withStatus("unknown"));
+        Deque<Regions> regions = new LinkedList<>();
+        regions.add(Regions.US_EAST_1);
+
+        when(rdsClientFactory.getClient(Regions.US_EAST_1)).thenReturn(amazonRDSClient);
+        DescribeDBClusterSnapshotsResult result = new DescribeDBClusterSnapshotsResult().withDBClusterSnapshots(dbClusterSnapshots);
+        when(amazonRDSClient.describeDBClusterSnapshots(any())).thenReturn(result);
+
+        rdsService.waitForSnapshotsToBecomeAvailable(dbClusterSnapshots, regions);
+    }
 }

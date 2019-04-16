@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,6 +70,9 @@ public class CopyRdsSnapshotsOperation implements Operation<CopyRdsSnapshotsComm
                         rdsService.wasSnapshotGeneratedFromCmsCluster(dbSnapshot) && rdsService.isSnapshotNewerThanGivenDays(dbSnapshot, command.getDays())
                 ).collect(Collectors.toList());
 
+        Deque<DBClusterSnapshot> copiedSnapshots = new LinkedList<>();
+        Deque<Regions> snapshotRegions = new LinkedList<>();
+
         configStore.getConfigEnabledRegions().forEach(region -> {
             if (region.equals(primaryRegion)) {
                 return;
@@ -84,13 +89,18 @@ public class CopyRdsSnapshotsOperation implements Operation<CopyRdsSnapshotsComm
                     log.info("Preparing to initiate copy of RDS DB Snapshot: {} located in region: {} to region: {}",
                             fromSnapshot.getDBClusterSnapshotIdentifier(), primaryRegion, region);
 
-                    rdsService.copySnapshot(fromSnapshot, primaryRegion, region);
+                    copiedSnapshots.offer(rdsService.copySnapshot(fromSnapshot, primaryRegion, region));
+                    snapshotRegions.offer(region);
                 } else {
                     log.info("Snapshot: {} already copied to region: {}, skipping...", rdsService.getIdentifier(fromSnapshot), region);
                 }
             });
         });
-        log.info("Finished issuing copy api calls to aws, it can take a long time for copies to finish.");
+        if (command.isSynchronous()){
+            rdsService.waitForSnapshotsToBecomeAvailable(copiedSnapshots, snapshotRegions);
+        } else {
+            log.info("Finished issuing copy api calls to aws, it can take a long time for copies to finish.");
+        }
     }
 
 
@@ -101,7 +111,7 @@ public class CopyRdsSnapshotsOperation implements Operation<CopyRdsSnapshotsComm
 
         if (! cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
                 Stack.DATABASE.getFullName(environmentName))) {
-            log.error("The Database stuck must exist in the primary region in order to duplicate snapshots");
+            log.error("The Database stack must exist in the primary region in order to duplicate snapshots");
             isRunnable = false;
         }
 

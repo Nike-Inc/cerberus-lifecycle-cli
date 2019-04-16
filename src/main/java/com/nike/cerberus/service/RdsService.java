@@ -25,7 +25,9 @@ import com.amazonaws.services.rds.model.DeleteDBClusterSnapshotRequest;
 import com.amazonaws.services.rds.model.DescribeDBClusterSnapshotsRequest;
 import com.amazonaws.services.rds.model.DescribeDBClusterSnapshotsResult;
 import com.amazonaws.services.rds.model.Tag;
+import com.nike.cerberus.operation.UnexpectedRdsSnapshotStatusException;
 import com.nike.cerberus.store.ConfigStore;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -47,6 +50,8 @@ public class RdsService {
     private final AwsClientFactory<AmazonRDSClient> amazonRDSClientFactory;
     private final ConfigStore configStore;
     private final String environmentName;
+    private static final String DESIRED_STATE = "available";
+    private static final String COPYING_STATE = "copying";
 
     @Inject
     public RdsService(AwsClientFactory<AmazonRDSClient> amazonRDSClientFactory,
@@ -64,9 +69,9 @@ public class RdsService {
      * @param fromRegion The from region
      * @param toRegion The to region
      */
-    public void copySnapshot(DBClusterSnapshot fromSnapshot, Regions fromRegion, Regions toRegion) {
+    public DBClusterSnapshot copySnapshot(DBClusterSnapshot fromSnapshot, Regions fromRegion, Regions toRegion) {
         AmazonRDS rds = amazonRDSClientFactory.getClient(toRegion);
-        rds.copyDBClusterSnapshot(new CopyDBClusterSnapshotRequest()
+        DBClusterSnapshot dbClusterSnapshot = rds.copyDBClusterSnapshot(new CopyDBClusterSnapshotRequest()
                 .withCopyTags(true)
                 .withSourceDBClusterSnapshotIdentifier(fromSnapshot.getDBClusterSnapshotArn())
                 .withTargetDBClusterSnapshotIdentifier(getIdentifier(fromSnapshot))
@@ -76,6 +81,7 @@ public class RdsService {
                         new Tag().withKey("created_by").withValue("cerberus_cli")
                 )
         );
+        return dbClusterSnapshot;
     }
 
     /**
@@ -140,5 +146,56 @@ public class RdsService {
 
         amazonRDSClientFactory.getClient(region).deleteDBClusterSnapshot(new DeleteDBClusterSnapshotRequest()
                 .withDBClusterSnapshotIdentifier(snapshot.getDBClusterSnapshotIdentifier()));
+    }
+
+    /**
+     * Wait for a Deque of RDS cluster snapshots to become available in a round robin fashion.
+     *
+     * @param snapshots The snapshots to query status
+     * @param regions The regions that the snapshots are in. The order of regions should match the snapshots'
+     */
+    public void waitForSnapshotsToBecomeAvailable(Deque<DBClusterSnapshot> snapshots, Deque<Regions> regions) {
+        while (!snapshots.isEmpty()) {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            DBClusterSnapshot snapshot = snapshots.poll();
+            Regions region = regions.poll();
+            String snapshotIdentifier = snapshot.getDBClusterSnapshotIdentifier();
+            String status = getSnapshotStatus(snapshotIdentifier, region);
+
+            if (DESIRED_STATE.equals(status)) {
+                log.info("RDS cluster snapshot in region {} is available.", region.getName());
+            } else if (COPYING_STATE.equals(status)){
+                log.info("Waiting for RDS cluster snapshot in region {} to become available.", region.getName());
+                snapshots.offer(snapshot);
+                regions.offer(region);
+            } else {
+                throw new UnexpectedRdsSnapshotStatusException(
+                        String.format("Failed to copy RDS cluster snapshot %s to region: %s, status: %s",
+                                snapshotIdentifier, region.getName(), status));
+            }
+        }
+        log.info("All RDS snapshots are available.");
+    }
+
+    private String getSnapshotStatus(String snapshotIdentifier, Regions region) {
+        AmazonRDS rds = amazonRDSClientFactory.getClient(region);
+        DescribeDBClusterSnapshotsRequest request = new DescribeDBClusterSnapshotsRequest()
+                .withDBClusterSnapshotIdentifier(snapshotIdentifier);
+
+        DescribeDBClusterSnapshotsResult result = rds.describeDBClusterSnapshots(request);
+
+        if (result.getDBClusterSnapshots().size() > 0) {
+            String status = result.getDBClusterSnapshots().get(0).getStatus();
+
+            if (StringUtils.isNotBlank(status)) {
+                return status;
+            }
+        }
+
+        return null;
     }
 }

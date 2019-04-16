@@ -34,6 +34,8 @@ public class CopyRdsSnapshotsCommand implements Command {
 
     public static final String DAYS_LONG_ARG = "--days";
 
+    public static final String SYNC_LONG_ARG = "--sync";
+
     @Parameter(
             names = DAYS_LONG_ARG,
             description = "How old a RDS cluster snapshot can be and still be considered for copying, defaults to 1 day"
@@ -44,6 +46,15 @@ public class CopyRdsSnapshotsCommand implements Command {
         return days;
     }
 
+    @Parameter(
+            names = SYNC_LONG_ARG,
+            description = "Running this command in synchronous mode. The command will wait for copy action to finish."
+    )
+    boolean synchronous = false;
+
+    public boolean isSynchronous() {
+        return synchronous;
+    }
 
     @Override
     public String getCommandName() {
