@@ -90,7 +90,7 @@ public class CleanUpRdsSnapshotsOperation implements Operation<CleanUpRdsSnapsho
 
         if (! cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
                 Stack.DATABASE.getFullName(environmentName))) {
-            log.error("The Database stuck must exist in the primary region in order to have snapshots to clean up");
+            log.error("The Database stack must exist in the primary region in order to have snapshots to clean up");
             isRunnable = false;
         }
 

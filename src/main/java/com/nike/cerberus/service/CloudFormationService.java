@@ -228,7 +228,10 @@ public class CloudFormationService {
             request.getCapabilities().add("CAPABILITY_IAM");
         }
 
-        request.setTags(getTags(globalTags));
+        // do not modify tags when null is provided
+        if (globalTags != null){
+            request.setTags(getTags(globalTags));
+        }
 
         AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
         cloudFormationClient.updateStack(request);
