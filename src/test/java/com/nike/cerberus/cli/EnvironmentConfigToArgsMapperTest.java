@@ -34,6 +34,7 @@ import org.junit.Test;
 
 import java.io.InputStream;
 
+import static com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate.STACK_REGION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -154,6 +155,7 @@ public class EnvironmentConfigToArgsMapperTest {
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
+                STACK_REGION, "us-west-2",
                 StackDelegate.AMI_ID_LONG_ARG, "ami-3333",
                 StackDelegate.INSTANCE_SIZE_LONG_ARG, "m3.medium",
                 StackDelegate.KEY_PAIR_NAME_LONG_ARG, "cerberus-test",
@@ -176,6 +178,7 @@ public class EnvironmentConfigToArgsMapperTest {
         String[] expected = {
                 "-f", "/path/to/environment.yaml",
                 commandName,
+                STACK_REGION, "us-west-2",
                 WhitelistCidrForVpcAccessCommand.CIDR_LONG_ARG, "50.39.106.150/32",
                 WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "8443",
                 WhitelistCidrForVpcAccessCommand.PORT_LONG_ARG, "22"
