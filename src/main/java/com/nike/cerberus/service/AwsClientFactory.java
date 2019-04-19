@@ -18,11 +18,7 @@ package com.nike.cerberus.service;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
-import com.amazonaws.auth.SystemPropertiesCredentialsProvider;
+import com.amazonaws.auth.*;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -90,7 +86,8 @@ abstract public class AwsClientFactory<T extends AmazonWebServiceClient> {
                 new SystemPropertiesCredentialsProvider(),
                 new ProfileCredentialsProvider(),
                 sTSAssumeRoleSessionCredentialsProvider,
-                InstanceProfileCredentialsProvider.getInstance());
+                InstanceProfileCredentialsProvider.getInstance(),
+                new EC2ContainerCredentialsProviderWrapper());
 
         return chain;
     }

@@ -17,6 +17,9 @@
 package com.nike.cerberus.cli;
 
 import ch.qos.logback.classic.Level;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.securitytoken.model.GetCallerIdentityRequest;
 import com.beust.jcommander.JCommander;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.common.collect.ImmutableList;
@@ -143,6 +146,9 @@ public class CerberusRunner {
 
                 Operation operation = injector.getInstance(command.getOperationClass());
 
+                printIAMInfo(cerberusCommand);
+                printCliVersion();
+
                 if (operation.isRunnable(command)) {
                     log.info("Running command: {}", commandName);
                     operation.run(command);
@@ -193,10 +199,19 @@ public class CerberusRunner {
     private void printCliVersion() {
         Injector propsInjector = Guice.createInjector(new PropsModule());
         String version = propsInjector.getInstance(Key.get(String.class, Names.named(ConfigConstants.VERSION_PROPERTY)));
-        String versionMessage = Chalk.on(String.format("Cerberus Lifecycle CLI version: %s", version)).green().bold().toString();
+        String versionMessage = String.format("Cerberus Lifecycle CLI version: %s", version);
         System.out.println(versionMessage);
     }
 
+    private void printIAMInfo(CerberusCommand cerberusCommand) {
+        try {
+            AWSSecurityTokenService tokenServiceClient = AWSSecurityTokenServiceClient.builder().withRegion(cerberusCommand.getConfigRegion()).build();
+            String arn = tokenServiceClient.getCallerIdentity(new GetCallerIdentityRequest()).getArn();
+            System.out.println(String.format("Running CLI as IAM Principal: %s", arn));
+        } catch (Throwable t) {
+            System.out.println("Unable to determine IAM Principal, are AWS credentials available?");
+        }
+    }
 
     /**
      * Convenience method for registering all top level commands.

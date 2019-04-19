@@ -48,6 +48,8 @@ public class CerberusCommand {
 
     private EnvironmentConfig environmentConfig;
 
+    private String parsedRegion = null;
+
     @Parameter
     private List<String> parameters = new ArrayList<>();
 
@@ -152,6 +154,10 @@ public class CerberusCommand {
      * 3. If 1 and 2 fail look for value in CERBERUS_CLI_REGION env var
      */
     public String getConfigRegion() {
+        if (parsedRegion != null) {
+            return parsedRegion;
+        }
+
         String commandLinePassedRegion = region;
         String environmentConfigFileRegion = getEnvironmentConfig() == null ? null : getEnvironmentConfig().getPrimaryRegion();
         String EnvironmentalVarRegion = System.getenv("CERBERUS_CLI_REGION");
@@ -165,7 +171,8 @@ public class CerberusCommand {
             calculatedRegion = Regions.DEFAULT_REGION.getName();
         }
 
-        return calculatedRegion;
+        parsedRegion = calculatedRegion;
+        return parsedRegion;
     }
 
     public boolean isDebug() {
