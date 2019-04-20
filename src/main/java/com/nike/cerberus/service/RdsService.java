@@ -20,6 +20,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.rds.AmazonRDS;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.CopyDBClusterSnapshotRequest;
+import com.amazonaws.services.rds.model.CreateDBClusterSnapshotRequest;
 import com.amazonaws.services.rds.model.DBClusterSnapshot;
 import com.amazonaws.services.rds.model.DeleteDBClusterSnapshotRequest;
 import com.amazonaws.services.rds.model.DescribeDBClusterSnapshotsRequest;
@@ -34,8 +35,10 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -52,6 +55,7 @@ public class RdsService {
     private final String environmentName;
     private static final String DESIRED_STATE = "available";
     private static final String COPYING_STATE = "copying";
+    private static final String CREATING_STATE = "creating";
 
     @Inject
     public RdsService(AwsClientFactory<AmazonRDSClient> amazonRDSClientFactory,
@@ -149,6 +153,20 @@ public class RdsService {
     }
 
     /**
+     * Wait for a single RDS cluster snapshots to become available.
+     *
+     * @param snapshot The snapshot to query status
+     * @param region The region that the snapshot is in
+     */
+    public void waitForSnapshotsToBecomeAvailable(DBClusterSnapshot snapshot, Regions region) {
+        Deque<DBClusterSnapshot> snapshots = new LinkedList<>();
+        snapshots.offer(snapshot);
+        Deque<Regions> regions = new LinkedList<>();
+        regions.offer(region);
+        waitForSnapshotsToBecomeAvailable(snapshots, regions);
+    }
+
+    /**
      * Wait for a Deque of RDS cluster snapshots to become available in a round robin fashion.
      *
      * @param snapshots The snapshots to query status
@@ -167,18 +185,35 @@ public class RdsService {
             String status = getSnapshotStatus(snapshotIdentifier, region);
 
             if (DESIRED_STATE.equals(status)) {
-                log.info("RDS cluster snapshot in region {} is available.", region.getName());
-            } else if (COPYING_STATE.equals(status)){
-                log.info("Waiting for RDS cluster snapshot in region {} to become available.", region.getName());
+                log.info("RDS cluster snapshot {} in region {} is available.", snapshotIdentifier, region.getName());
+            } else if (COPYING_STATE.equals(status) || CREATING_STATE.equals(status)){
+                log.info("Waiting for RDS cluster snapshot {} in region {} to become available.",
+                        snapshotIdentifier, region.getName());
                 snapshots.offer(snapshot);
                 regions.offer(region);
             } else {
                 throw new UnexpectedRdsSnapshotStatusException(
-                        String.format("Failed to copy RDS cluster snapshot %s to region: %s, status: %s",
+                        String.format("RDS cluster snapshot %s in region: %s is in undesired status: %s",
                                 snapshotIdentifier, region.getName(), status));
             }
         }
         log.info("All RDS snapshots are available.");
+    }
+
+    /**
+     * Creates a RDS DB Cluster Snapshot in a given region.
+     *
+     * @param clusterIdentifer The identifier of RDS cluster to take snapshot of
+     * @param region The region the RDS cluster is in
+     */
+    public DBClusterSnapshot createSnapshot(String clusterIdentifer, Regions region) {
+        AmazonRDS rds = amazonRDSClientFactory.getClient(region);
+        String snapshotIdentifier = generateSnapshotIdentifier(clusterIdentifer, LocalDateTime.now());
+        CreateDBClusterSnapshotRequest request = new CreateDBClusterSnapshotRequest()
+                .withDBClusterIdentifier(clusterIdentifer)
+                .withDBClusterSnapshotIdentifier(snapshotIdentifier);
+        DBClusterSnapshot dbClusterSnapshot = rds.createDBClusterSnapshot(request);
+        return dbClusterSnapshot;
     }
 
     private String getSnapshotStatus(String snapshotIdentifier, Regions region) {
@@ -197,5 +232,11 @@ public class RdsService {
         }
 
         return null;
+    }
+
+    protected String generateSnapshotIdentifier(String clusterIdentifer, LocalDateTime localDateTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm");
+        String formatDateTime = localDateTime.format(formatter);
+        return clusterIdentifer + "-" + formatDateTime;
     }
 }
