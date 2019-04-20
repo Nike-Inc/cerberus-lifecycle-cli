@@ -125,6 +125,9 @@ public class CerberusRunner {
             } else if (cerberusCommand.isHelp() || commandName == null) {
                 cerberusHelp.print();
             } else {
+                printIAMInfo(cerberusCommand);
+                printCliVersion();
+
                 Injector injector = Guice.createInjector(new CerberusModule(cerberusCommand), new PropsModule());
 
                 // fail early if there is any problem in local environment
@@ -145,9 +148,6 @@ public class CerberusRunner {
                 }
 
                 Operation operation = injector.getInstance(command.getOperationClass());
-
-                printIAMInfo(cerberusCommand);
-                printCliVersion();
 
                 if (operation.isRunnable(command)) {
                     log.info("Running command: {}", commandName);
