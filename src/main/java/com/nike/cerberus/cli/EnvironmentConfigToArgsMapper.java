@@ -30,7 +30,7 @@ import com.nike.cerberus.command.composite.UpdateAllStackTagsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommandParametersDelegate;
-import com.nike.cerberus.command.rds.XRegionRestoreRdsSnapshotCommand;
+import com.nike.cerberus.command.rds.XRegionDatabaseReplicationCommand;
 import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.domain.input.ManagementServiceInput;
@@ -174,7 +174,7 @@ public class EnvironmentConfigToArgsMapper {
             case CreateCmsResourcesForRegionCommand.COMMAND_NAME:
                 args = Arrays.asList(passedArgs);
                 break;
-            case XRegionRestoreRdsSnapshotCommand.COMMAND_NAME:
+            case XRegionDatabaseReplicationCommand.COMMAND_NAME:
                 args = Arrays.asList(passedArgs);
                 break;
             default:

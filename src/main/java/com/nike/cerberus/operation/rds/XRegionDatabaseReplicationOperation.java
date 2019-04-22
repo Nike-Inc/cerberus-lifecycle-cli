@@ -21,7 +21,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.cloudformation.model.StackResourceSummary;
 import com.amazonaws.services.rds.model.DBClusterSnapshot;
 import com.google.common.collect.ImmutableList;
-import com.nike.cerberus.command.rds.XRegionRestoreRdsSnapshotCommand;
+import com.nike.cerberus.command.rds.XRegionDatabaseReplicationCommand;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
@@ -40,11 +40,11 @@ import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 
 /**
- * Operation for XRegionRestoreRdsSnapshotCommand
+ * Operation for XRegionDatabaseReplicationCommand
  *
  * Restores rds cluster in the target region for this environment from a fresh RDS cluster snapshot created in the source region
  */
-public class XRegionRestoreRdsSnapshotOperation implements Operation<XRegionRestoreRdsSnapshotCommand> {
+public class XRegionDatabaseReplicationOperation implements Operation<XRegionDatabaseReplicationCommand> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -54,10 +54,10 @@ public class XRegionRestoreRdsSnapshotOperation implements Operation<XRegionRest
     private final CloudFormationService cloudFormationService;
 
     @Inject
-    public XRegionRestoreRdsSnapshotOperation(ConfigStore configStore,
-                                              @Named(ENV_NAME) String environmentName,
-                                              RdsService rdsService,
-                                              CloudFormationService cloudFormationService) {
+    public XRegionDatabaseReplicationOperation(ConfigStore configStore,
+                                               @Named(ENV_NAME) String environmentName,
+                                               RdsService rdsService,
+                                               CloudFormationService cloudFormationService) {
 
         this.configStore = configStore;
         this.environmentName = environmentName;
@@ -66,7 +66,7 @@ public class XRegionRestoreRdsSnapshotOperation implements Operation<XRegionRest
     }
 
     @Override
-    public void run(XRegionRestoreRdsSnapshotCommand command) {
+    public void run(XRegionDatabaseReplicationCommand command) {
         Regions sourceRegion = Regions.fromName(command.getSourceRegion());
         Regions targetRegion = Regions.fromName(command.getTargetRegion());
 
@@ -125,7 +125,7 @@ public class XRegionRestoreRdsSnapshotOperation implements Operation<XRegionRest
 
 
     @Override
-    public boolean isRunnable(XRegionRestoreRdsSnapshotCommand command) {
+    public boolean isRunnable(XRegionDatabaseReplicationCommand command) {
         boolean isRunnable = true;
         Regions targetRegion = Regions.fromName(command.getTargetRegion());
         Regions sourceRegion = Regions.fromName(command.getSourceRegion());
