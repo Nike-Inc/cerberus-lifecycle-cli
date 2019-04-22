@@ -51,7 +51,6 @@ import com.google.common.collect.Sets;
 import com.nike.cerberus.ConfigConstants;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.UnexpectedCloudFormationStatusException;
-import com.nike.cerberus.store.ConfigStore;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -68,7 +67,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +88,10 @@ public class CloudFormationService {
     private final AwsClientFactory<AmazonCloudFormationClient> cloudFormationClientFactory;
 
     private final String environmentName;
+
+    private static final String WAITER_TIMEOUT_ERROR_MESSAGE = "Reached maximum attempts without transitioning to the desired state";
+
+    private static final int EXTENDED_WAITER_RETRY_COUNT = 3;
 
     @Inject
     public CloudFormationService(AwsClientFactory<AmazonCloudFormationClient> cloudFormationClientFactory,
@@ -198,13 +200,15 @@ public class CloudFormationService {
      * @param iamCapabilities flag for iam capabilities
      * @param overwrite overwrite the deployed template with the current template in the cli
      * @param globalTags map of tags to apply to all resources created/updated
+     * @param extended extend waiter timeout to 3 hours
      */
     public void updateStackAndWait(Regions region,
                                    Stack stack,
                                    Map<String, String> parameters,
                                    boolean iamCapabilities,
                                    boolean overwrite,
-                                   Map<String, String> globalTags) {
+                                   Map<String, String> globalTags,
+                                   boolean extended) {
 
         String stackName = stack.getFullName(environmentName);
 
@@ -236,7 +240,27 @@ public class CloudFormationService {
         AmazonCloudFormation cloudFormationClient = cloudFormationClientFactory.getClient(region);
         cloudFormationClient.updateStack(request);
 
-        waitAndPrintCFEvents(region, stackName, new AmazonCloudFormationWaiters(cloudFormationClient).stackUpdateComplete());
+        if (extended) {
+            // horrible hack because Amazon has made it basically impossible to customize waiter
+            int retry_counter = 0;
+            while (retry_counter < EXTENDED_WAITER_RETRY_COUNT) {
+                try {
+                    waitAndPrintCFEvents(region, stackName, new AmazonCloudFormationWaiters(cloudFormationClient).stackUpdateComplete());
+                    break;
+                } catch (UnexpectedCloudFormationStatusException e) {
+                    if (e.getMessage().contains(WAITER_TIMEOUT_ERROR_MESSAGE) && retry_counter < EXTENDED_WAITER_RETRY_COUNT - 1) {
+                        retry_counter ++;
+                        continue;
+                    } else {
+                        // throw when it's not timeout or if it's the last retry
+                        throw e;
+                    }
+                }
+            }
+        } else {
+            waitAndPrintCFEvents(region, stackName, new AmazonCloudFormationWaiters(cloudFormationClient).stackUpdateComplete());
+        }
+
 
     }
 

@@ -100,8 +100,8 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                     parameters,
                     true,
                     command.isOverwriteTemplate(),
-                    command.getCloudFormationParametersDelegate().getTags()
-            );
+                    command.getCloudFormationParametersDelegate().getTags(),
+                    false);
 
             logger.info("Update complete.");
         } catch (AmazonServiceException ase) {

@@ -78,8 +78,8 @@ public class UpdateStackTagsOperation implements Operation<UpdateStackTagsComman
                     parameters,
                     true,
                     false,
-                    command.getCloudFormationParametersDelegate().getTags()
-            );
+                    command.getCloudFormationParametersDelegate().getTags(),
+                    false);
 
             logger.info("Update complete.");
         } catch (AmazonServiceException ase) {
