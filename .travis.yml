@@ -4,13 +4,26 @@ dist: trusty
 jdk:
 - oraclejdk8
 deploy:
-  skip_cleanup: true
-  provider: releases
-  api_key:
-    secure: zTWwtKK04GdO6dyl5R501Wi8I3C5TKlXjxSarRtOT6Mj6fABPoH3ai2T79/PxfNvzrdnLmZ8vjRrapx+lmfUOfa5lw6XT5txpDvlalrWa71tzGbH/4RyIHFQ0ee9VVrEJhpJmJFGskBNqZvRg/OSxT3RvbUXiUxapEUoSMPK2ZUvHlTNBWivMj5gFJghGT8EBX389rkbvX5qaIwRvly74+PMUgaZjD3bpu924l4fLws7hyWDDBk0RYRPdYcgRKpViXoU4EO1kMhPOib3Zig06115PJ5RyYadC32Ovefz8sRsaFBZNtwGgBMMMjlKrq6qdeTmYKPVllMgPqR+W6hO0AA8bL77qoCikBNF3os/+aWYB8Y3ZTEJ/vpRXM6071wAFtSH/3bTBVqdxvbalcNN45F3TqMDCjf+GWaEA3X3RxNfxKaCMMAio01qwSupUhJqDKAAV8mnxTl7wZZPbd6UeCkuWk14pqSCreU+9qY/B9h0LWbZE2zV5sKGPW/30StFmRiT/s8hWcdSE2bA0/NJM2t2NiL35xmcvEQiCxj1XkMxaNckAQL0LMx2DCMM+gwkmLNq+TwY/QFvjOSF9V3pkYhj9jmFKUGEs5tM41bxwEj/CgmgiCPcGotwhrFSF4MZ/H91WKIW6L/HExuOX2VCs/rYHgjxnShs9pgrxHvvY/I=
-  file:
+  -
+    skip_cleanup: true
+    provider: releases
+    api_key:
+      secure: zTWwtKK04GdO6dyl5R501Wi8I3C5TKlXjxSarRtOT6Mj6fABPoH3ai2T79/PxfNvzrdnLmZ8vjRrapx+lmfUOfa5lw6XT5txpDvlalrWa71tzGbH/4RyIHFQ0ee9VVrEJhpJmJFGskBNqZvRg/OSxT3RvbUXiUxapEUoSMPK2ZUvHlTNBWivMj5gFJghGT8EBX389rkbvX5qaIwRvly74+PMUgaZjD3bpu924l4fLws7hyWDDBk0RYRPdYcgRKpViXoU4EO1kMhPOib3Zig06115PJ5RyYadC32Ovefz8sRsaFBZNtwGgBMMMjlKrq6qdeTmYKPVllMgPqR+W6hO0AA8bL77qoCikBNF3os/+aWYB8Y3ZTEJ/vpRXM6071wAFtSH/3bTBVqdxvbalcNN45F3TqMDCjf+GWaEA3X3RxNfxKaCMMAio01qwSupUhJqDKAAV8mnxTl7wZZPbd6UeCkuWk14pqSCreU+9qY/B9h0LWbZE2zV5sKGPW/30StFmRiT/s8hWcdSE2bA0/NJM2t2NiL35xmcvEQiCxj1XkMxaNckAQL0LMx2DCMM+gwkmLNq+TwY/QFvjOSF9V3pkYhj9jmFKUGEs5tM41bxwEj/CgmgiCPcGotwhrFSF4MZ/H91WKIW6L/HExuOX2VCs/rYHgjxnShs9pgrxHvvY/I=
+    file:
     - build/libs/cerberus.jar
     - cerberus
-  on:
-    repo: Nike-Inc/cerberus-lifecycle-cli
-    tags: true
+    on:
+      repo: Nike-Inc/cerberus-lifecycle-cli
+      tags: true
+  -
+    skip_cleanup: true
+    provider: script
+    script: docker-deploy.sh
+    on:
+      repo: Nike-Inc/cerberus-lifecycle-cli
+      tags: true
+
+env:
+  global:
+  - secure: kGlXOj3UIpEj4MZ6HWGxe9mHOU6Z06MDWKTiQyWW+RihdFfQSxEIFGzLO/8tD8pXWKRmurQ25FHx30SUjVmq6N1ZVI9cS6QNR01ssCmnz26zroNGliIkx6meRs04RiN57inC095qz9ii08j4jiRHge9YqbbfXu+ea2S4uyzNoz3ACxXy1V8zmAHN7QdnlnPA7PbU4HT6oVQCts2WUx2t0sJI5gx7ljZxAQsyRwZTo2w6dLObmIvV+b+/rfoc2m0D+QkQxk/8HyKfnME9nZt4XbpiXH24eY2zYCDzZuAVmixrsJ5RXm9C2ppi6Fj7gsJaV9/uKp9PR2cTM1raYYYEFsd5X7ieTxLh89WBkzS7DLJ3ZhvrO+kRJi2biRvd8qPxFBS8SxEoddTw3X5vn0C684Fj8qsrusDtWmMPVMTgwJ2I6lbXEB3ANTbm01B8ZCdMnShDWWtaecTPZZpJ4o11JleEXzARs2BcEL584Zu+LWEvJcXSCnLbcZ+xMMmwlMMxkR9d+zcXqspFQTHrzokRO9JEV7dvmal+2f6bXYmruLHCgA1IbBOD20Eghv3tASku9SuCCgo2YM7l2P6j+u2qmq/IFc9o4nPSWAdqW1EikwRUuCvf1RTApJ4laqJUIP4S1xspFKNulP7cA/TLwYJfXV66i9rV71IBhn7Wm1VAZaI=
+  - secure: 0bncUYRj0MAeeAzZ77lfU0xB1KP2R+WH1S5nhY49FBd33E0BFyEHDjkXE60p9+kyn/7CofSK5Z+NTZfmyZg+qnljr1vKXHvd6aSYsxXwqcXC4SZPRQG8UYpE3yBCmslVVYPjIM7Rqjy7FFLxcPla6jh7jvCYcuZNGBNyvBhTw/8SFn/ODW+TWBClsQz9hQofbNM/Us3ddVxyKEDqBFeItEteWdrq00OSC2MqnETuB5nnxvH4uh5h/2P8tDk7WM3Nk6UNI3mTZHwskSDtSpPldM96bzUkAh4N5xKvxNRQLAtkLv/A1pLY1lWrSE744ixN64FhApn7wQlvqJPmme7nKrVBFQnSGfE3Fcb0IFvZ2BTXxiNdfGrhdJ78mty2M3p0gF31FSskeftp3KK+jT1J9CMYXSERwOU4TWbTG92Wy/54DR7iukVG7qnSPPTrUTGXCC8NnXEpYsSJaIA1ls3LvWkjE9PLebjfXHzBygGow4+0ccE6fyzBWQErM385fyipGrRvSKO1pGhP8W9JVuN8qdiLzuhbbeM2PYHaYI/AXoseOF/ef/xmBXg3V8IkZjdFJmer/7/UalafEpgbgJM809rPOzas6ayDmKPgfPXkDckvIupvRBpmgll7VZIKgYFGewzhh6FY6CCxZNlGKY7lpovV0LDkeaIyshqCFHgqde8=
