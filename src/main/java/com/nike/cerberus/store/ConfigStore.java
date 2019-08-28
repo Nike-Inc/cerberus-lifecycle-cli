@@ -43,15 +43,19 @@ import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.cloudformation.VpcParameters;
 import com.nike.cerberus.domain.environment.EnvironmentData;
 import com.nike.cerberus.domain.environment.CertificateInformation;
+import com.nike.cerberus.domain.environment.JwtSecret;
+import com.nike.cerberus.domain.environment.JwtSecretData;
 import com.nike.cerberus.domain.environment.RegionData;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.service.AwsClientFactory;
 import com.nike.cerberus.service.CloudFormationService;
 import com.nike.cerberus.service.EncryptionService;
+import com.nike.cerberus.service.KeyGenerator;
 import com.nike.cerberus.service.S3StoreService;
 import com.nike.cerberus.service.SaltGenerator;
 import com.nike.cerberus.service.StoreService;
 import com.nike.cerberus.util.CloudFormationObjectMapper;
+import com.nike.cerberus.util.UuidSupplier;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.shredzone.acme4j.util.KeyPairUtils;
@@ -65,6 +69,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.security.KeyPair;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +85,7 @@ import static com.nike.cerberus.ConfigConstants.*;
 import static com.nike.cerberus.module.CerberusModule.CONFIG_OBJECT_MAPPER;
 import static com.nike.cerberus.module.CerberusModule.CONFIG_REGION;
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
+import static com.nike.cerberus.service.KeyGenerator.HMACSHA512;
 
 /**
  * Abstraction for accessing the configuration storage bucket and the environment state stored in it.
@@ -105,6 +113,10 @@ public class ConfigStore {
 
     private final EncryptionService encryptionService;
 
+    private final KeyGenerator keyGenerator;
+    private UuidSupplier uuidSupplier;
+
+
     private Map<Regions, StoreService> storeServiceMap = new HashMap<>();
 
     @Inject
@@ -116,7 +128,9 @@ public class ConfigStore {
                        CloudFormationObjectMapper cloudFormationObjectMapper,
                        @Named(ENV_NAME) String environmentName,
                        @Named(CONFIG_REGION) String configRegion,
-                       EncryptionService encryptionService) {
+                       EncryptionService encryptionService,
+                       KeyGenerator keyGenerator,
+                       UuidSupplier uuidSupplier) {
 
         this.cloudFormationService = cloudFormationService;
         this.configObjectMapper = configObjectMapper;
@@ -127,6 +141,8 @@ public class ConfigStore {
         this.environmentName = environmentName;
         this.configRegion = Regions.fromName(configRegion);
         this.encryptionService = encryptionService;
+        this.keyGenerator = keyGenerator;
+        this.uuidSupplier = uuidSupplier;
     }
 
     /**
@@ -193,6 +209,37 @@ public class ConfigStore {
         } catch (IOException e) {
             throw new RuntimeException("Failed to read keypair from serialized data", e);
         }
+    }
+
+    /**
+     * Add/rotate JWT secret for CMS
+     * @param activationDelayInSecond Delay in second before the secret can be used to sign JWT
+     */
+    public void addJwtKey(long activationDelayInSecond) {
+        Optional<String> jwtKeysFile = storeServiceMap.get(configRegion).get(JWT_SECRETS_PATH);
+        JwtSecretData jwtSecretData;
+        if (jwtKeysFile.isPresent()) {
+            try {
+                jwtSecretData = configObjectMapper.readValue(encryptionService.decrypt(jwtKeysFile.get()), JwtSecretData.class);
+            } catch (IOException e) {
+                throw new IllegalStateException("Unable to read JWT secret data!", e);
+            }
+            logger.info("Found existing JWT secret data");
+        } else {
+            logger.info("JWT secret data not found");
+            jwtSecretData = new JwtSecretData();
+        }
+        LinkedList<JwtSecret> jwtSecrets = jwtSecretData.getJwtSecrets();
+
+        JwtSecret jwtSecret = new JwtSecret();
+        jwtSecret.setAlgorithm(HMACSHA512);
+        jwtSecret.setId(uuidSupplier.get());
+        jwtSecret.setCreatedTs(new Date().getTime());
+        jwtSecret.setEffectiveTs(Date.from(Instant.now().plusSeconds(activationDelayInSecond)).getTime());
+        jwtSecret.setSecret(Base64.getEncoder().encodeToString(keyGenerator.generateKey(HMACSHA512).getEncoded()));
+        jwtSecrets.add(jwtSecret);
+
+        saveJwtSecretData(jwtSecretData);
     }
 
     public void storeAcmeUserKeyPair(KeyPair keyPair) {
@@ -575,6 +622,16 @@ public class ConfigStore {
             encryptAndSaveObject(ConfigConstants.ENVIRONMENT_DATA_FILE, serializedPlainTextEnvironmentData, environmentData);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Unable to convert the environment data to JSON.  Aborting save...", e);
+        }
+    }
+
+    private void saveJwtSecretData(JwtSecretData jwtSecretData) {
+        EnvironmentData environmentData = getDecryptedEnvironmentData();
+        try {
+            String serializedPlainTextEnvironmentData = configObjectMapper.writeValueAsString(jwtSecretData);
+            encryptAndSaveObject(JWT_SECRETS_PATH, serializedPlainTextEnvironmentData, environmentData);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Unable to convert JWT secret data to JSON.  Aborting save...", e);
         }
     }
 
