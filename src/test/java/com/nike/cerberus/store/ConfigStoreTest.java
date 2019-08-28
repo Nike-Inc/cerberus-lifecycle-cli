@@ -23,7 +23,9 @@ import com.nike.cerberus.domain.environment.EnvironmentData;
 import com.nike.cerberus.domain.environment.RegionData;
 import com.nike.cerberus.module.CerberusModule;
 import com.nike.cerberus.service.EncryptionService;
+import com.nike.cerberus.service.KeyGenerator;
 import com.nike.cerberus.service.StoreService;
+import com.nike.cerberus.util.UuidSupplier;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -54,6 +56,12 @@ public class ConfigStoreTest {
     @Spy
     private StoreService storeServiceUseast2;
 
+    @Mock
+    private KeyGenerator keyGenerator;
+
+    @Mock
+    private UuidSupplier uuidSupplier;
+
     private ObjectMapper objectMapper;
     private ConfigStore configStore;
     private EnvironmentData initEnvironmentdata = new EnvironmentData();
@@ -70,7 +78,7 @@ public class ConfigStoreTest {
 
         configStore = spy(new ConfigStore(null, null, null,
                 null, objectMapper, null, "env1",
-                "us-west-2", encryptionService));
+                "us-west-2", encryptionService, keyGenerator, uuidSupplier));
 
         doReturn(initEnvironmentdata).when(configStore).getDecryptedEnvironmentData();
         doReturn(storeServiceUswest2).when(configStore).getStoreServiceForRegion(Regions.US_WEST_2, initEnvironmentdata);

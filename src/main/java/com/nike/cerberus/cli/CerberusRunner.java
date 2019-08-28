@@ -42,29 +42,12 @@ import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.*;
 import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
 import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
-import com.nike.cerberus.command.core.CreateAlbLogAthenaDbAndTableCommand;
-import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
-import com.nike.cerberus.command.core.SyncConfigCommand;
+import com.nike.cerberus.command.core.*;
 import com.nike.cerberus.command.rds.CleanUpRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CopyRdsSnapshotsCommand;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
-import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
-import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
-import com.nike.cerberus.command.core.CreateRoute53Command;
-import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
-import com.nike.cerberus.command.core.CreateVpcCommand;
-import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.command.certificates.DeleteOldestCertificatesCommand;
-import com.nike.cerberus.command.core.DeleteStackCommand;
-import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
-import com.nike.cerberus.command.core.PrintStackInfoCommand;
-import com.nike.cerberus.command.core.RestoreCerberusBackupCommand;
-import com.nike.cerberus.command.core.RebootCmsCommand;
-import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
-import com.nike.cerberus.command.core.ViewConfigCommand;
-import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
-import com.nike.cerberus.command.core.UpdateStackTagsCommand;
 import com.nike.cerberus.command.rds.XRegionDatabaseReplicationCommand;
 import com.nike.cerberus.domain.input.EnvironmentConfig;
 import com.nike.cerberus.logging.LoggingConfigurer;
@@ -257,6 +240,7 @@ public class CerberusRunner {
         registerCommand(new CreateAlbLogAthenaDbAndTableCommand());
         registerCommand(new CreateCmsResourcesForRegionCommand());
         registerCommand(new XRegionDatabaseReplicationCommand());
+        registerCommand(new AddJwtSecretCommand());
     }
 
     /**

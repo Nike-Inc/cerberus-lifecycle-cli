@@ -177,6 +177,9 @@ public class EnvironmentConfigToArgsMapper {
             case XRegionDatabaseReplicationCommand.COMMAND_NAME:
                 args = Arrays.asList(passedArgs);
                 break;
+            case AddJwtSecretCommand.COMMAND_NAME:
+                args = Arrays.asList(passedArgs);
+                break;
             default:
                 break;
         }
