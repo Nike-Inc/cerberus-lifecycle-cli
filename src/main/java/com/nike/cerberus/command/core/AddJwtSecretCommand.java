@@ -39,7 +39,7 @@ public class AddJwtSecretCommand implements Command {
     }
 
     @Parameter(names = ACTIVATION_DELAY_LONG_ARG, description = "delay in second before the secret can be used to sign JWT")
-    private long activationDelay;
+    private long activationDelay = 5 * 60;
 
     public long getActivationDelay() {
         return activationDelay;
