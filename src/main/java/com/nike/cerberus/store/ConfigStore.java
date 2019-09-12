@@ -216,7 +216,7 @@ public class ConfigStore {
      * @param activationDelayInSecond Delay in second before the secret can be used to sign JWT
      */
     public void addJwtKey(long activationDelayInSecond) {
-        Optional<String> jwtKeysFile = storeServiceMap.get(configRegion).get(JWT_SECRETS_PATH);
+        Optional<String> jwtKeysFile = storeServiceMap.get(configRegion).get(CMS_JWT_SECRETS_PATH);
         JwtSecretData jwtSecretData;
         if (jwtKeysFile.isPresent()) {
             try {
@@ -629,7 +629,7 @@ public class ConfigStore {
         EnvironmentData environmentData = getDecryptedEnvironmentData();
         try {
             String serializedPlainTextEnvironmentData = configObjectMapper.writeValueAsString(jwtSecretData);
-            encryptAndSaveObject(JWT_SECRETS_PATH, serializedPlainTextEnvironmentData, environmentData);
+            encryptAndSaveObject(CMS_JWT_SECRETS_PATH, serializedPlainTextEnvironmentData, environmentData);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Unable to convert JWT secret data to JSON.  Aborting save...", e);
         }
