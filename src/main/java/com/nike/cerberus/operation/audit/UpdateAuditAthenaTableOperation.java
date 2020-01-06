@@ -69,13 +69,13 @@ public class UpdateAuditAthenaTableOperation implements Operation<UpdateAuditAth
         String bucketName = outputs.getAuditBucketName();
 
         log.info("Dropping table to update");
-        String dropTable = "DROP TABLE " + tableName + ";";
+        String dropTable = "DROP TABLE IF EXISTS " + tableName + ";";
         log.info(athenaService.executeAthenaQuery(dropTable, bucketName, configStore.getPrimaryRegion()).toString());
 
-        log.info("Updating table");
+        log.info("Creating new table with additional columns");
         String updateAuditTable;
         try {
-            String template = "/com/nike/cerberus/operation/audit/update_audit_table.ddl";
+            String template = "/com/nike/cerberus/operation/audit/create_audit_table.ddl";
             updateAuditTable = IOUtils.toString(getClass().getResourceAsStream(template), ConfigConstants.DEFAULT_ENCODING);
             updateAuditTable = updateAuditTable.replace("@@TABLE_NAME@@", tableName);
             updateAuditTable = updateAuditTable.replace("@@BUCKET_NAME@@", bucketName);
