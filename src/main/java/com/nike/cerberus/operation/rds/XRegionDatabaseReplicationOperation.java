@@ -84,10 +84,13 @@ public class XRegionDatabaseReplicationOperation implements Operation<XRegionDat
 
         log.info("Preparing to initiate copy of RDS DB snapshot: {} located in region: {} to region: {}",
                     sourceSnapshot.getDBClusterSnapshotIdentifier(), sourceRegion.getName(), targetRegion.getName());
-        DBClusterSnapshot copiedSnapshot = rdsService.copySnapshot(sourceSnapshot, sourceRegion, targetRegion);
-        rdsService.waitForSnapshotsToBecomeAvailable(copiedSnapshot, targetRegion);
-
-        rdsService.deleteSnapshot(sourceSnapshot, sourceRegion);
+        DBClusterSnapshot copiedSnapshot;
+        try {
+            copiedSnapshot = rdsService.copySnapshot(sourceSnapshot, sourceRegion, targetRegion);
+            rdsService.waitForSnapshotsToBecomeAvailable(copiedSnapshot, targetRegion);
+        } finally {
+            rdsService.deleteSnapshot(sourceSnapshot, sourceRegion);
+        }
 
         String databasePassword = configStore.getCmsDatabasePassword()
                 .orElseThrow(() -> new RuntimeException("Expected the database password to exist"));
@@ -117,9 +120,9 @@ public class XRegionDatabaseReplicationOperation implements Operation<XRegionDat
             } else {
                 throw ase;
             }
+        } finally {
+            rdsService.deleteSnapshot(copiedSnapshot, targetRegion);
         }
-
-        rdsService.deleteSnapshot(copiedSnapshot, targetRegion);
     }
 
 
