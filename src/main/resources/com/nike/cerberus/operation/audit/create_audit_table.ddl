@@ -15,7 +15,9 @@ CREATE EXTERNAL TABLE IF NOT EXISTS @@TABLE_NAME@@ (
   name string,
   sdb_name_slug string,
   originating_class string,
-  trace_id string
+  trace_id string,
+  status_code string,
+  cerberus_version string
 ) PARTITIONED BY (year INT, month INT, day INT, hour INT)
 ROW FORMAT serde 'org.apache.hive.hcatalog.data.JsonSerDe'
 with serdeproperties (
