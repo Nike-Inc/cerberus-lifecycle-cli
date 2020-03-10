@@ -150,6 +150,9 @@ public class EnvironmentConfigToArgsMapper {
             case CreateWafCommand.COMMAND_NAME:
                 args = getCreateWafCommandArgs(environmentConfig);
                 break;
+            case CreateWafLoggingCommand.COMMAND_NAME:
+                args = getCreateWafLoggingCommandArgs(environmentConfig);
+                break;
             case GenerateCertificateFilesCommand.COMMAND_NAME:
                 args = getGenerateCertificatesCommandArgs(environmentConfig);
                 break;
@@ -343,6 +346,12 @@ public class EnvironmentConfigToArgsMapper {
     }
 
     private static List<String> getCreateWafCommandArgs(EnvironmentConfig config) {
+        return ArgsBuilder.create()
+                .addAll(getGlobalTags(config))
+                .build();
+    }
+
+    private static List<String> getCreateWafLoggingCommandArgs(EnvironmentConfig config) {
         return ArgsBuilder.create()
                 .addAll(getGlobalTags(config))
                 .build();

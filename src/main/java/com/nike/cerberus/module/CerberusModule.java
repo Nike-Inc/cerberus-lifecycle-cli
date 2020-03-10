@@ -30,6 +30,7 @@ import com.amazonaws.services.route53.AmazonRoute53Client;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.waf.AWSWAFRegionalClient;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -46,6 +47,7 @@ import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Names;
 import com.google.inject.util.Providers;
 import com.nike.cerberus.client.aws.AthenaAwsClientFactory;
+import com.nike.cerberus.client.aws.WafAwsClientFactory;
 import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.ProxyDelegate;
 import com.nike.cerberus.domain.environment.RegionDeserializer;
@@ -125,6 +127,7 @@ public class CerberusModule extends AbstractModule {
         bind(new TypeLiteral<AwsClientFactory<AmazonElasticLoadBalancingClient>>() {}).toInstance(new AwsClientFactory<AmazonElasticLoadBalancingClient>() {});
         bind(new TypeLiteral<AwsClientFactory<AmazonRDSClient>>() {}).toInstance(new AwsClientFactory<AmazonRDSClient>() {});
         bind(new TypeLiteral<AwsClientFactory<AmazonAthenaClient>>() {}).toInstance(new AthenaAwsClientFactory());
+        bind(new TypeLiteral<AwsClientFactory<AWSWAFRegionalClient>>() {}).toInstance(new WafAwsClientFactory() {});
     }
 
     /**

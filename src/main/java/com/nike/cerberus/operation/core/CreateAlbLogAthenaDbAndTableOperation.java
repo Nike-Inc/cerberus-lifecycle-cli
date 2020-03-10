@@ -35,6 +35,9 @@ import java.io.IOException;
 
 import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 
+/**
+ * Creates the Athena database and table for ALB log for Cerberus
+ */
 public class CreateAlbLogAthenaDbAndTableOperation implements Operation<CreateAlbLogAthenaDbAndTableCommand> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

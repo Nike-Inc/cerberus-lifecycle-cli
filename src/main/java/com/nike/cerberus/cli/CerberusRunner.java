@@ -213,6 +213,7 @@ public class CerberusRunner {
         registerCommand(new GenerateCertificateFilesCommand());
         registerCommand(new CreateVpcCommand());
         registerCommand(new CreateWafCommand());
+        registerCommand(new CreateWafLoggingCommand());
         registerCommand(new CreateDatabaseCommand());
         registerCommand(new CreateRoute53Command());
         registerCommand(new CreateSecurityGroupsCommand());

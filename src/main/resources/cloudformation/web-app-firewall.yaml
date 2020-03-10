@@ -9,6 +9,8 @@ Outputs:
     Value: !Ref 'WAFManualBlockSet'
   whitelistIPSetID:
     Value: !Ref 'WAFWhitelistSet'
+  webAclID:
+    Value: !Ref 'CerberusWAFWebAcl'
 Parameters:
   loadBalancerStackName:
     Description: The name of the Cerberus load balancer CloudFormation stack
