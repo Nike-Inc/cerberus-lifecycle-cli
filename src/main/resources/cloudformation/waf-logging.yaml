@@ -3,6 +3,8 @@ Description: Enables logging for the Web Application Firewall (WAF)
 Outputs:
   kinesisFirehoseDeliveryStreamARN:
     Value: !GetAtt KinesisFirehoseDeliveryStream.Arn
+  kinesisFirehoseDeliveryStreamName:
+    Value: !Ref KinesisFirehoseDeliveryStream
 Parameters:
   environmentName:
     Description: The Cerberus environment name.
@@ -23,8 +25,8 @@ Resources:
           - - 'arn:aws:s3:::'
             - !Ref S3DestinationBucket
         BufferingHints:
-          IntervalInSeconds: 60
-          SizeInMBs: 1
+          IntervalInSeconds: 300
+          SizeInMBs: 5
         CompressionFormat: UNCOMPRESSED
         Prefix: firehose/
         RoleARN: !GetAtt DeliveryRole.Arn

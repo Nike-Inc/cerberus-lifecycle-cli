@@ -43,7 +43,7 @@ public class WafService {
     @Inject
     public WafService(AwsClientFactory<AWSWAFRegionalClient> wafClientFactory) {
         this.wafClientFactory = wafClientFactory;
-        redactedFields = getredactedFields("authorization", "x-amz-security-token", "x-cerberus-token");
+        redactedFields = getredactedFields("authorization", "x-amz-security-token", "x-cerberus-token", "x-vault-token");
     }
 
     private List<FieldToMatch> getredactedFields(String... headerNames) {

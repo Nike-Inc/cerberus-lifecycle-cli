@@ -24,6 +24,7 @@ import com.nike.cerberus.domain.cloudformation.WafOutputs;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
 import com.nike.cerberus.service.CloudFormationService;
+import com.nike.cerberus.service.KinesisService;
 import com.nike.cerberus.service.WafService;
 import com.nike.cerberus.store.ConfigStore;
 import com.nike.cerberus.util.CloudFormationObjectMapper;
@@ -53,6 +54,8 @@ public class CreateWafLoggingOperation implements Operation<CreateWafLoggingComm
 
     private final WafService wafService;
 
+    private final KinesisService kinesisService;
+
     private final String webAclArnTemplate = "arn:aws:waf-regional:%s:%s:webacl/%s";
 
     @Inject
@@ -60,13 +63,14 @@ public class CreateWafLoggingOperation implements Operation<CreateWafLoggingComm
                                      CloudFormationService cloudFormationService,
                                      CloudFormationObjectMapper cloudFormationObjectMapper,
                                      ConfigStore configStore,
-                                     WafService wafService) {
+                                     WafService wafService, KinesisService kinesisService) {
 
         this.environmentName = environmentName;
         this.cloudFormationService = cloudFormationService;
         this.cloudFormationObjectMapper = cloudFormationObjectMapper;
         this.configStore = configStore;
         this.wafService = wafService;
+        this.kinesisService = kinesisService;
     }
 
     @Override
@@ -91,6 +95,7 @@ public class CreateWafLoggingOperation implements Operation<CreateWafLoggingComm
 
         WafLoggingOutputs wafLoggingOutputs = configStore.getStackOutputs(region,
                 Stack.WAF_LOGGING.getFullName(environmentName), WafLoggingOutputs.class);
+        kinesisService.enableEncryption(wafLoggingOutputs.getKinesisFirehoseDeliveryStreamName(), region);
         WafOutputs wafOutputs =
                 configStore.getStackOutputs(region,
                         Stack.WAF.getFullName(environmentName), WafOutputs.class);

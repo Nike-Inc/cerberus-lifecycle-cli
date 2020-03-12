@@ -22,6 +22,16 @@ package com.nike.cerberus.domain.cloudformation;
 public class WafLoggingOutputs {
     private String kinesisFirehoseDeliveryStreamARN;
 
+    private String kinesisFirehoseDeliveryStreamName;
+
+    public String getKinesisFirehoseDeliveryStreamName() {
+        return kinesisFirehoseDeliveryStreamName;
+    }
+
+    public void setKinesisFirehoseDeliveryStreamName(String kinesisFirehoseDeliveryStreamName) {
+        this.kinesisFirehoseDeliveryStreamName = kinesisFirehoseDeliveryStreamName;
+    }
+
     public String getKinesisFirehoseDeliveryStreamARN() {
         return kinesisFirehoseDeliveryStreamARN;
     }
