@@ -40,6 +40,7 @@ public class KinesisService {
 
     public void enableEncryption(String deliveryStreamName, Regions region) {
         AmazonKinesisFirehoseClient kinesisFirehoseClient = kinesisFirehoseClientFactory.getClient(region);
-        kinesisFirehoseClient.startDeliveryStreamEncryption(new StartDeliveryStreamEncryptionRequest().withDeliveryStreamName(deliveryStreamName));
+        kinesisFirehoseClient.startDeliveryStreamEncryption(new StartDeliveryStreamEncryptionRequest()
+                .withDeliveryStreamName(deliveryStreamName));
     }
 }
