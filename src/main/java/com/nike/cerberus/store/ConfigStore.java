@@ -768,10 +768,7 @@ public class ConfigStore {
                                       Regions primaryRegion,
                                       Map<Regions, ConfigOutputs> regionConfigOutputsMap) {
 
-        AWSSecurityTokenService securityTokenService = securityTokenServiceFactory.getClient(configRegion);
-        GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
-                new GetCallerIdentityRequest());
-        String rootUserArn = String.format("arn:aws:iam::%s:root", callerIdentity.getAccount());
+        String rootUserArn = String.format("arn:aws:iam::%s:root", getAccountId());
 
         EnvironmentData environmentData = new EnvironmentData();
         environmentData.setEnvironmentName(environmentName);
@@ -790,6 +787,13 @@ public class ConfigStore {
         });
 
         saveEnvironmentData(environmentData);
+    }
+
+    public String getAccountId() {
+        AWSSecurityTokenService securityTokenService = securityTokenServiceFactory.getClient(configRegion);
+        GetCallerIdentityResult callerIdentity = securityTokenService.getCallerIdentity(
+                new GetCallerIdentityRequest());
+        return callerIdentity.getAccount();
     }
 
     public String getConfigBucketForRegion(Regions region) {

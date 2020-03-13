@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Enables logging for the Web Application Firewall (WAF)
+Outputs:
+  kinesisFirehoseDeliveryStreamARN:
+    Value: !GetAtt KinesisFirehoseDeliveryStream.Arn
+  kinesisFirehoseDeliveryStreamName:
+    Value: !Ref KinesisFirehoseDeliveryStream
+Parameters:
+  environmentName:
+    Description: The Cerberus environment name.
+    Type: String
+Resources:
+  KinesisFirehoseDeliveryStream:
+    Type: 'AWS::KinesisFirehose::DeliveryStream'
+    Properties:
+      DeliveryStreamName: !Join
+        - ''
+        - - 'aws-waf-logs-'
+          - !Ref environmentName
+          - '-CerberusWafLogDeliveryStream'
+      DeliveryStreamType: DirectPut
+      S3DestinationConfiguration:
+        BucketARN: !Join
+          - ''
+          - - 'arn:aws:s3:::'
+            - !Ref S3DestinationBucket
+        BufferingHints:
+          IntervalInSeconds: 300
+          SizeInMBs: 5
+        CompressionFormat: UNCOMPRESSED
+        Prefix: firehose/
+        RoleARN: !GetAtt DeliveryRole.Arn
+  S3DestinationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+  DeliveryPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: firehose-delivery-policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:AbortMultipartUpload'
+              - 's3:GetBucketLocation'
+              - 's3:GetObject'
+              - 's3:ListBucket'
+              - 's3:ListBucketMultipartUploads'
+              - 's3:PutObject'
+            Resource:
+              - !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref S3DestinationBucket
+              - !Join
+                - ''
+                - - 'arn:aws:s3:::'
+                  - !Ref S3DestinationBucket
+                  - '*'
+      Roles:
+        - !Ref DeliveryRole
+  DeliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: 'sts:AssumeRole'

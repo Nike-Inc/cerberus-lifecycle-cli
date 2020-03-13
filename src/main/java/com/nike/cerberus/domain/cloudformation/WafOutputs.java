@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nike, Inc.
+ * Copyright (c) 2020 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,27 @@ package com.nike.cerberus.domain.cloudformation;
  */
 public class WafOutputs {
 
-    private Integer autoBlockIPSetID;
+    private String autoBlockIPSetID;
 
     private String manualBlockIPSetID;
 
     private String whitelistIPSetID;
 
-    public Integer getAutoBlockIPSetID() {
+    private String webAclID;
+
+    public String getWebAclID() {
+        return webAclID;
+    }
+
+    public void setWebAclID(String webAclID) {
+        this.webAclID = webAclID;
+    }
+
+    public String getAutoBlockIPSetID() {
         return autoBlockIPSetID;
     }
 
-    public WafOutputs setAutoBlockIPSetID(Integer autoBlockIPSetID) {
+    public WafOutputs setAutoBlockIPSetID(String autoBlockIPSetID) {
         this.autoBlockIPSetID = autoBlockIPSetID;
         return this;
     }
