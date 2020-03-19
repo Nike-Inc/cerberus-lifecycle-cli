@@ -17,6 +17,7 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.UpdateStackCommand;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
@@ -61,14 +62,16 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
     @Override
     public void run(UpdateStackCommand command) {
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+                .orElse(configStore.getPrimaryRegion());
         String stackId = command.getStack().getFullName(environmentName);
 
-        Map<String, String> parameters = cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
+        Map<String, String> parameters = cloudFormationService.getStackParameters(region, stackId);
         Map<String, String> tags = command.getCloudFormationParametersDelegate().getTags();
 
         // only some stacks need user data
         if (command.getStack().isNeedsUserData()) {
-            parameters.put("userData", ec2UserDataService.getUserData(configStore.getPrimaryRegion(), command.getStack(),
+            parameters.put("userData", ec2UserDataService.getUserData(region, command.getStack(),
                     Optional.ofNullable(tags.getOrDefault("ownerGroup", null))));
         }
 
@@ -95,7 +98,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
             logger.info("Starting the update for '{}' overwrite:{}.", stackId, command.isOverwriteTemplate());
 
             cloudFormationService.updateStackAndWait(
-                    configStore.getPrimaryRegion(),
+                    region,
                     command.getStack(),
                     parameters,
                     true,
@@ -118,8 +121,11 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     public boolean isRunnable(UpdateStackCommand command) {
         boolean isRunnable = true;
 
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+                .orElse(configStore.getPrimaryRegion());
+
         String fullName = command.getStack().getFullName(environmentName);
-        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), fullName)) {
+        if (!cloudFormationService.isStackPresent(region, fullName)) {
             logger.error("CloudFormation doesn't have the specified stack: {}", fullName);
             isRunnable = false;
         }

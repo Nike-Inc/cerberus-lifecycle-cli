@@ -17,6 +17,7 @@
 package com.nike.cerberus.operation.core;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.UpdateStackTagsCommand;
 import com.nike.cerberus.domain.environment.Stack;
 import com.nike.cerberus.operation.Operation;
@@ -56,11 +57,14 @@ public class UpdateStackTagsOperation implements Operation<UpdateStackTagsComman
 
     @Override
     public void run(UpdateStackTagsCommand command) {
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+                .orElse(configStore.getPrimaryRegion());
+
         String stackId = command.getStack().getFullName(environmentName);
-        Map<String, String> parameters = cloudFormationService.getStackParameters(configStore.getPrimaryRegion(), stackId);
+        Map<String, String> parameters = cloudFormationService.getStackParameters(region, stackId);
         Map<String, String> tags = command.getCloudFormationParametersDelegate().getTags();
         if (!command.isOverwriteTags()){
-            Map<String, String> existingTags = cloudFormationService.getStackTags(configStore.getPrimaryRegion(), stackId);
+            Map<String, String> existingTags = cloudFormationService.getStackTags(region, stackId);
             existingTags.forEach((k, v) -> tags.merge(k, v, (o, n)->o));
         }
         if (Stack.DATABASE.equals(command.getStack())) {
@@ -73,7 +77,7 @@ public class UpdateStackTagsOperation implements Operation<UpdateStackTagsComman
             logger.info("Starting the tags update for '{}'.", stackId);
 
             cloudFormationService.updateStackAndWait(
-                    configStore.getPrimaryRegion(),
+                    region,
                     command.getStack(),
                     parameters,
                     true,
@@ -95,9 +99,11 @@ public class UpdateStackTagsOperation implements Operation<UpdateStackTagsComman
     @Override
     public boolean isRunnable(UpdateStackTagsCommand command) {
         boolean isRunnable = true;
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+                .orElse(configStore.getPrimaryRegion());
 
         String fullName = command.getStack().getFullName(environmentName);
-        if (!cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), fullName)) {
+        if (!cloudFormationService.isStackPresent(region, fullName)) {
             logger.error("CloudFormation doesn't have the specified stack: {}", fullName);
             isRunnable = false;
         }
