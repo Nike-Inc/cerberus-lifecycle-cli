@@ -90,7 +90,6 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
             return false;
         }
 
-        return !cloudFormationService.isStackPresent(region,
-                Stack.ROUTE53.getFullName(environmentName));
+        return true;
     }
 }
