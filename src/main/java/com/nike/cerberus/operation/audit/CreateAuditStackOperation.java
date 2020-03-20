@@ -58,21 +58,24 @@ public class CreateAuditStackOperation implements Operation<CreateAuditLoggingSt
 
     @Override
     public void run(CreateAuditLoggingStackCommand command) {
-        Regions primaryRegion = configStore.getPrimaryRegion();
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+                .orElse(configStore.getPrimaryRegion());
         AuditParameters auditParameters = new AuditParameters()
                 .setAccountAdminArn(command.getAdminRoleArn())
                 .setCmsIamRoleArn(configStore.getCmsIamRoleOutputs().getCmsIamRoleArn())
                 .setEnvironmentName(environmentName);
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(auditParameters);
-        cloudFormationService.createStackAndWait(primaryRegion, Stack.AUDIT, parameters, true, command.getCloudFormationParametersDelegate().getTags());
+        cloudFormationService.createStackAndWait(region, Stack.AUDIT, parameters, true, command.getCloudFormationParametersDelegate().getTags());
     }
 
 
     @Override
     public boolean isRunnable(CreateAuditLoggingStackCommand command) {
         boolean isRunnable = true;
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+                .orElse(configStore.getPrimaryRegion());
 
-        if (cloudFormationService.isStackPresent(configStore.getPrimaryRegion(), Stack.AUDIT.getFullName(environmentName))) {
+        if (cloudFormationService.isStackPresent(region, Stack.AUDIT.getFullName(environmentName))) {
             log.error("The audit stack already exists use the update-stack command");
             isRunnable = false;
         }

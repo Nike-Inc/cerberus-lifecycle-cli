@@ -16,6 +16,7 @@
 
 package com.nike.cerberus.operation.core;
 
+import com.amazonaws.regions.Regions;
 import com.nike.cerberus.command.core.CreateWafCommand;
 import com.nike.cerberus.domain.cloudformation.WafParameters;
 import com.nike.cerberus.domain.environment.Stack;
@@ -61,6 +62,8 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
 
     @Override
     public void run(CreateWafCommand command) {
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+                .orElse(configStore.getPrimaryRegion());
         WafParameters wafParameters = new WafParameters()
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setWafName("cerberus-" + environmentName + "-waf");
@@ -68,7 +71,7 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
         Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafParameters);
 
         cloudFormationService.createStackAndWait(
-                configStore.getPrimaryRegion(),
+                region,
                 Stack.WAF,
                 parameters,
                 true,
@@ -78,14 +81,16 @@ public class CreateWafOperation implements Operation<CreateWafCommand> {
 
     @Override
     public boolean isRunnable(CreateWafCommand command) {
+        Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
+                .orElse(configStore.getPrimaryRegion());
         try {
-            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.LOAD_BALANCER.getFullName(environmentName));
+            cloudFormationService.getStackId(region, Stack.LOAD_BALANCER.getFullName(environmentName));
         } catch (IllegalArgumentException iae) {
             logger.error("The load balancer stack must exist to create the WAF!");
             return false;
         }
 
-        return !cloudFormationService.isStackPresent(configStore.getPrimaryRegion(),
+        return !cloudFormationService.isStackPresent(region,
                 Stack.ROUTE53.getFullName(environmentName));
     }
 }
