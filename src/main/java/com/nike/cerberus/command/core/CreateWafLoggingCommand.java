@@ -45,6 +45,13 @@ public class CreateWafLoggingCommand implements Command {
         return skipStackCreation;
     }
 
+    @Parameter(names = {"--s3-prefix"}, description = "The prefix of WAF logs in S3 bucket.")
+    private String s3Prefix = "firehose/";
+
+    public String getS3Prefix() {
+        return s3Prefix;
+    }
+
     public CloudFormationParametersDelegate getCloudFormationParametersDelegate() {
         return cloudFormationParametersDelegate;
     }

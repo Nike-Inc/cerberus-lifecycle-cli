@@ -77,10 +77,18 @@ public class CreateWafLoggingOperation implements Operation<CreateWafLoggingComm
     public void run(CreateWafLoggingCommand command) {
         Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
                 .orElse(configStore.getPrimaryRegion());
+        String s3Prefix = command.getS3Prefix();
+        if (!s3Prefix.endsWith("/")) {
+            s3Prefix += "/";
+        }
+        if (s3Prefix.startsWith("/")) {
+            s3Prefix = s3Prefix.substring(1);
+        }
 
         if (!command.isSkipStackCreation()) {
             WafLoggingParameters wafLoggingParameters = new WafLoggingParameters()
-                    .setEnvironmentName(environmentName);
+                    .setEnvironmentName(environmentName)
+                    .setS3Prefix(s3Prefix);
 
             Map<String, String> parameters = cloudFormationObjectMapper.convertValue(wafLoggingParameters);
 
