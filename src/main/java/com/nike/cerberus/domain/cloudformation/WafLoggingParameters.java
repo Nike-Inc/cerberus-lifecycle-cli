@@ -22,6 +22,17 @@ package com.nike.cerberus.domain.cloudformation;
 public class WafLoggingParameters {
     private String environmentName;
 
+    private String s3Prefix;
+
+    public String getS3Prefix() {
+        return s3Prefix;
+    }
+
+    public WafLoggingParameters setS3Prefix(String s3Prefix) {
+        this.s3Prefix = s3Prefix;
+        return this;
+    }
+
     public String getEnvironmentName() {
         return environmentName;
     }

@@ -9,6 +9,9 @@ Parameters:
   environmentName:
     Description: The Cerberus environment name.
     Type: String
+  s3Prefix:
+    Description: The prefix of WAF logs in S3 bucket.
+    Type: String
 Resources:
   KinesisFirehoseDeliveryStream:
     Type: 'AWS::KinesisFirehose::DeliveryStream'
@@ -28,7 +31,7 @@ Resources:
           IntervalInSeconds: 300
           SizeInMBs: 5
         CompressionFormat: UNCOMPRESSED
-        Prefix: firehose/
+        Prefix: !Ref s3Prefix
         RoleARN: !GetAtt DeliveryRole.Arn
   S3DestinationBucket:
     Type: AWS::S3::Bucket
