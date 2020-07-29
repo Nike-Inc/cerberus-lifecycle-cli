@@ -68,7 +68,7 @@ public class Ec2UserDataService {
                                                  String appName,
                                                  Optional<String> group) {
 
-        userDataMap.put("CLOUD_ENVIRONMENT", environmentName);
+        userDataMap.put("CLOUD_ENVIRONMENT", ConfigConstants.ENV_PREFIX + environmentName);
         userDataMap.put("CLOUD_MONITOR_BUCKET", appName);
         userDataMap.put("CLOUD_APP", appName);
         userDataMap.put("CLOUD_APP_GROUP", group.orElse("cerberus"));
