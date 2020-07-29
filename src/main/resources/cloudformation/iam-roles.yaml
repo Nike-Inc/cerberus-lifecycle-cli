@@ -33,6 +33,17 @@ Resources:
                   - cloudformation:SignalResource
                 Effect: Allow
                 Resource: '*'
+        - PolicyName: "cms-allow-sm-read"
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - secretsmanager:GetResourcePolicy
+                  - secretsmanager:GetSecretValue
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:ListSecretVersionIds
+                Effect: Allow
+                Resource:
+                  - '*'
         - PolicyName: "cms-kms-policy"
           PolicyDocument:
             Statement:
