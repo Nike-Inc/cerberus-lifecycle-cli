@@ -49,7 +49,7 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_CHANNEL: cerberus-alerts
-          SLACK_MESSAGE: 'Cerberus release workflow has failed :build-failed:'
+          SLACK_MESSAGE: 'Cerberus Lifecycle CLI release workflow has failed :build-failed:'
           SLACK_ICON: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
           SLACK_TITLE: Cerberus Build Failure Notification
           SLACK_USERNAME: GitHub Actions
