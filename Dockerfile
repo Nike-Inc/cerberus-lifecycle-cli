@@ -5,7 +5,7 @@ RUN apk upgrade
 RUN apk add bash curl
 
 # Copy the cerberus fat jar
-COPY build/libs/cerberus.jar .
+COPY ./build/libs/cerberus.jar .
 
 # Copy over our wrapper scripts
 ## Simple java jar wrapper to make the cli avaible as cerberus.

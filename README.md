@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/Nike-Inc/cerberus-lifecycle-cli.svg?branch=master)](https://travis-ci.org/Nike-Inc/cerberus-lifecycle-cli)
+![Build](https://github.com/Nike-Inc/cerberus-lifecycle-cli/workflows/Build/badge.svg?branch=master)
+[![codecov](https://codecov.io/gh/Nike-Inc/cerberus-lifecycle-cli/branch/master/graph/badge.svg?token=UfewGZnHdt)](https://codecov.io/gh/Nike-Inc/cerberus-lifecycle-cli)
 
 # Cerberus Lifecycle Management CLI
 
