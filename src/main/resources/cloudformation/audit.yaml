@@ -34,6 +34,8 @@ Resources:
           - ServerSideEncryptionByDefault:
               KMSMasterKeyID: !Ref 'AuditLogS3Cmk'
               SSEAlgorithm: 'aws:kms'
+      VersioningConfiguration:
+        Status: Enabled
     Type: AWS::S3::Bucket
   CerberusConfigBucketAccessPolicy:
     Type: AWS::S3::BucketPolicy
