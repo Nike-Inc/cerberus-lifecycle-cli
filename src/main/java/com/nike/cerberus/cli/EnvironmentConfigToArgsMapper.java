@@ -19,11 +19,12 @@ package com.nike.cerberus.cli;
 import com.google.common.collect.Lists;
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.command.audit.CreateAuditLoggingStackCommand;
-import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
+import com.nike.cerberus.command.cms.CreateCmsAsgCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.certificates.GenerateAndRotateCertificatesCommand;
 import com.nike.cerberus.command.certificates.RotateCertificatesCommand;
+import com.nike.cerberus.command.composite.CreateCmsClusterCommand;
 import com.nike.cerberus.command.composite.CreateCmsResourcesForRegionCommand;
 import com.nike.cerberus.command.core.*;
 import com.nike.cerberus.command.composite.UpdateAllStackTagsCommand;
@@ -120,8 +121,9 @@ public class EnvironmentConfigToArgsMapper {
             case UploadCertificateFilesCommand.COMMAND_NAME:
                 args = getUploadCertFilesCommandArgs(environmentConfig, passedArgs);
                 break;
+            case CreateCmsAsgCommand.COMMAND_NAME:
             case CreateCmsClusterCommand.COMMAND_NAME:
-                args = getCreateCmsClusterCommandArgs(environmentConfig, stackRegion);
+                args = getCreateCmsAsgCommandArgs(environmentConfig, stackRegion);
                 break;
             case WhitelistCidrForVpcAccessCommand.COMMAND_NAME:
                 args = getWhitelistCidrForVpcAccessCommandArgs(environmentConfig, stackRegion);
@@ -241,7 +243,7 @@ public class EnvironmentConfigToArgsMapper {
         return args.build();
     }
 
-    private static List<String> getCreateCmsClusterCommandArgs(EnvironmentConfig config, String region) {
+    private static List<String> getCreateCmsAsgCommandArgs(EnvironmentConfig config, String region) {
         RegionSpecificConfigurationInput regionConfig = config.getRegionConfig(region);
         ManagementServiceRegionSpecificInput cmsConfig = regionConfig.getManagementService().orElseThrow(() ->
                 new RuntimeException("management service config not defined in config for region: " + region));

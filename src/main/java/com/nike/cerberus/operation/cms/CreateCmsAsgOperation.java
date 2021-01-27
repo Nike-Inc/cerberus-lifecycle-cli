@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Nike, Inc.
+ * Copyright (c) 2021 Nike, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.nike.cerberus.operation.cms;
 
 import com.amazonaws.regions.Regions;
-import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
+import com.nike.cerberus.command.cms.CreateCmsAsgCommand;
 import com.nike.cerberus.domain.cloudformation.CmsParameters;
 import com.nike.cerberus.domain.cloudformation.VpcOutputs;
 import com.nike.cerberus.domain.environment.CertificateInformation;
@@ -41,7 +41,7 @@ import static com.nike.cerberus.module.CerberusModule.ENV_NAME;
 /**
  * Operation for creating the CMS cluster.
  */
-public class CreateCmsClusterOperation implements Operation<CreateCmsClusterCommand> {
+public class CreateCmsAsgOperation implements Operation<CreateCmsAsgCommand> {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -56,7 +56,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
     private final String environmentName;
 
     @Inject
-    public CreateCmsClusterOperation(CloudFormationService cloudFormationService,
+    public CreateCmsAsgOperation(CloudFormationService cloudFormationService,
                                      Ec2UserDataService ec2UserDataService,
                                      ConfigStore configStore,
                                      CloudFormationObjectMapper cloudFormationObjectMapper,
@@ -70,7 +70,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
     }
 
     @Override
-    public void run(CreateCmsClusterCommand command) {
+    public void run(CreateCmsAsgCommand command) {
         Regions region = command.getStackDelegate().getCloudFormationParametersDelegate().getStackRegion()
             .orElse(configStore.getPrimaryRegion());
 
@@ -83,13 +83,13 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
             throw new IllegalStateException("Certificate for cerberus environment has not been uploaded!");
         }
 
-        String cmsIamRoleName = configStore.getCmsIamRoleOutputs(configStore.getPrimaryRegion()).getCmsIamRoleName();
+        String cmsInstanceProfileName = configStore.getCmsInstanceProfileOutput(configStore.getPrimaryRegion()).getCmsInstanceProfileName();
 
         CmsParameters cmsParameters = new CmsParameters()
                 .setVpcSubnetIdForAz1(vpcOutputs.getVpcSubnetIdForAz1())
                 .setVpcSubnetIdForAz2(vpcOutputs.getVpcSubnetIdForAz2())
                 .setVpcSubnetIdForAz3(vpcOutputs.getVpcSubnetIdForAz3())
-                .setCmsIamRoleName(cmsIamRoleName)
+                .setCmsInstanceProfileName(cmsInstanceProfileName)
                 .setLoadBalancerStackName(Stack.LOAD_BALANCER.getFullName(environmentName))
                 .setSgStackName(Stack.SECURITY_GROUPS.getFullName(environmentName));
 
@@ -113,7 +113,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
     }
 
     @Override
-    public boolean isRunnable(CreateCmsClusterCommand command) {
+    public boolean isRunnable(CreateCmsAsgCommand command) {
         Regions region = command.getStackDelegate().getCloudFormationParametersDelegate().getStackRegion()
             .orElse(configStore.getPrimaryRegion());
 
@@ -122,7 +122,7 @@ public class CreateCmsClusterOperation implements Operation<CreateCmsClusterComm
         try {
             cloudFormationService.getStackId(region, Stack.LOAD_BALANCER.getFullName(environmentName));
             cloudFormationService.getStackId(region, Stack.SECURITY_GROUPS.getFullName(environmentName));
-            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.IAM_ROLES.getFullName(environmentName));
+            cloudFormationService.getStackId(configStore.getPrimaryRegion(), Stack.INSTANCE_PROFILE.getFullName(environmentName));
         } catch (Exception e) {
             logger.error("Could not create the CMS cluster." +
                     "Make sure the load balancer, security group, and base stacks have all been created.", e);

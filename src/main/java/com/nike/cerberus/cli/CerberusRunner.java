@@ -33,7 +33,7 @@ import com.nike.cerberus.command.CerberusCommand;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.audit.*;
 import com.nike.cerberus.command.certificates.RotateAcmeAccountPrivateKeyCommand;
-import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
+import com.nike.cerberus.command.cms.CreateCmsAsgCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.*;
@@ -201,6 +201,8 @@ public class CerberusRunner {
         registerCommand(new InitializeEnvironmentCommand());
         registerCommand(new UploadCertificateFilesCommand());
         registerCommand(new CreateCmsConfigCommand());
+        registerCommand(new CreateCmsAsgCommand());
+        registerCommand(new CreateInstanceProfileCommand());
         registerCommand(new CreateCmsClusterCommand());
         registerCommand(new UpdateStackCommand());
         registerCommand(new PrintStackInfoCommand());

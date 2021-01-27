@@ -22,7 +22,9 @@ import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.domain.cloudformation.CloudFormationParametersDelegate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represents CloudFormation stack parameters that are common to all Cerberus cluster components.
@@ -67,5 +69,30 @@ public class StackDelegate {
 
     public Map<String, String> getDynamicParameters() {
         return dynamicParameters;
+    }
+
+    /**
+     *  removes the prefix args for the args array of a cms cluster ex: create-cms-cluster --ami-id foo will
+     *  return an array with ['commandName', '--ami-id', 'foo']
+     */
+    public String[] getArgs(){
+        List<String> args = dynamicParameters.entrySet()
+                .stream()
+                .map(e -> String.format("%s%s=%s", PARAMETER_SHORT_ARG, e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+        if (getAmiId() != null){
+            args.add(AMI_ID_LONG_ARG);
+            args.add(getAmiId());
+        }
+        if (getInstanceSize() != null){
+            args.add(INSTANCE_SIZE_LONG_ARG);
+            args.add(getInstanceSize());
+        }
+        if (getKeyPairName() != null){
+            args.add(KEY_PAIR_NAME_LONG_ARG);
+            args.add(getKeyPairName());
+        }
+
+        return args.toArray(new String[0]);
     }
 }

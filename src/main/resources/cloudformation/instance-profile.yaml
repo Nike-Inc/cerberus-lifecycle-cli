@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create the instance profile for Cerberus deployments
+Outputs:
+  cmsInstanceProfileName:
+    Value: !Ref 'CmsInstanceProfile'
+Parameters:
+  cmsIamRoleName:
+    Description: The name of CMS Iam Role from the IAM role stack in the primary region.
+    Type: String
+Resources:
+  CmsInstanceProfile:
+    Properties:
+      Path: /
+      Roles:
+        - !Ref 'cmsIamRoleName'
+    Type: AWS::IAM::InstanceProfile

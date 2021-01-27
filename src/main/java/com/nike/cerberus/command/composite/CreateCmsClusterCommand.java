@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.nike.cerberus.command.cms;
+package com.nike.cerberus.command.composite;
 
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import com.nike.cerberus.command.Command;
 import com.nike.cerberus.command.StackDelegate;
 import com.nike.cerberus.operation.Operation;
-import com.nike.cerberus.operation.cms.CreateCmsClusterOperation;
+import com.nike.cerberus.operation.composite.CreateCmsClusterOperation;
 
-import static com.nike.cerberus.command.cms.CreateCmsClusterCommand.COMMAND_NAME;
+import static com.nike.cerberus.command.composite.CreateCmsClusterCommand.COMMAND_NAME;
 
 /**
  * Command to create the CMS cluster.

@@ -33,14 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomaslanger.chalk.Chalk;
 import com.google.common.collect.Maps;
 import com.nike.cerberus.ConfigConstants;
-import com.nike.cerberus.domain.cloudformation.AuditOutputs;
-import com.nike.cerberus.domain.cloudformation.IamRolesOutputs;
-import com.nike.cerberus.domain.cloudformation.DatabaseOutputs;
-import com.nike.cerberus.domain.cloudformation.ConfigOutputs;
-import com.nike.cerberus.domain.cloudformation.Route53Outputs;
-import com.nike.cerberus.domain.cloudformation.SecurityGroupOutputs;
-import com.nike.cerberus.domain.cloudformation.VpcOutputs;
-import com.nike.cerberus.domain.cloudformation.VpcParameters;
+import com.nike.cerberus.domain.cloudformation.*;
 import com.nike.cerberus.domain.environment.EnvironmentData;
 import com.nike.cerberus.domain.environment.CertificateInformation;
 import com.nike.cerberus.domain.environment.JwtSecret;
@@ -467,6 +460,24 @@ public class ConfigStore {
      */
     public IamRolesOutputs getCmsIamRoleOutputs(Regions region) {
         return getStackOutputs(region, getCloudFormationStackName(Stack.IAM_ROLES), IamRolesOutputs.class);
+    }
+
+    /**
+     * Get the cms instance profile stack outputs for primary region
+     *
+     * @return Base outputs
+     */
+    public InstanceProfileOutput getCmsInstanceProfileOutput() {
+        return getStackOutputs(getPrimaryRegion(), getCloudFormationStackName(Stack.INSTANCE_PROFILE), InstanceProfileOutput.class);
+    }
+
+    /**
+     * Get the cms instance profile stack outputs for provided region
+     *
+     * @return Base outputs
+     */
+    public InstanceProfileOutput getCmsInstanceProfileOutput(Regions region) {
+        return getStackOutputs(region, getCloudFormationStackName(Stack.INSTANCE_PROFILE), InstanceProfileOutput.class);
     }
 
     /**
