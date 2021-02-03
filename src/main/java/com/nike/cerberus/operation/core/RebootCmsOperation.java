@@ -230,7 +230,8 @@ public class RebootCmsOperation implements Operation<RebootCmsCommand> {
 
         final Call healthCheckCall = okHttpClient.newCall(request);
 
-        try (final Response response = healthCheckCall.execute()) {
+        try {
+            final Response response = healthCheckCall.execute();
             log.debug("Health check returned status: {}, URL: {}", response.code(), healthCheckUrl);
             return response.code();
         } catch (Exception e) {
@@ -247,8 +248,9 @@ public class RebootCmsOperation implements Operation<RebootCmsCommand> {
 
     private String getCurrentPublicIpAddress() {
         String whatIsMyIp = "http://checkip.amazonaws.com";
-        try (Response response = httpClientFactory.getGenericClient()
-                .newCall(new Request.Builder().url(whatIsMyIp).get().build()).execute()) {
+        try {
+            Response response = httpClientFactory.getGenericClient()
+                    .newCall(new Request.Builder().url(whatIsMyIp).get().build()).execute();
             return StringUtils.trim(response.body().string());
         } catch (IOException e) {
             throw new RuntimeException("Failed to lookup current ip", e);

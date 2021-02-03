@@ -5,11 +5,9 @@ Outputs:
     Value: !Ref 'CmsAutoScalingGroup'
   launchConfigurationLogicalId:
     Value: !Ref 'CmsLaunchConfiguration'
-  cmsInstanceProfileName:
-    Value: !Ref 'CmsInstanceProfile'
 Parameters:
-  cmsIamRoleName:
-    Description: The name of CMS Iam Role from the IAM role stack in the primary region.
+  cmsInstanceProfileName:
+    Description: The instance profile to be associated with the EC2 instances
     Type: String
   amiId:
     Description: The AMI ID for the CMS instances
@@ -82,16 +80,10 @@ Resources:
         MinInstancesInService: !Ref 'minimumInstances'
         PauseTime: !Ref 'pauseTime'
         WaitOnResourceSignals: !Ref 'waitOnResourceSignals'
-  CmsInstanceProfile:
-    Properties:
-      Path: /
-      Roles:
-        - !Ref 'cmsIamRoleName'
-    Type: AWS::IAM::InstanceProfile
   CmsLaunchConfiguration:
     Properties:
       AssociatePublicIpAddress: 'true'
-      IamInstanceProfile: !Ref 'CmsInstanceProfile'
+      IamInstanceProfile: !Ref 'cmsInstanceProfileName'
       ImageId: !Ref 'amiId'
       InstanceMonitoring: 'true'
       InstanceType: !Ref 'instanceSize'

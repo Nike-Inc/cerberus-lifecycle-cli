@@ -38,6 +38,7 @@ public class Stack implements Comparable<Stack> {
     public static final Stack SECURITY_GROUPS = new Stack("security-groups", "security-groups.yaml", false);
     public static final Stack DATABASE = new Stack("database", "database.yaml", false);
     public static final Stack LOAD_BALANCER = new Stack("load-balancer", "load-balancer.yaml", false);
+    public static final Stack INSTANCE_PROFILE = new Stack("instance-profile", "instance-profile.yaml", false);
     public static final Stack CMS = new Stack("cms", "cms-cluster.yaml", true);
     public static final Stack WAF = new Stack("web-app-firewall", "web-app-firewall.yaml", false);
     public static final Stack ROUTE53 = new Stack("route53", "route53.yaml", false);
@@ -51,6 +52,7 @@ public class Stack implements Comparable<Stack> {
             SECURITY_GROUPS,
             DATABASE,
             LOAD_BALANCER,
+            INSTANCE_PROFILE,
             CMS,
             WAF,
             ROUTE53,

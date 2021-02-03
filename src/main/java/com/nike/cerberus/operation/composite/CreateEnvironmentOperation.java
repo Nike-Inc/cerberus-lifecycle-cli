@@ -20,20 +20,12 @@ import com.google.common.collect.Lists;
 import com.nike.cerberus.command.audit.CreateAuditAthenaDbAndTableCommand;
 import com.nike.cerberus.command.audit.CreateAuditLoggingStackCommand;
 import com.nike.cerberus.command.audit.EnableAuditLoggingCommand;
-import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
+import com.nike.cerberus.command.cms.CreateCmsAsgCommand;
 import com.nike.cerberus.command.cms.CreateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateEnvironmentCommand;
-import com.nike.cerberus.command.core.InitializeEnvironmentCommand;
+import com.nike.cerberus.command.core.*;
 import com.nike.cerberus.command.rds.CreateDatabaseCommand;
-import com.nike.cerberus.command.core.CreateEdgeDomainRecordCommand;
-import com.nike.cerberus.command.core.CreateLoadBalancerCommand;
-import com.nike.cerberus.command.core.CreateRoute53Command;
-import com.nike.cerberus.command.core.CreateSecurityGroupsCommand;
-import com.nike.cerberus.command.core.CreateVpcCommand;
-import com.nike.cerberus.command.core.CreateWafCommand;
-import com.nike.cerberus.command.core.GenerateCertificateFilesCommand;
 import com.nike.cerberus.command.certificates.UploadCertificateFilesCommand;
-import com.nike.cerberus.command.core.WhitelistCidrForVpcAccessCommand;
 
 import java.util.List;
 
@@ -87,8 +79,11 @@ public class CreateEnvironmentOperation extends CompositeOperation<CreateEnviron
             // Upload to S3 for CMS to download at service start
             new ChainableCommand(new CreateCmsConfigCommand()),
 
+            // Generate the instance profile to use when creating the CMS Cluster
+            new ChainableCommand(new CreateInstanceProfileCommand()),
+
             // Create the CMS Cluster Stack
-            new ChainableCommand(new CreateCmsClusterCommand()),
+            new ChainableCommand(new CreateCmsAsgCommand()),
 
             // Create the Web Application Fire wall stack
             new ChainableCommand(new CreateWafCommand()),

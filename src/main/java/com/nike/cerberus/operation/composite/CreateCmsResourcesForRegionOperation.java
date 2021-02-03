@@ -17,7 +17,7 @@
 package com.nike.cerberus.operation.composite;
 
 import com.google.common.collect.Lists;
-import com.nike.cerberus.command.cms.CreateCmsClusterCommand;
+import com.nike.cerberus.command.cms.CreateCmsAsgCommand;
 import com.nike.cerberus.command.cms.UpdateCmsConfigCommand;
 import com.nike.cerberus.command.composite.CreateCmsResourcesForRegionCommand;
 import com.nike.cerberus.command.core.*;
@@ -36,7 +36,8 @@ public class CreateCmsResourcesForRegionOperation extends CompositeOperation<Cre
       new ChainableCommand(new CreateDatabaseCommand(), compositeCommand.getStackRegion()),
       new ChainableCommand(new CreateLoadBalancerCommand(), compositeCommand.getStackRegion()),
       new ChainableCommand(new UpdateCmsConfigCommand(), compositeCommand.getStackRegion()),
-      new ChainableCommand(new CreateCmsClusterCommand(), compositeCommand.getStackRegion()),
+      new ChainableCommand(new CreateInstanceProfileCommand(), compositeCommand.getStackRegion()),
+      new ChainableCommand(new CreateCmsAsgCommand(), compositeCommand.getStackRegion()),
       new ChainableCommand(new CreateAlbLogAthenaDbAndTableCommand(), compositeCommand.getStackRegion()),
       new ChainableCommand(new CreateRoute53Command(), compositeCommand.getStackRegion())
     );
