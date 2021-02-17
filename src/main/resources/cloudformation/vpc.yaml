@@ -48,7 +48,6 @@ Parameters:
     Description: An availability zone identifier for zone '3'
     Type: String
   az4:
-#    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
     Default: ""
     Description: An availability zone identifier for zone '4'
     Type: String
