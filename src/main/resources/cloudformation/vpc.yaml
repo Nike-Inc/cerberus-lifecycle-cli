@@ -24,7 +24,7 @@ Outputs:
     Value: !Ref 'CerberusSubnetForAz3'
   vpcSubnetIdForAz4:
     Description: The VPC subnet in AZ '4'
-    Value: !If [UseAz4, !Ref 'CerberusSubnetForAz4', !Ref 'AWS::NoValue']
+    Value: !If [UseAz4, !Ref 'CerberusSubnetForAz4', ""]
   vpcId:
     Description: ID of the created VPC
     Value: !Ref 'CerberusVpc'
@@ -48,7 +48,8 @@ Parameters:
     Description: An availability zone identifier for zone '3'
     Type: String
   az4:
-    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+#    AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
+    Default: ""
     Description: An availability zone identifier for zone '4'
     Type: String
   internetGatewayCidrBlock:
