@@ -82,7 +82,7 @@ Parameters:
   subnetCidrBlockForAz4:
     AllowedPattern: '[0-9./]*'
     Default: 172.20.12.0/24
-    Description: Cidr block for subnet in AZ '3'
+    Description: Cidr block for subnet in AZ '4'
     MaxLength: '20'
     MinLength: '9'
     Type: String
