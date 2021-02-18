@@ -1,6 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Conditions:
   RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+  UseAz4: !Not [!Equals ["", !Ref az4]]
 Description: Creates the Cerberus VPC and foundational resources
 Outputs:
   subnetCidrBlockForAz1:
@@ -21,6 +22,9 @@ Outputs:
   vpcSubnetIdForAz3:
     Description: The VPC subnet in AZ '3'
     Value: !Ref 'CerberusSubnetForAz3'
+  vpcSubnetIdForAz4:
+    Description: The VPC subnet in AZ '4'
+    Value: !If [UseAz4, !Ref 'CerberusSubnetForAz4', ""]
   vpcId:
     Description: ID of the created VPC
     Value: !Ref 'CerberusVpc'
@@ -42,6 +46,10 @@ Parameters:
   az3:
     AllowedPattern: '[a-z]{2}-[a-z]+-\d\w'
     Description: An availability zone identifier for zone '3'
+    Type: String
+  az4:
+    Default: ""
+    Description: An availability zone identifier for zone '4'
     Type: String
   internetGatewayCidrBlock:
     AllowedPattern: '[0-9./]*'
@@ -68,6 +76,13 @@ Parameters:
     AllowedPattern: '[0-9./]*'
     Default: 172.20.8.0/24
     Description: Cidr block for subnet in AZ '3'
+    MaxLength: '20'
+    MinLength: '9'
+    Type: String
+  subnetCidrBlockForAz4:
+    AllowedPattern: '[0-9./]*'
+    Default: 172.20.12.0/24
+    Description: Cidr block for subnet in AZ '4'
     MaxLength: '20'
     MinLength: '9'
     Type: String
@@ -122,6 +137,14 @@ Resources:
       MapPublicIpOnLaunch: 'true'
       VpcId: !Ref 'CerberusVpc'
     Type: AWS::EC2::Subnet
+  CerberusSubnetForAz4:
+    Condition: UseAz4
+    Properties:
+      AvailabilityZone: !Ref 'az4'
+      CidrBlock: !Ref 'subnetCidrBlockForAz4'
+      MapPublicIpOnLaunch: 'true'
+      VpcId: !Ref 'CerberusVpc'
+    Type: AWS::EC2::Subnet
   CerberusSubnetRouteTableAssociationForAz1:
     Properties:
       RouteTableId: !Ref 'CerberusRouteTable'
@@ -136,6 +159,12 @@ Resources:
     Properties:
       RouteTableId: !Ref 'CerberusRouteTable'
       SubnetId: !Ref 'CerberusSubnetForAz3'
+    Type: AWS::EC2::SubnetRouteTableAssociation
+  CerberusSubnetRouteTableAssociationForAz4:
+    Condition: UseAz4
+    Properties:
+      RouteTableId: !Ref 'CerberusRouteTable'
+      SubnetId: !Ref 'CerberusSubnetForAz4'
     Type: AWS::EC2::SubnetRouteTableAssociation
   CerberusVpc:
     Properties:
