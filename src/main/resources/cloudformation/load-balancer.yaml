@@ -1,6 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Conditions:
   RegionEqualsEastOne: !Equals [!Ref 'AWS::Region', us-east-1]
+  UseAz4: !Not [!Equals ["", !Ref vpcSubnetIdForAz4]]
 Description: Creates the application Load Balancer for the Cerberus environment
 Outputs:
   cmsTargetGroup:
@@ -36,6 +37,10 @@ Parameters:
   vpcSubnetIdForAz3:
     Description: The subnet for the third availability zone
     Type: String
+  vpcSubnetIdForAz4:
+    Default: ""
+    Description: The subnet for the fourth availability zone
+    Type: String
   sslPolicy:
     Description: >
      The SSL Policy that will get applied to the application load balancer,
@@ -51,7 +56,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       Certificates:
-          - CertificateArn: !Ref sslCertificateArn
+        - CertificateArn: !Ref sslCertificateArn
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref 'CmsTargetGroup'
@@ -93,6 +98,10 @@ Resources:
         - Ref: 'vpcSubnetIdForAz1'
         - Ref: 'vpcSubnetIdForAz2'
         - Ref: 'vpcSubnetIdForAz3'
+        - Fn::If:
+          - UseAz4
+          - Ref: 'vpcSubnetIdForAz4'
+          - Ref: "AWS::NoValue"
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
   CmsTargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
