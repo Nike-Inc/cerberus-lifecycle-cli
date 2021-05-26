@@ -39,8 +39,8 @@ Resources:
               AWS:
                 !Ref 'cmsIamRoleArn'
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket']]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /*]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusConfigBucket']]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusConfigBucket', /*]]
             Sid: Allow-ListBucket-Access
           - Action:
               - s3:*
@@ -49,10 +49,10 @@ Resources:
               AWS:
                 !Ref 'cmsIamRoleArn'
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /certificates/*]]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /certificates]]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /cms/*]]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusConfigBucket', /cms]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusConfigBucket', /certificates/*]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusConfigBucket', /certificates]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusConfigBucket', /cms/*]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusConfigBucket', /cms]]
             Sid: Allow-Bucket-Access-For-CMS
         Version: '2012-10-17'
   # KMS Customer Master Key for this CLI to use when saving config
@@ -71,7 +71,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
+                - !Join ['', ['arn:aws-cn:iam::', !Ref 'AWS::AccountId', ':root']]
             Resource: '*'
           -
             Sid: Allow-Decrypt-From-Instances
@@ -113,7 +113,7 @@ Resources:
              Effect: Allow
              Principal:
                AWS:
-                 - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
+                 - !Join ['', ['arn:aws-cn:iam::', !Ref 'AWS::AccountId', ':root']]
              Resource: '*'
            - Sid: Allow-Decrypt-From-Cms-Instances
              Action:

@@ -80,7 +80,7 @@ Resources:
               AWS:
                 - !Ref 'elasticLoadBalancingAccountId'
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'ALBLogBucket', /*]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'ALBLogBucket', /*]]
             Sid: Allow-ALB-Log-Access
         Version: '2012-10-17'
     Type: AWS::S3::BucketPolicy

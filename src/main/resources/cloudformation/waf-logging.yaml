@@ -25,7 +25,7 @@ Resources:
       S3DestinationConfiguration:
         BucketARN: !Join
           - ''
-          - - 'arn:aws:s3:::'
+          - - 'arn:aws-cn:s3:::'
             - !Ref S3DestinationBucket
         BufferingHints:
           IntervalInSeconds: 300
@@ -61,11 +61,11 @@ Resources:
             Resource:
               - !Join
                 - ''
-                - - 'arn:aws:s3:::'
+                - - 'arn:aws-cn:s3:::'
                   - !Ref S3DestinationBucket
               - !Join
                 - ''
-                - - 'arn:aws:s3:::'
+                - - 'arn:aws-cn:s3:::'
                   - !Ref S3DestinationBucket
                   - '*'
       Roles:

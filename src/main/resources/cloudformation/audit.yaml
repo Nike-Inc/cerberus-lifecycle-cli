@@ -51,8 +51,8 @@ Resources:
               AWS:
               - !Ref 'cmsIamRoleArn'
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket']]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket', /*]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusAuditBucket']]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusAuditBucket', /*]]
           - Sid: Allow-Bucket-Access-For-Account-Admin-Arn
             Action:
               - s3:*
@@ -61,8 +61,8 @@ Resources:
               AWS:
                 - !Ref 'accountAdminArn'
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket']]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket', /*]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusAuditBucket']]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusAuditBucket', /*]]
           - Sid: Allow-Bucket-Access-For-Additional-Arns
             Action:
               - s3:*
@@ -70,8 +70,8 @@ Resources:
             Principal:
               AWS: !If [addtionalArnsWhereSupplied, !Ref additionalArns, [ !Ref 'accountAdminArn' ]] # hack, if no extra ARNs are supplied just repeat that admin arn
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket']]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket', /*]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusAuditBucket']]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusAuditBucket', /*]]
           - Sid: Allow-Bucket-Access-For-AuditLogAthenaIamRole
             Action:
               - s3:*
@@ -80,8 +80,8 @@ Resources:
               AWS:
                 - !GetAtt 'AuditLogAthenaIamRole.Arn'
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket']]
-              - !Join ['', ['arn:aws:s3:::', !Ref 'CerberusAuditBucket', /*]]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusAuditBucket']]
+              - !Join ['', ['arn:aws-cn:s3:::', !Ref 'CerberusAuditBucket', /*]]
         Version: '2012-10-17'
   AuditLogAthenaIamRole:
       Type: AWS::IAM::Role
@@ -93,14 +93,14 @@ Resources:
               Effect: Allow
               Principal:
                 Service:
-                  - glue.amazonaws.com
-                  - ec2.amazonaws.com
-                  - lambda.amazonaws.com
+                  - glue.amazonaws.com.cn
+                  - ec2.amazonaws.com.cn
+                  - lambda.amazonaws.com.cn
           Version: '2012-10-17'
         Path: /
         ManagedPolicyArns:
-          - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
-          - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+          - arn:aws-cn:iam::aws:policy/AmazonAthenaFullAccess
+          - arn:aws-cn:iam::aws:policy/service-role/AWSGlueServiceRole
   AuditLogS3Cmk:
     Type: AWS::KMS::Key
     Properties:
@@ -115,7 +115,7 @@ Resources:
              Effect: Allow
              Principal:
                AWS:
-                 - !Join ['', ['arn:aws:iam::', !Ref 'AWS::AccountId', ':root']]
+                 - !Join ['', ['arn:aws-cn:iam::', !Ref 'AWS::AccountId', ':root']]
              Resource: '*'
            - Sid: Allow-All-From-Cms-Instances
              Action:
