@@ -242,6 +242,7 @@ public class CerberusRunner {
         registerCommand(new CreateCmsResourcesForRegionCommand());
         registerCommand(new XRegionDatabaseReplicationCommand());
         registerCommand(new AddJwtSecretCommand());
+        registerCommand(new EnableAuditLoggingCommand());
     }
 
     /**

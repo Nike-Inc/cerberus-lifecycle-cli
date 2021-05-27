@@ -93,9 +93,9 @@ Resources:
               Effect: Allow
               Principal:
                 Service:
-                  - glue.amazonaws.com.cn
+                  - glue.amazonaws.com
                   - ec2.amazonaws.com.cn
-                  - lambda.amazonaws.com.cn
+                  - lambda.amazonaws.com
           Version: '2012-10-17'
         Path: /
         ManagedPolicyArns:
