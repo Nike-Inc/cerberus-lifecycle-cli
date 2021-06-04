@@ -32,7 +32,7 @@ public class ViewConfigCommand implements Command {
 
     public static final String COMMAND_NAME = "view-config";
 
-    @Parameter(names = {"--config-path"}, required = true, description = "The path to the configuration file (e.g. data/cms/environment.properties)")
+    @Parameter(names = {"--config-path"}, required = true, description = "The path to the configuration file in s3 (e.g. data/cms/environment.properties)")
     private String pathToConfig;
 
     public String getPathToConfig() {
