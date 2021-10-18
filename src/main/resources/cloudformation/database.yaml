@@ -30,7 +30,7 @@ Parameters:
     Description: The third availability zone for the DB Instances
     Type: String
   cmsDbInstanceClass:
-    Default: db.r3.large
+    Default: db.r5.large
     Description: MySQL DB instance class
     Type: String
   cmsDbMasterPassword:
@@ -75,7 +75,8 @@ Resources:
       BackupRetentionPeriod: 14
       DatabaseName: !Ref 'cmsDbName'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
-      Engine: aurora
+      Engine: aurora-mysql
+      EngineVersion: 5.7.mysql_aurora.2.10.0
       MasterUserPassword: !Ref 'cmsDbMasterPassword'
       MasterUsername: !If [HasSnapshotIdentifier, !Ref 'AWS::NoValue', !Ref 'cmsDbMasterUsername']
       Port:
@@ -95,7 +96,8 @@ Resources:
       DBInstanceClass: !Ref 'cmsDbInstanceClass'
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
-      Engine: aurora
+      Engine: aurora-mysql
+      EngineVersion: 5.7.mysql_aurora.2.10.0
       PubliclyAccessible: 'false'
   CmsDbInstance2:
     Type: AWS::RDS::DBInstance
@@ -104,13 +106,14 @@ Resources:
       DBInstanceClass: !Ref 'cmsDbInstanceClass'
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
-      Engine: aurora
+      Engine: aurora-mysql
+      EngineVersion: 5.7.mysql_aurora.2.10.0
       PubliclyAccessible: 'false'
   CmsDatabaseParamGroup:
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: Default parameters for the cms DB
-      Family: aurora5.6
+      Family: aurora-mysql5.7
       Parameters:
         log_output: TABLE
         slow_query_log: 1
