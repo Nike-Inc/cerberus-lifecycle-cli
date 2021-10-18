@@ -64,18 +64,21 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
     public void run(UpdateStackCommand command) {
         Regions region = command.getCloudFormationParametersDelegate().getStackRegion()
                 .orElse(configStore.getPrimaryRegion());
-        String stackId = command.getStack().getFullName(environmentName);
+        final Stack stackConstant = command.getStack();
+        final Stack workingStack = Stack.fromNameAndCfTemplateFilePathStack(stackConstant.getName(), command.getCfTemplateFileName());
+
+        final String stackId = workingStack.getFullName(environmentName);
 
         Map<String, String> parameters = cloudFormationService.getStackParameters(region, stackId);
         Map<String, String> tags = command.getCloudFormationParametersDelegate().getTags();
 
         // only some stacks need user data
-        if (command.getStack().isNeedsUserData()) {
-            parameters.put("userData", ec2UserDataService.getUserData(region, command.getStack(),
+        if (workingStack.isNeedsUserData()) {
+            parameters.put("userData", ec2UserDataService.getUserData(region, workingStack,
                     Optional.ofNullable(tags.getOrDefault("ownerGroup", null))));
         }
 
-        if (Stack.DATABASE.equals(command.getStack())) {
+        if (Stack.DATABASE.equals(stackConstant)) {
             Optional<String> dbPasswordOverwrite = command.getDynamicParameters().entrySet().stream()
                     .filter(entry -> entry.getKey().equals("cmsDbMasterPassword"))
                     .map(Map.Entry::getValue)
@@ -88,7 +91,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
                     new RuntimeException("Unable to find current database password, add new one " +
                             "with -PcmsDbMasterPassword=xxxxxxx"))));
 
-        } else if (Stack.LOAD_BALANCER.equals(command.getStack())) {
+        } else if (Stack.LOAD_BALANCER.equals(stackConstant)) {
             parameters.put("sslCertificateArn", configStore.getCertificationInformationList()
                     .getLast().getIdentityManagementCertificateArn());
         }
@@ -99,7 +102,7 @@ public class UpdateStackOperation implements Operation<UpdateStackCommand> {
 
             cloudFormationService.updateStackAndWait(
                     region,
-                    command.getStack(),
+                    workingStack,
                     parameters,
                     true,
                     command.isOverwriteTemplate(),

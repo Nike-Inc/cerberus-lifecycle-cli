@@ -42,11 +42,15 @@ public class UpdateStackCommand implements Command {
 
     public static final String COMMAND_NAME = "update-stack";
     public static final String STACK_NAME_LONG_ARG = "--stack-name";
+    public static final String CF_TEMPLATE_FILE_NAME = "--cf-template-file-name";
     public static final String OVERWRITE_TEMPLATE_LONG_ARG = "--overwrite-template";
     public static final String PARAMETER_SHORT_ARG = "-P";
 
     @Parameter(names = {STACK_NAME_LONG_ARG}, required = true, description = "The stack name to update.", converter = StackConverter.class)
     private Stack stack;
+
+    @Parameter(names = {CF_TEMPLATE_FILE_NAME}, description = "Alternate template file name, e.g. custom.yaml")
+    private String cfTemplateFileName;
 
     @ParametersDelegate
     private CloudFormationParametersDelegate cloudFormationParametersDelegate = new CloudFormationParametersDelegate();
@@ -65,6 +69,8 @@ public class UpdateStackCommand implements Command {
     public Stack getStack() {
         return stack;
     }
+
+    public String getCfTemplateFileName() {return cfTemplateFileName;}
 
     public boolean isOverwriteTemplate() {
         return overwriteTemplate;
