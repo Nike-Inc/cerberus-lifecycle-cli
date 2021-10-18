@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 /**
  * Describes the stacks that make up Cerberus.
  */
@@ -126,6 +128,13 @@ public class Stack implements Comparable<Stack> {
         return String.format("%s-cerberus-%s", tokenizedEnvName, name);
     }
 
+    public static Stack fromNameAndCfTemplateFilePathStack(final String name, final String cfTemplateFilePath) {
+        final Stack stackConstant = Stack.fromName(name);
+        if (isEmpty(cfTemplateFilePath)) {
+            return stackConstant;
+        }
+        return new Stack(stackConstant.getName(), cfTemplateFilePath, stackConstant.isNeedsUserData());
+    }
     public static Stack fromName(final String name) {
         for (Stack stack : ALL_STACKS) {
             // ignore case and all enum style stack names
