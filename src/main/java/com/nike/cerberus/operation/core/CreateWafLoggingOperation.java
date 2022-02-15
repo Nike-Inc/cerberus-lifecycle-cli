@@ -56,7 +56,7 @@ public class CreateWafLoggingOperation implements Operation<CreateWafLoggingComm
 
     private final KinesisService kinesisService;
 
-    private final String webAclArnTemplate = "arn:aws:waf-regional:%s:%s:webacl/%s";
+    private final String webAclArnTemplate = "arn:aws-cn:waf-regional:%s:%s:webacl/%s";
 
     @Inject
     public CreateWafLoggingOperation(@Named(ENV_NAME) String environmentName,
@@ -108,6 +108,7 @@ public class CreateWafLoggingOperation implements Operation<CreateWafLoggingComm
                 configStore.getStackOutputs(region,
                         Stack.WAF.getFullName(environmentName), WafOutputs.class);
         String webAclId = wafOutputs.getWebAclID();
+
         String webAclArn = String.format(webAclArnTemplate, region.getName(), configStore.getAccountId(), webAclId);
 
         wafService.enableWafLogging(wafLoggingOutputs.getKinesisFirehoseDeliveryStreamARN(), webAclArn, region);
