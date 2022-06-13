@@ -19,6 +19,7 @@ package com.nike.cerberus.domain.cloudformation;
 import com.amazonaws.regions.Regions;
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
+import software.amazon.ion.SubstituteSymbolTableException;
 
 import java.util.HashMap;
 import java.util.Map;

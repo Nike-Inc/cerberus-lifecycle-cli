@@ -19,7 +19,7 @@ allprojects {
         jcenter()
     }
 
-    def awsSDKVersion = '1.11.1028'
+    def awsSDKVersion = '1.12.145'
 
     //noinspection GroovyAssignabilityCheck
     dependencies {

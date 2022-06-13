@@ -12,6 +12,9 @@ Parameters:
   s3Prefix:
     Description: The prefix of WAF logs in S3 bucket.
     Type: String
+  cisReplicationBucketArn:
+    Description: Arn for the CIS replication bucket
+    Type: String
 Resources:
   KinesisFirehoseDeliveryStream:
     Type: 'AWS::KinesisFirehose::DeliveryStream'
@@ -81,3 +84,48 @@ Resources:
             Principal:
               Service: firehose.amazonaws.com
             Action: 'sts:AssumeRole'
+  S3ReplicationRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: cerberus-cntest-waf-log-replication
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: "s3.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+  S3ReplicationPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: cntest-waf-log-replication
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: local_bucket_permissions
+            Action:
+              - "s3:Get*"
+              - "s3:ListBucket"
+            Effect: Allow
+            Resource:
+              - !Join
+                - ''
+                - - 'arn:aws-cn:s3:::'
+                  - !Ref S3DestinationBucket
+              - !Join
+                - ''
+                - - 'arn:aws-cn:s3:::'
+                  - !Ref S3DestinationBucket
+                  - '*'
+          - Sid: cis_log_bucket_permissions
+            Action:
+              - "s3:ReplicateObject"
+              - "s3:ReplicateDelete"
+              - "s3:ReplicateTags"
+              - "s3:GetObjectVersionTagging"
+              - "s3:ObjectOwnerOverrideToBucketOwner"
+            Effect: Allow
+            Resource: "arn:aws-cn:s3:::cis-central-cloudtrail-cn"
+      Roles:
+      - Ref: S3ReplicationRole
