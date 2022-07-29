@@ -12,6 +12,7 @@ fi
 IP_ADDRESS=$(curl -s http://checkip.amazonaws.com/)
 echo ""
 echo "-----------------------------------------------------------------------------------------------------------------"
+echo "Version 4.20.0"
 echo ""
 echo "Executing command: '${COMMAND} ${ADDITIONAL_COMMAND_OPTIONS}' in environment: '${ENVIRONMENT}' and region '${REGION}
  with the following external IP address: ${IP_ADDRESS}"
