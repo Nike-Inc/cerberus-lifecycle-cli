@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM adoptopenjdk/openjdk11:x86_64-alpine-jre-11.0.16_8
 
 RUN apk update
 RUN apk upgrade
