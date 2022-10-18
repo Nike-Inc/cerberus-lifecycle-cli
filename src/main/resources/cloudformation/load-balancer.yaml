@@ -47,7 +47,7 @@ Parameters:
       see http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html
       for more information
     Type: String
-    Default: ELBSecurityPolicy-TLS-1-2-2017-01
+    Default: ELBSecurityPolicy-FS-1-2-2019-08
   elasticLoadBalancingAccountId:
     Description: The account id for the AWS ELB Account. See https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html
     Type: String
