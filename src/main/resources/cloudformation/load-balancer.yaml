@@ -47,7 +47,7 @@ Parameters:
       see http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-policy-table.html
       for more information
     Type: String
-    Default: ELBSecurityPolicy-TLS-1-2-2017-01
+    Default: ELBSecurityPolicy-FS-1-2-2019-08
   elasticLoadBalancingAccountId:
     Description: The account id for the AWS ELB Account. See https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/enable-access-logs.html
     Type: String
@@ -64,6 +64,26 @@ Resources:
       Port: 443
       Protocol: HTTPS
       SslPolicy: !Ref 'sslPolicy'
+  ALBListenerRuleNoHttpOptions:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        -
+          Type: fixed-response
+          FixedResponseConfig:
+            ContentType: 'application/json'
+            MessageBody: '{"code": 405, "message": "Method not allowed: OPTIONS"}'
+            StatusCode: '405'
+          Order: 1
+      Conditions:
+        -
+          Field: http-request-method
+          HttpRequestMethodConfig:
+            Values:
+              - OPTIONS
+      ListenerArn: !Ref 'ALBListener'
+      Priority: 1
+
   ALBLogBucket:
     Properties:
       AccessControl: BucketOwnerFullControl
