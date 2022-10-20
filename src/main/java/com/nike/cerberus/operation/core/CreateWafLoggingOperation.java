@@ -108,7 +108,6 @@ public class CreateWafLoggingOperation implements Operation<CreateWafLoggingComm
                 configStore.getStackOutputs(region,
                         Stack.WAF.getFullName(environmentName), WafOutputs.class);
         String webAclId = wafOutputs.getWebAclID();
-
         String webAclArn = String.format(webAclArnTemplate, region.getName(), configStore.getAccountId(), webAclId);
 
         wafService.enableWafLogging(wafLoggingOutputs.getKinesisFirehoseDeliveryStreamARN(), webAclArn, region);
