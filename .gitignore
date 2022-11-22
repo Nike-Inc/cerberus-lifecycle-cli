@@ -50,6 +50,12 @@ hs_err_pid*
 /out/
 classes
 
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
 # mpeltonen/sbt-idea plugin
 .idea_modules/
 
