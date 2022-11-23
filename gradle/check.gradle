@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-apply plugin: 'findbugs'
 apply plugin: 'pmd'
 apply plugin: "jacoco"
 apply plugin: 'com.github.kt3k.coveralls'
-
-findbugs {
-    ignoreFailures = false
-    excludeFilter = rootProject.file('codequality/findbugs-suppressions.xml')
-    sourceSets = [project.sourceSets.main]
-}
 
 pmd {
     sourceSets = [project.sourceSets.main]
     ruleSets = []
     ruleSetFiles = files('codequality/pmd.xml')
-}
-
-tasks.withType(FindBugs) {
-    reports {
-        xml.withMessages = true
-    }
+    rulesMinimumPriority = 2
+    ignoreFailures = false
 }
 
 jacoco {
@@ -50,16 +39,5 @@ jacocoTestReport {
 }
 
 test.finalizedBy(project.tasks.jacocoTestReport)
-
-task findbugsHtml {
-    group = "Verification"
-    description = "Creates a human readable Findbugs report"
-    doLast {
-        ant.xslt(in: file("$buildDir/reports/findbugs/main.xml"),
-                style: file('codequality/findbugs_default.xsl'),
-                out: new File("$buildDir/reports/findbugs/main.html"))
-    }
-}
-findbugsMain.finalizedBy findbugsHtml
 
 tasks.coveralls.dependsOn check
