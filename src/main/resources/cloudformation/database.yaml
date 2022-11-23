@@ -76,7 +76,7 @@ Resources:
       DatabaseName: !Ref 'cmsDbName'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
       Engine: aurora-mysql
-      EngineVersion: 5.7.mysql_aurora.2.10.0
+      EngineVersion: 5.7.mysql_aurora.2.10.2
       MasterUserPassword: !Ref 'cmsDbMasterPassword'
       MasterUsername: !If [HasSnapshotIdentifier, !Ref 'AWS::NoValue', !Ref 'cmsDbMasterUsername']
       Port:
@@ -97,7 +97,7 @@ Resources:
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
       Engine: aurora-mysql
-      EngineVersion: 5.7.mysql_aurora.2.10.0
+      EngineVersion: 5.7.mysql_aurora.2.10.2
       PubliclyAccessible: 'false'
   CmsDbInstance2:
     Type: AWS::RDS::DBInstance
@@ -107,7 +107,7 @@ Resources:
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
       Engine: aurora-mysql
-      EngineVersion: 5.7.mysql_aurora.2.10.0
+      EngineVersion: 5.7.mysql_aurora.2.10.2
       PubliclyAccessible: 'false'
   CmsDatabaseParamGroup:
     Type: AWS::RDS::DBParameterGroup
