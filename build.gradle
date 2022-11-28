@@ -2,15 +2,19 @@ buildscript {
     apply from: file('gradle/buildscript.gradle'), to: buildscript
 }
 
+plugins {
+    id "jacoco"
+    id "com.github.spotbugs" version "5.0.13"
+}
+
+//sourceCompatibility = 1.8
+//targetCompatibility = 1.8
+
 allprojects {
     apply plugin: 'idea'
     apply plugin: 'application'
     apply plugin: "com.github.johnrengelman.shadow"
 }
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 apply from: file('gradle/dependencies.gradle')
 apply from: file('gradle/check.gradle')
 apply from: file('gradle/integration.gradle')

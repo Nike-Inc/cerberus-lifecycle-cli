@@ -26,6 +26,16 @@ pmd {
     ignoreFailures = false
 }
 
+test {
+    finalizedBy jacocoTestReport // report is always generated after tests run
+    beforeTest { descriptor ->
+        logger.lifecycle("Running test: " + descriptor)
+    }
+    filter {
+        excludeTestsMatching "com.nike.cerberus.cli.CerberusRunnerTest"
+    }
+}
+
 jacoco {
     toolVersion = "0.8.3"
     reportsDir = file("$buildDir/reports/jacoco")
@@ -35,6 +45,35 @@ jacocoTestReport {
     reports {
         xml.enabled true
         csv.enabled false
+    }
+    dependsOn test
+}
+
+spotbugs {
+    ignoreFailures = true
+    showStackTraces = false
+    showProgress = true
+    effort = 'default'
+    reportLevel = 'default'
+    reportsDir = file("$buildDir/reports/spotbugs")
+    //visitors = [ 'FindSqlInjection', 'SwitchFallthrough' ]
+    //omitVisitors = [ 'FindNonShortCircuit' ]
+    //includeFilter = file("include.xml")
+    //excludeFilter = file("exclude.xml")
+    //baselineFile = file("baseline.xml")
+    //onlyAnalyze = [ 'com.foobar.MyClass', 'com.foobar.mypkg.*' ]
+    //maxHeapSize = '1g'
+    //extraArgs = [ '-nested:false' ]
+    //jvmArgs = [ '-Duser.language=ja' ]
+}
+
+spotbugsMain {
+    reports {
+        html {
+            required = true
+            outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            //stylesheet = 'fancy-hist.xsl'
+        }
     }
 }
 
