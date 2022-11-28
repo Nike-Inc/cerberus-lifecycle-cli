@@ -17,6 +17,7 @@
 allprojects {
     repositories {
         jcenter()
+        mavenCentral()
     }
 
     def awsSDKVersion = '1.11.739'
@@ -42,8 +43,9 @@ allprojects {
         implementation group: 'com.amazonaws', name: 'aws-java-sdk-kinesis', version: awsSDKVersion
 
         implementation 'com.nike:vault-client:1.4.1'
+        implementation group: 'com.google.code.gson', name: 'gson', version: '2.10'
         implementation 'com.squareup.okhttp3:okhttp:3.3.1'
-        implementation 'com.beust:jcommander:1.55' // newer version up to at least 1.71 have broken variableArity, which breaks create cms cmk command
+        implementation 'com.beust:jcommander:1.58' // newer version up to at least 1.71 have broken variableArity, which breaks create cms cmk command
 
         implementation 'com.fasterxml.jackson.core:jackson-core:2.7.+'
         implementation 'com.fasterxml.jackson.core:jackson-databind:2.7.+'
@@ -75,13 +77,12 @@ allprojects {
         implementation group: 'org.shredzone.acme4j', name: 'acme4j-client', version: '0.13'
         implementation group: 'org.shredzone.acme4j', name: 'acme4j-utils', version: '0.13'
 
-        testImplementation "junit:junit:4.12"
-        testImplementation("org.mockito:mockito-core:2.9.0") {
+        testImplementation "junit:junit:4.13"
+        testImplementation("org.mockito:mockito-core:3.12.4") {
             exclude group: 'org.hamcrest'
         }
         testImplementation 'com.fieldju:commons:1.2.0'
         testImplementation group: 'io.netty', name: 'netty-handler', version: '4.1.16.Final'
-
     }
 
     configurations.all {
