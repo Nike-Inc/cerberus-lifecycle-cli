@@ -2,19 +2,24 @@ buildscript {
     apply from: file('gradle/buildscript.gradle'), to: buildscript
 }
 
+plugins {
+    id "jacoco"
+    id "com.github.spotbugs" version "5.0.13"
+}
+
+//sourceCompatibility = 1.8
+//targetCompatibility = 1.8
+
 allprojects {
     apply plugin: 'idea'
-    apply plugin: 'maven'
     apply plugin: 'application'
     apply plugin: "com.github.johnrengelman.shadow"
 }
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 apply from: file('gradle/dependencies.gradle')
 apply from: file('gradle/check.gradle')
 apply from: file('gradle/integration.gradle')
+
+apply plugin: "com.github.johnrengelman.shadow"
 
 mainClassName = 'com.nike.cerberus.cli.CerberusRunner'
 
@@ -34,14 +39,10 @@ mainClassName = 'com.nike.cerberus.cli.CerberusRunner'
  * limitations under the License.
  */
 
-shadowJar {
+task copyProjectVersion() {
     def releaseVersion = version
-    doFirst {
-        ant.replace(file: "$buildDir/resources/main/cerberus-lifecycle-cli.properties", token: "@@RELEASE@@", value: releaseVersion)
+    doLast {
+        ant.replace(file: "$buildDir/resources/main/cerberus-lifecycle-cli.properties", token: "@@JAVA_CLIENT_RELEASE@@", value: releaseVersion)
     }
-    baseName = 'cerberus'
-    classifier = null
-    version = null
 }
-
-tasks.assemble.finalizedBy shadowJar
+tasks.jar.dependsOn copyProjectVersion
