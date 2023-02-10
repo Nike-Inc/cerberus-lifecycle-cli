@@ -6,5 +6,8 @@ cd "$(dirname "$0")"
 # Build distribution
 ./gradlew clean sJ
 
+# Rename jar for convenience
+mv build/libs/cerberus*.jar build/libs/cerberus.jar
+
 # Run
 java -jar ./build/libs/cerberus.jar "$@"
