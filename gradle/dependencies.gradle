@@ -81,7 +81,6 @@ allprojects {
         testImplementation("org.mockito:mockito-core:3.12.4") {
             exclude group: 'org.hamcrest'
         }
-        testImplementation 'com.fieldju:commons:1.2.0'
         testImplementation group: 'io.netty', name: 'netty-handler', version: '4.1.16.Final'
     }
 
