@@ -45,6 +45,10 @@ Parameters:
     Default: 'cms'
     Description: The name of the database initially create on the RDS instance
     Type: String
+  dbEngineVersion:
+    Default: "5.7.mysql_aurora.2.11.1"
+    Description: Aurora db engine version
+    Type: String
   sgStackName:
     Description: The name of the Cerberus Security Groups CloudFormation stack
     Type: String
@@ -76,7 +80,7 @@ Resources:
       DatabaseName: !Ref 'cmsDbName'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
       Engine: aurora-mysql
-      EngineVersion: 5.7.mysql_aurora.2.10.3
+      EngineVersion: !Ref 'dbEngineVersion'
       MasterUserPassword: !Ref 'cmsDbMasterPassword'
       MasterUsername: !If [HasSnapshotIdentifier, !Ref 'AWS::NoValue', !Ref 'cmsDbMasterUsername']
       Port:
@@ -98,7 +102,7 @@ Resources:
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
       Engine: aurora-mysql
-      EngineVersion: 5.7.mysql_aurora.2.10.3
+      EngineVersion: !Ref 'dbEngineVersion'
       PubliclyAccessible: 'false'
   CmsDbInstance2:
     Type: AWS::RDS::DBInstance
@@ -109,7 +113,7 @@ Resources:
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
       DBSubnetGroupName: !Ref 'CmsDatabaseSubnetGroup'
       Engine: aurora-mysql
-      EngineVersion: 5.7.mysql_aurora.2.10.3
+      EngineVersion: !Ref 'dbEngineVersion'
       PubliclyAccessible: 'false'
   CmsDatabaseParamGroup:
     Type: AWS::RDS::DBParameterGroup
