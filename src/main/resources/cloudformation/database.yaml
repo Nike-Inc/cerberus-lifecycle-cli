@@ -96,6 +96,7 @@ Resources:
   CmsDbInstance1:
     Type: AWS::RDS::DBInstance
     Properties:
+      AutoMinorVersionUpgrade: 'false'
       DBClusterIdentifier: !Ref CmsDatabaseCluster
       DBInstanceClass: !Ref 'cmsDbInstanceClass'
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
@@ -106,6 +107,7 @@ Resources:
   CmsDbInstance2:
     Type: AWS::RDS::DBInstance
     Properties:
+      AutoMinorVersionUpgrade: 'false'
       DBClusterIdentifier: !Ref CmsDatabaseCluster
       DBInstanceClass: !Ref 'cmsDbInstanceClass'
       DBParameterGroupName: !Ref 'CmsDatabaseParamGroup'
